@@ -1,22 +1,22 @@
 import os
-import time
-from typing import Dict, List, Optional
+import json
+import re
+from typing import List, Dict, Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, Field
-import httpx
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = FastAPI(
-    title="Voice-First AI Assistant API",
-    description="FastAPI backend for Voice-First hackathon applications with conversation memory",
-    version="1.0.0"
+    title="Gemma Restaurant Voice Assistant",
+    description="Voice-First AI Restaurant Assistant powered by Gemma and FastAPI"
 )
 
-# Enable CORS for cross-origin frontend support
+# Enable CORS for all origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,230 +25,171 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory session store: session_id -> list of message dicts
-# Format: {"role": "user" | "assistant" | "system", "content": str, "timestamp": float}
-sessions: Dict[str, List[Dict[str, any]]] = {}
+# Global chat history list to store conversation context
+chat_history: List[Dict[str, str]] = []
 
 SYSTEM_PROMPT = (
-    "You are Jarvis, an ultra-fast, intelligent, voice-first AI assistant designed for live voice conversations. "
-    "Keep answers conversational, engaging, and concise (1 to 3 sentences maximum), because your response "
-    "will be read aloud using speech synthesis. Avoid markdown tables, bullet points, asterisks, or unpronounceable code snippets."
+    "You are a fast, intelligent voice assistant for a restaurant. "
+    "Remember the context of the conversation. "
+    "You must ALWAYS respond with raw JSON containing exactly two keys: "
+    "'reply' (a short, friendly conversational response to speak out loud) and "
+    "'action' (choose exactly one: ADD_PIZZA, ADD_BURGER, CLEAR_CART, or NONE)."
 )
 
-class ChatRequest(BaseModel):
-    message: str = Field(..., description="The user voice transcription or text message")
-    session_id: Optional[str] = Field("default", description="Unique conversation session ID")
-
-class ChatResponse(BaseModel):
-    reply: str
-    session_id: str
-    history_length: int
-
-class ResetRequest(BaseModel):
-    session_id: Optional[str] = "default"
+class ChatInput(BaseModel):
+    text: str
 
 
-def get_or_create_session(session_id: str) -> List[Dict[str, any]]:
-    if session_id not in sessions:
-        sessions[session_id] = [
-            {"role": "system", "content": SYSTEM_PROMPT, "timestamp": time.time()}
-        ]
-    return sessions[session_id]
+def extract_json(raw_text: str) -> Dict[str, Any]:
+    """Extract and parse JSON from model output, handling optional markdown code fences."""
+    cleaned = raw_text.strip()
+    # Remove markdown code block fences if present
+    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    cleaned = cleaned.strip()
 
+    # Try direct parse
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
 
-async def generate_response(history: List[Dict[str, any]]) -> str:
-    """
-    Generates response using OpenAI API, Gemini API, or an intelligent built-in fallback engine.
-    This guarantees zero downtime during hackathon presentations even if API keys are missing.
-    """
-    openai_key = os.getenv("OPENAI_API_KEY")
-    gemini_key = os.getenv("GEMINI_API_KEY")
-
-    # 1. Try OpenAI if key is present
-    if openai_key:
+    # Regex search for { ... } block
+    match = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+    if match:
         try:
-            messages = [{"role": m["role"], "content": m["content"]} for m in history]
-            async with httpx.AsyncClient(timeout=12.0) as client:
-                res = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {openai_key}"},
-                    json={
-                        "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                        "messages": messages,
-                        "temperature": 0.7,
-                        "max_tokens": 150
-                    }
-                )
-                if res.status_code == 200:
-                    data = res.json()
-                    return data["choices"][0]["message"]["content"].strip()
-        except Exception as e:
-            print(f"[OpenAI fallback] error: {e}")
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
 
-    # 2. Try Gemini if key is present
-    if gemini_key:
-        try:
-            # Build conversation turns for Gemini
-            contents = []
-            for m in history:
-                if m["role"] == "user":
-                    contents.append({"role": "user", "parts": [{"text": m["content"]}]})
-                elif m["role"] == "assistant":
-                    contents.append({"role": "model", "parts": [{"text": m["content"]}]})
+    # Fallback structure if parsing fails
+    return {
+        "reply": raw_text.replace("{", "").replace("}", "").strip() or "I received your order!",
+        "action": "NONE"
+    }
 
-            model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
-            async with httpx.AsyncClient(timeout=12.0) as client:
-                res = await client.post(
-                    url,
-                    json={
-                        "contents": contents,
-                        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-                        "generationConfig": {"maxOutputTokens": 150, "temperature": 0.7}
-                    }
-                )
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates and "content" in candidates[0]:
-                        parts = candidates[0]["content"].get("parts", [])
-                        if parts:
-                            return parts[0].get("text", "").strip()
-        except Exception as e:
-            print(f"[Gemini fallback] error: {e}")
 
-    # 3. Built-in contextual AI Engine (Tracks context, personal details, memory, hackathon queries)
-    last_user_msg = history[-1]["content"].lower().strip()
-    
-    # Check conversational history for context
-    user_name = None
-    for item in history:
-        if item["role"] == "user":
-            txt = item["content"].lower()
-            if "my name is " in txt:
-                user_name = item["content"].split("my name is", 1)[1].strip().split()[0].strip(".!?, ").title()
-            elif "i am " in txt and "i am a" not in txt and "i am here" not in txt and "i am doing" not in txt:
-                user_name = item["content"].split("i am", 1)[1].strip().split()[0].strip(".!?, ").title()
+def fallback_restaurant_engine(user_text: str, history: List[Dict[str, str]]) -> Dict[str, str]:
+    """Resilient fallback engine ensuring demo works if GEMMA_API_KEY is omitted or offline."""
+    lower = user_text.lower()
 
-    # Dynamic contextual dialogue matching
-    if any(q in last_user_msg for q in ["what is my name", "who am i", "do you remember my name"]):
-        if user_name:
-            return f"You told me your name is {user_name}! I remember our entire conversation."
-        return "You haven't told me your name yet. What should I call you?"
-
-    if "my name is" in last_user_msg:
-        extracted = history[-1]["content"].split("name is", 1)[1].strip().split()[0].strip(".!?,")
-        return f"Nice to meet you, {extracted.title()}! I have added that to our conversation memory. How can I assist your hackathon project today?"
-
-    if any(q in last_user_msg for q in ["what can you do", "help", "who are you", "what is this app"]):
-        return "I am Jarvis, your voice-first AI assistant! I listen to your speech in real time, remember our conversation history, and talk back using speech synthesis."
-
-    if any(q in last_user_msg for q in ["how many messages", "history length", "conversation length"]):
-        user_msgs = sum(1 for m in history if m["role"] == "user")
-        return f"We have exchanged {user_msgs} messages in this active voice session, and I have stored every single turn."
-
-    if any(q in last_user_msg for q in ["time", "what time is it"]):
-        current_time = time.strftime("%I:%M %p")
-        return f"The current time is {current_time}."
-
-    if any(q in last_user_msg for q in ["hackathon", "pitch", "demo"]):
-        return "For a winning hackathon pitch, show this hands-free voice loop in action: speak naturally, let me answer aloud, and highlight the zero-latency round trip!"
-
-    if any(q in last_user_msg for q in ["hello", "hi", "hey", "good morning", "good evening"]):
-        greeting = f"Hello {user_name}!" if user_name else "Hello there!"
-        return f"{greeting} I'm online and listening. What would you like to explore?"
-
-    # Contextual synthesis for general queries
-    return f"I received: '{history[-1]['content']}'. Our session is active, conversation history is preserved, and voice roundtrip is operational. Connect an OPENAI_API_KEY in your .env file anytime for live LLM reasoning!"
+    if any(w in lower for w in ["clear", "reset", "empty", "cancel", "start over"]):
+        return {
+            "reply": "I have cleared everything from your cart. What else would you like to order?",
+            "action": "CLEAR_CART"
+        }
+    elif any(w in lower for w in ["pizza", "slice", "pie", "pepperoni", "margherita"]):
+        return {
+            "reply": "Adding a hot, delicious pizza to your cart!",
+            "action": "ADD_PIZZA"
+        }
+    elif any(w in lower for w in ["burger", "cheeseburger", "patty", "hamburger"]):
+        return {
+            "reply": "You got it! Adding a juicy burger to your order.",
+            "action": "ADD_BURGER"
+        }
+    elif any(w in lower for w in ["hello", "hi", "hey"]):
+        return {
+            "reply": "Welcome to our restaurant! Would you like a fresh pizza or a delicious burger today?",
+            "action": "NONE"
+        }
+    elif any(w in lower for w in ["menu", "what do you have", "what can i order"]):
+        return {
+            "reply": "We specialize in fresh artisan pizzas and handcrafted burgers. Which would you like to start with?",
+            "action": "NONE"
+        }
+    else:
+        return {
+            "reply": f"Sure thing! I noted: {user_text}. Would you like a pizza or a burger with that?",
+            "action": "NONE"
+        }
 
 
 @app.get("/")
-def get_frontend():
-    """Serves the voice frontend index.html directly from FastAPI."""
+def serve_index():
+    """Serve the index.html frontend."""
     index_path = os.path.join(os.path.dirname(__file__), "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return {"message": "Voice-First AI API is running. index.html not found in root directory."}
+    return {"message": "index.html not found"}
 
 
-@app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(request: ChatRequest):
+@app.post("/chat")
+def chat_endpoint(payload: ChatInput):
     """
-    Primary endpoint for Voice-First AI interaction:
-    1. Loads or initializes the conversation session.
-    2. Stores the user's voice message in history.
-    3. Generates conversational reply with session context.
-    4. Appends assistant response to history.
-    5. Returns clean response to be spoken aloud.
+    POST /chat:
+    1. Appends user text to chat_history.
+    2. Calls google/gemma-4-instruct via InferenceClient.
+    3. Parses the structured JSON response {'reply': ..., 'action': ...}.
+    4. Appends assistant response to history and returns to client.
     """
-    clean_msg = request.message.strip()
-    if not clean_msg:
-        raise HTTPException(status_code=400, detail="Message cannot be empty.")
+    user_text = payload.text.strip()
+    if not user_text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
 
-    history = get_or_create_session(request.session_id)
-    
-    # Store user turn
-    history.append({
-        "role": "user",
-        "content": clean_msg,
-        "timestamp": time.time()
-    })
+    # 1. Append user text to global chat history
+    chat_history.append({"role": "user", "content": user_text})
 
-    # Generate assistant reply
-    reply = await generate_response(history)
+    # Read GEMMA_API_KEY (or fallback HF_TOKEN)
+    api_key = os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN")
 
-    # Store assistant turn
-    history.append({
-        "role": "assistant",
-        "content": reply,
-        "timestamp": time.time()
-    })
+    response_data = None
 
-    return ChatResponse(
-        reply=reply,
-        session_id=request.session_id,
-        history_length=len(history)
-    )
+    # 2. Call google/gemma-4-instruct via HuggingFace InferenceClient if key is present
+    if api_key:
+        try:
+            client = InferenceClient(token=api_key)
 
+            # Build messages starting with system prompt followed by conversation history
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+            messages.extend(chat_history)
 
-@app.get("/history/{session_id}")
-def get_history(session_id: str):
-    """Returns conversation history for a given session."""
-    if session_id not in sessions:
-        return {"session_id": session_id, "messages": [], "count": 0}
-    
-    # Filter out system prompt for clean UI inspection
-    clean_history = [
-        {"role": m["role"], "content": m["content"], "timestamp": m.get("timestamp")}
-        for m in sessions[session_id]
-        if m["role"] != "system"
-    ]
-    return {
-        "session_id": session_id,
-        "messages": clean_history,
-        "count": len(clean_history)
-    }
+            # Request completion from Gemma
+            response = client.chat_completion(
+                model="google/gemma-4-instruct",
+                messages=messages,
+                max_tokens=200,
+                temperature=0.2
+            )
 
+            raw_reply = response.choices[0].message.content
+            response_data = extract_json(raw_reply)
 
-@app.post("/reset")
-def reset_history(request: ResetRequest):
-    """Clears conversation history for the given session."""
-    sid = request.session_id or "default"
-    sessions[sid] = [
-        {"role": "system", "content": SYSTEM_PROMPT, "timestamp": time.time()}
-    ]
-    return {"status": "success", "message": f"Session '{sid}' history reset.", "session_id": sid}
+        except Exception as e:
+            print(f"[Gemma InferenceClient Warning]: {e}")
+            # Fall back smoothly if remote model is loading or key is invalid
+            response_data = fallback_restaurant_engine(user_text, chat_history)
+    else:
+        # Seamless local fallback for instant zero-dependency testing
+        response_data = fallback_restaurant_engine(user_text, chat_history)
+
+    # Validate action key exists and is one of the allowed choices
+    valid_actions = {"ADD_PIZZA", "ADD_BURGER", "CLEAR_CART", "NONE"}
+    if response_data.get("action") not in valid_actions:
+        response_data["action"] = "NONE"
+
+    if "reply" not in response_data:
+        response_data["reply"] = "Order updated!"
+
+    # 3. Append assistant reply to chat history
+    chat_history.append({"role": "assistant", "content": response_data["reply"]})
+
+    # 4. Return the structured JSON to the client
+    return response_data
 
 
-@app.get("/health")
-def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "active_sessions": len(sessions),
-        "openai_configured": bool(os.getenv("OPENAI_API_KEY")),
-        "gemini_configured": bool(os.getenv("GEMINI_API_KEY"))
-    }
+@app.get("/history")
+def get_history():
+    """Retrieve the full global chat history."""
+    return {"history": chat_history, "count": len(chat_history)}
+
+
+@app.post("/clear")
+def clear_history():
+    """Clear conversation history."""
+    global chat_history
+    chat_history.clear()
+    return {"status": "cleared"}
 
 
 if __name__ == "__main__":
