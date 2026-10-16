@@ -8,5 +8,6 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Note: Using httpx with starlette TestClient emits a deprecation warning on latest Starlette versions, but does not affect production Uvicorn runtime.
 - Note: Running `uvicorn` in a bare shell fails with `command not found: uvicorn` if `.venv` is not activated. Added `run.sh`, `run.py`, and direct `.venv/bin/uvicorn` instructions to provide single-command execution.
 - Fixed CSS lint warning: added standard `background-clip: text` alongside `-webkit-background-clip: text`.
+- Note: Opening `index.html` via `file://` causes browser security blocks: Chrome/Safari disable Web Speech API recognition on `file://` origins and `window.location.origin` becomes "null". Added dynamic fallback to `http://127.0.0.1:8000`, explicit in-app warning banner with clickable URL, and `SpeechSynthesis.resume()` for Chrome audio engine.
 
 

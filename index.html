@@ -674,6 +674,12 @@
       </div>
     </header>
 
+    <!-- File Protocol warning banner -->
+    <div id="fileProtocolWarning" class="unsupported-banner" style="background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.45); color: #fde68a;">
+      ⚡ <strong>Local File (file://) Detected:</strong> Browsers block microphone Speech Recognition on <code>file://</code> URLs for security.<br>
+      Please open <a href="http://localhost:8000" target="_blank" style="color: #38bdf8; font-weight: 700; text-decoration: underline;">http://localhost:8000</a> in Chrome, Edge, or Safari with the backend running.
+    </div>
+
     <!-- Unsupported API warning banner -->
     <div id="unsupportedWarning" class="unsupported-banner">
       ⚠️ Web Speech API is not supported in this browser. Please use Chrome, Edge, or Safari for voice capture. You can still use the text input below.
@@ -787,9 +793,15 @@
 
   <script>
     // Configuration
-    const BACKEND_URL = window.location.origin; // Dynamically uses same host/port if served by FastAPI
+    const isFileProtocol = window.location.protocol === "file:" || !window.location.protocol.startsWith("http");
+    const BACKEND_URL = isFileProtocol ? "http://127.0.0.1:8000" : window.location.origin;
     const SESSION_ID = "voice-session-" + Math.random().toString(36).substring(2, 9);
     document.getElementById("sessionTag").textContent = `ID: ${SESSION_ID.substring(0, 15)}`;
+
+    if (isFileProtocol) {
+      const banner = document.getElementById("fileProtocolWarning");
+      if (banner) banner.style.display = "block";
+    }
 
     // DOM Elements
     const orbButton = document.getElementById("orbButton");
@@ -868,6 +880,7 @@
         if (finalTranscript) {
           interimPreview.textContent = `"${finalTranscript}"`;
           interimPreview.classList.remove("active");
+          stopListening();
           sendVoiceMessage(finalTranscript.trim());
         }
       };
@@ -1081,8 +1094,11 @@
         return;
       }
 
-      // Cancel any pending speech
+      // Cancel any pending speech and ensure speech queue is resumed
       SpeechSynthesis.cancel();
+      if (SpeechSynthesis.paused) {
+        SpeechSynthesis.resume();
+      }
 
       const utterance = new SpeechSynthesisUtterance(text);
       if (selectedVoice) {
