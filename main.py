@@ -136,28 +136,25 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
 
 
 def call_google_ai_studio(history: List[Dict[str, str]], api_key: str) -> Dict[str, Any]:
-    """Call Google AI Studio endpoint natively with structured JSON output."""
-    import urllib.request
+    """Call Google AI Studio endpoint with strict 2.0s timeout to guarantee instant UI responses."""
+    import httpx
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
 
     contents = []
-    for m in history:
+    for m in history[-6:]:
         role = "user" if m.get("role") == "user" else "model"
         contents.append({"role": role, "parts": [{"text": m.get("content", "")}]})
 
     payload = {
         "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
         "contents": contents,
-        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 400, "responseMimeType": "application/json"}
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300, "responseMimeType": "application/json"}
     }
 
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
-    )
-    with urllib.request.urlopen(req, timeout=20) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
+    with httpx.Client(timeout=2.0) as client:
+        resp = client.post(url, json=payload)
+        resp.raise_for_status()
+        res = resp.json()
         raw_text = res["candidates"][0]["content"]["parts"][0]["text"]
         return extract_json(raw_text)
 
