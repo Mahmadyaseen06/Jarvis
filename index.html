@@ -3,23 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gemma Voice Diner • Drive-Thru & Kitchen Intercom</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <title>Gemma PM • Voice-Controlled AI Task Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-diner: #0d0f15;
-      --card-bg: #151922;
-      --card-border: #262c3d;
-      --primary-orange: #ff6b00;
-      --primary-amber: #f59e0b;
-      --grill-red: #ef4444;
-      --fresh-green: #10b981;
-      --text-primary: #ffffff;
+      --bg: #090c14;
+      --card-bg: rgba(16, 23, 38, 0.75);
+      --card-border: rgba(56, 189, 248, 0.18);
+      --accent-cyan: #38bdf8;
+      --accent-violet: #818cf8;
+      --accent-high: #f43f5e;
+      --accent-low: #10b981;
+      --col-todo-border: rgba(56, 189, 248, 0.35);
+      --col-progress-border: rgba(245, 158, 11, 0.4);
+      --col-done-border: rgba(16, 185, 129, 0.4);
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --font-diner: 'Plus Jakarta Sans', sans-serif;
-      --font-display: 'Space Grotesk', sans-serif;
+      --font-main: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
     * {
@@ -29,27 +32,26 @@
     }
 
     body {
-      background-color: var(--bg-diner);
-      background-image: radial-gradient(circle at 50% 0%, #201a14 0%, var(--bg-diner) 75%);
-      color: var(--text-primary);
-      font-family: var(--font-diner);
+      background: radial-gradient(circle at 50% 0%, #172138 0%, var(--bg) 100%);
+      color: var(--text-main);
+      font-family: var(--font-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px 40px;
+      padding: 24px 16px 40px;
     }
 
-    .diner-container {
+    .container {
       width: 100%;
-      max-width: 980px;
+      max-width: 1100px;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
 
-    /* Top Diner Canopy Header */
-    header.diner-header {
+    /* Header */
+    header {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 20px;
@@ -57,778 +59,526 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      position: relative;
-      overflow: hidden;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
 
-    header.diner-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #ff6b00, #f59e0b, #ef4444, #ff6b00);
-      background-size: 200% 100%;
-      animation: stripeShift 4s linear infinite;
-    }
-
-    @keyframes stripeShift {
-      0% { background-position: 0% 0%; }
-      100% { background-position: 200% 0%; }
-    }
-
-    .diner-brand {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .neon-logo {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #ff6b00, #dc2626);
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
-      box-shadow: 0 0 20px rgba(255, 107, 0, 0.4);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
     }
 
-    .diner-title h1 {
-      font-family: var(--font-display);
-      font-size: 1.45rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
     }
 
-    .diner-title p {
-      font-size: 0.8rem;
+    .brand-text h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    .ai-indicator {
+    .model-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #1e2433;
-      border: 1px solid #333c52;
       padding: 6px 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #cbd5e1;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
     }
 
-    .indicator-led {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--fresh-green);
-      box-shadow: 0 0 10px var(--fresh-green);
-    }
-
-    /* Interactive Menu Showcase Strip */
-    .menu-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    @media (max-width: 680px) {
-      .menu-strip {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    .menu-pill {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .menu-pill:hover {
-      border-color: var(--primary-orange);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(255, 107, 0, 0.15);
-    }
-
-    .menu-pill-emoji {
-      font-size: 1.6rem;
-    }
-
-    .menu-pill-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .menu-pill-name {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .menu-pill-price {
-      font-size: 0.75rem;
-      color: var(--primary-amber);
-      font-weight: 600;
-    }
-
-    /* Main Interaction Split: Drive-Thru Console & Cart */
-    .stage-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 840px) {
-      .stage-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Food Intercom Box */
-    .intercom-console {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 28px 24px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
-      position: relative;
-    }
-
-    .intercom-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 12px;
-      background: #1f2638;
-      border: 1px solid #37425f;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #cbd5e1;
-      margin-bottom: 20px;
-    }
-
-    .live-dot {
+    .dot-live {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--grill-red);
-      opacity: 0.4;
+      background: #34d399;
+      box-shadow: 0 0 10px #34d399;
     }
 
-    .live-dot.glowing {
-      opacity: 1;
-      box-shadow: 0 0 10px var(--grill-red);
-      animation: blink 0.8s infinite alternate;
+    /* Voice Interaction Console */
+    .voice-console {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
 
-    @keyframes blink {
-      0% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-
-    /* Push to Talk Intercom Button */
-    .intercom-btn-wrap {
+    .hold-btn-wrapper {
       position: relative;
-      margin-bottom: 22px;
+      margin-bottom: 16px;
     }
 
-    .intercom-btn {
-      width: 190px;
-      height: 190px;
+    .hold-btn {
+      width: 170px;
+      height: 170px;
       border-radius: 50%;
-      border: 6px solid #232a3d;
+      border: 4px solid rgba(56, 189, 248, 0.3);
       outline: none;
-      background: linear-gradient(145deg, #ff7a1a, #d44500);
-      box-shadow: 0 12px 28px rgba(212, 69, 0, 0.4), inset 0 4px 8px rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+      background: radial-gradient(circle at 35% 35%, #0284c7, #1e1b4b);
+      box-shadow: 0 0 40px rgba(2, 132, 199, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.35);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
       color: #ffffff;
-      transition: all 0.15s ease;
+      font-family: var(--font-main);
+      font-weight: 700;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
     }
 
-    .intercom-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 36px rgba(212, 69, 0, 0.55), inset 0 4px 8px rgba(255, 255, 255, 0.45);
+    .hold-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.6);
     }
 
-    .intercom-btn:active, .intercom-btn.pressing {
-      transform: translateY(4px) scale(0.97);
-      background: linear-gradient(145deg, #ef4444, #b91c1c);
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6), inset 0 2px 5px rgba(0, 0, 0, 0.3);
-      border-color: #ef4444;
+    .hold-btn.pressing {
+      transform: scale(0.96);
+      background: radial-gradient(circle at 35% 35%, #f43f5e, #881337);
+      border-color: #f43f5e;
+      box-shadow: 0 0 60px rgba(244, 63, 94, 0.8), inset 0 0 25px rgba(255, 255, 255, 0.45);
+      animation: pulseHold 1s infinite alternate;
     }
 
-    .mic-icon-svg {
-      width: 46px;
-      height: 46px;
+    @keyframes pulseHold {
+      0% { box-shadow: 0 0 40px rgba(244, 63, 94, 0.5); }
+      100% { box-shadow: 0 0 75px rgba(244, 63, 94, 0.95); }
+    }
+
+    .hold-icon {
+      width: 40px;
+      height: 40px;
       fill: #ffffff;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
 
-    .btn-main-label {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      font-weight: 700;
+    .hold-main-text {
+      font-size: 0.95rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
-    .btn-sub-label {
+    .hold-sub-text {
       font-size: 0.72rem;
-      opacity: 0.85;
+      opacity: 0.8;
       margin-top: 2px;
     }
 
-    /* Live Audio Soundwave Bars */
-    .soundwave-bars {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      height: 24px;
-      margin-bottom: 16px;
-    }
-
-    .soundwave-bar {
-      width: 4px;
-      height: 6px;
-      background: #333c52;
-      border-radius: 9999px;
-      transition: height 0.1s ease;
-    }
-
-    .soundwave-bars.active .soundwave-bar {
-      background: var(--primary-orange);
-      animation: waveBounce 0.6s infinite ease-in-out alternate;
-    }
-
-    .soundwave-bars.active .soundwave-bar:nth-child(2) { animation-delay: 0.1s; }
-    .soundwave-bars.active .soundwave-bar:nth-child(3) { animation-delay: 0.2s; }
-    .soundwave-bars.active .soundwave-bar:nth-child(4) { animation-delay: 0.3s; }
-    .soundwave-bars.active .soundwave-bar:nth-child(5) { animation-delay: 0.15s; }
-
-    @keyframes waveBounce {
-      0% { height: 6px; }
-      100% { height: 22px; }
-    }
-
-    /* Status Readout */
-    .intercom-status {
+    /* Status Area */
+    .status-area {
       width: 100%;
-      background: #0f131c;
-      border: 1px solid #232a3d;
+      max-width: 650px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
       border-radius: 14px;
       padding: 12px 18px;
       font-size: 0.92rem;
-      text-align: center;
-      min-height: 52px;
+      min-height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #e2e8f0;
-      line-height: 1.4;
+      color: #cbd5e1;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 12px;
     }
 
-    .intercom-status.listening {
-      border-color: var(--primary-orange);
-      color: #fed7aa;
-      background: rgba(255, 107, 0, 0.08);
-      font-weight: 600;
+    .status-area.listening {
+      border-color: #f43f5e;
+      color: #fecdd3;
+      background: rgba(244, 63, 94, 0.08);
     }
 
-    /* Shopping Cart Panel */
-    .cart-station {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 24px;
+    /* Example Prompts Pill Bar */
+    .quick-prompts {
       display: flex;
-      flex-direction: column;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
-    }
-
-    .cart-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #242c3e;
-      padding-bottom: 14px;
-      margin-bottom: 14px;
-    }
-
-    .cart-top-title {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 8px;
     }
 
-    .clear-cart-link {
-      font-size: 0.78rem;
-      color: #94a3b8;
-      background: #1e2433;
-      border: 1px solid #303a50;
+    .prompt-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 5px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .clear-cart-link:hover {
-      color: #fca5a5;
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.1);
-    }
-
-    /* The Main Cart Div */
-    #cart {
-      flex: 1;
-      min-height: 250px;
-      max-height: 310px;
-      overflow-y: auto;
-      background: #0d1017;
-      border: 2px dashed #283247;
-      border-radius: 18px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    #cart::-webkit-scrollbar {
-      width: 5px;
-    }
-    #cart::-webkit-scrollbar-thumb {
-      background: #283247;
-      border-radius: 4px;
-    }
-
-    .cart-empty-state {
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #64748b;
-      gap: 8px;
-      padding: 30px 10px;
-    }
-
-    .cart-empty-state span {
-      font-size: 2.8rem;
-      opacity: 0.6;
-    }
-
-    /* Cart Line Item Card */
-    .cart-card {
-      background: #171d2b;
-      border: 1px solid #263148;
-      border-radius: 14px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      animation: slideIn 0.25s ease-out;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .cart-card-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .cart-card-emoji {
-      font-size: 2rem;
-    }
-
-    .cart-card-details h4 {
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .cart-card-details p {
-      font-size: 0.74rem;
-      color: var(--primary-amber);
-      font-family: var(--font-display);
-    }
-
-    .cart-card-qty {
-      background: #252f44;
-      color: #ff6b00;
-      font-weight: 800;
-      font-size: 0.82rem;
-      padding: 4px 10px;
-      border-radius: 8px;
-      border: 1px solid #3a4866;
-    }
-
-    /* Cart Total Breakdown */
-    .cart-receipt-totals {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      border-top: 1px solid #242c3e;
-      padding-top: 12px;
-    }
-
-    .receipt-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
       color: #94a3b8;
-    }
-
-    .receipt-row.total {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #ffffff;
-      font-family: var(--font-display);
-      padding-top: 4px;
-    }
-
-    .checkout-btn {
-      margin-top: 10px;
-      width: 100%;
-      background: linear-gradient(135deg, #10b981, #059669);
-      border: none;
-      color: #ffffff;
-      padding: 12px;
-      border-radius: 14px;
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
       transition: all 0.2s;
     }
 
-    .checkout-btn:hover {
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
-      transform: translateY(-1px);
+    .prompt-chip:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-cyan);
+      color: #ffffff;
     }
 
-    /* Live Order Ticket Log */
-    .ticket-log-panel {
+    /* Futuristic Kanban Board */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 860px) {
+      .kanban-board {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kanban-col {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 20px;
-      padding: 20px 24px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      gap: 14px;
+      min-height: 420px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    .ticket-header {
+    .col-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      border-bottom: 1px dashed #2e374d;
-      padding-bottom: 10px;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid;
     }
 
-    .ticket-header h3 {
-      font-family: var(--font-display);
-      font-size: 0.98rem;
-      color: #cbd5e1;
+    .kanban-col.todo .col-header {
+      border-color: var(--col-todo-border);
+    }
+
+    .kanban-col.inprogress .col-header {
+      border-color: var(--col-progress-border);
+    }
+
+    .kanban-col.done .col-header {
+      border-color: var(--col-done-border);
+    }
+
+    .col-title {
+      font-size: 1rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .ticket-feed {
-      max-height: 200px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-right: 6px;
-    }
+    .kanban-col.todo .col-title { color: #38bdf8; }
+    .kanban-col.inprogress .col-title { color: #fbbf24; }
+    .kanban-col.done .col-title { color: #34d399; }
 
-    .ticket-feed::-webkit-scrollbar {
-      width: 4px;
-    }
-    .ticket-feed::-webkit-scrollbar-thumb {
-      background: #283247;
-      border-radius: 4px;
-    }
-
-    .ticket-entry {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      background: #0f131c;
-      border: 1px solid #232c40;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 0.88rem;
-    }
-
-    .ticket-entry.customer {
-      border-left: 4px solid var(--primary-orange);
-    }
-
-    .ticket-entry.gemma {
-      border-left: 4px solid var(--primary-amber);
-    }
-
-    .ticket-meta {
-      font-size: 0.7rem;
+    .col-count {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
       font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      color: #94a3b8;
+    }
+
+    .task-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      min-height: 280px;
+      padding-right: 2px;
+    }
+
+    .task-empty {
+      margin: auto;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.85rem;
+      padding: 30px 10px;
+    }
+
+    /* Task Card */
+    .task-card {
+      background: linear-gradient(135deg, rgba(23, 33, 54, 0.95), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-left: 4px solid;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      animation: cardEnter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: all 0.25s ease;
+      cursor: grab;
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .task-card.priority-high {
+      border-left-color: var(--accent-high);
+    }
+
+    .task-card.priority-low {
+      border-left-color: var(--accent-low);
+    }
+
+    @keyframes cardEnter {
+      0% { opacity: 0; transform: scale(0.9) translateY(8px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .task-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .task-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .priority-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
     }
 
-    .ticket-entry.customer .ticket-meta { color: var(--primary-orange); }
-    .ticket-entry.gemma .ticket-meta { color: var(--primary-amber); }
+    .priority-badge.high {
+      background: rgba(244, 63, 94, 0.2);
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      color: #fda4af;
+    }
 
-    /* Text Fallback Keyboard */
-    .keyboard-fallback {
+    .priority-badge.low {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #6ee7b7;
+    }
+
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Fallback Text Input */
+    .keyboard-bar {
       display: flex;
       gap: 10px;
-      margin-top: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     }
 
-    .keyboard-fallback input {
+    .keyboard-bar input {
       flex: 1;
-      background: #0f131c;
-      border: 1px solid #263148;
-      border-radius: 12px;
-      padding: 11px 16px;
-      color: #ffffff;
-      font-family: var(--font-diner);
-      font-size: 0.9rem;
+      background: transparent;
+      border: none;
       outline: none;
+      color: #ffffff;
+      font-family: var(--font-main);
+      font-size: 0.92rem;
     }
 
-    .keyboard-fallback input:focus {
-      border-color: var(--primary-orange);
+    .keyboard-bar input::placeholder {
+      color: #64748b;
     }
 
-    .keyboard-fallback button {
-      background: var(--primary-orange);
+    .keyboard-bar button {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
       color: #ffffff;
       border: none;
-      border-radius: 12px;
-      padding: 0 20px;
-      font-family: var(--font-display);
+      border-radius: 10px;
+      padding: 8px 20px;
+      font-family: var(--font-main);
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .keyboard-bar button:hover {
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
     }
   </style>
 </head>
 <body>
-  <div class="diner-container">
+  <div class="container">
     <!-- Header -->
-    <header class="diner-header">
-      <div class="diner-brand">
-        <div class="neon-logo">🍔</div>
-        <div class="diner-title">
-          <h1>GEMMA DINER</h1>
-          <p>Voice Drive-Thru & Kitchen Intercom</p>
+    <header>
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>GEMMA PM</h1>
+          <p>Voice-Controlled AI Task Board</p>
         </div>
       </div>
-      <div class="ai-indicator">
-        <div class="indicator-led"></div>
+      <div class="model-badge">
+        <div class="dot-live"></div>
         <span>Model: google/gemma-4-instruct</span>
       </div>
     </header>
 
-    <!-- Visual Menu Board -->
-    <div class="menu-strip">
-      <div class="menu-pill" onclick="simulateOrder('Add a pepperoni pizza')">
-        <span class="menu-pill-emoji">🍕</span>
-        <div class="menu-pill-info">
-          <span class="menu-pill-name">Wood-Fired Pizza</span>
-          <span class="menu-pill-price">$14.50</span>
-        </div>
-      </div>
-      <div class="menu-pill" onclick="simulateOrder('Add a smash burger')">
-        <span class="menu-pill-emoji">🍔</span>
-        <div class="menu-pill-info">
-          <span class="menu-pill-name">Smash Burger</span>
-          <span class="menu-pill-price">$10.95</span>
-        </div>
-      </div>
-      <div class="menu-pill" onclick="simulateOrder('Add crispy french fries')">
-        <span class="menu-pill-emoji">🍟</span>
-        <div class="menu-pill-info">
-          <span class="menu-pill-name">Truffle Fries</span>
-          <span class="menu-pill-price">$4.50</span>
-        </div>
-      </div>
-      <div class="menu-pill" onclick="simulateOrder('Add a cold soda')">
-        <span class="menu-pill-emoji">🥤</span>
-        <div class="menu-pill-info">
-          <span class="menu-pill-name">Fountain Drink</span>
-          <span class="menu-pill-price">$2.95</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Workspace: Intercom & Cart -->
-    <div class="stage-grid">
-      <!-- Drive-thru Intercom Console -->
-      <section class="intercom-console">
-        <div class="intercom-badge">
-          <div class="live-dot" id="liveDot"></div>
-          <span id="intercomModeLabel">Intercom Ready</span>
-        </div>
-
-        <div class="intercom-btn-wrap">
-          <button class="intercom-btn" id="intercomBtn">
-            <svg class="mic-icon-svg" viewBox="0 0 24 24">
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-            </svg>
-            <span class="btn-main-label" id="btnMainLabel">Hold to Talk</span>
-            <span class="btn-sub-label">Release when done</span>
-          </button>
-        </div>
-
-        <div class="soundwave-bars" id="soundwaveBars">
-          <div class="soundwave-bar"></div>
-          <div class="soundwave-bar"></div>
-          <div class="soundwave-bar"></div>
-          <div class="soundwave-bar"></div>
-          <div class="soundwave-bar"></div>
-        </div>
-
-        <div class="intercom-status" id="intercomStatus">
-          Press and hold the button to place your order with Gemma.
-        </div>
-      </section>
-
-      <!-- Cart Takeout Station -->
-      <section class="cart-station">
-        <div class="cart-top">
-          <div class="cart-top-title">
-            🛒 <span>Takeout Tray</span>
-          </div>
-          <button class="clear-cart-link" id="clearCartBtn" title="Clear all items">Empty Tray</button>
-        </div>
-
-        <!-- The Visual Cart Div -->
-        <div id="cart">
-          <div class="cart-empty-state" id="cartEmptyState">
-            <span>🥡</span>
-            <strong>Your takeout tray is empty.</strong>
-            <p style="font-size: 0.78rem;">Say "Give me two pizzas and fries!"</p>
-          </div>
-        </div>
-
-        <div class="cart-receipt-totals">
-          <div class="receipt-row">
-            <span>Subtotal:</span>
-            <span id="subtotalDisplay">$0.00</span>
-          </div>
-          <div class="receipt-row">
-            <span>Tax (8.25%):</span>
-            <span id="taxDisplay">$0.00</span>
-          </div>
-          <div class="receipt-row total">
-            <span>Total:</span>
-            <span style="color: #ff6b00;" id="totalDisplay">$0.00</span>
-          </div>
-        </div>
-
-        <button class="checkout-btn" id="checkoutBtn" onclick="checkoutOrder()">
-          <span>✓</span> <span>Place Order</span>
+    <!-- Voice Controller Zone -->
+    <section class="voice-console">
+      <div class="hold-btn-wrapper">
+        <button class="hold-btn" id="holdBtn">
+          <svg class="hold-icon" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+          <span class="hold-main-text" id="holdMainText">Hold to Speak</span>
+          <span class="hold-sub-text">Release when done</span>
         </button>
-      </section>
-    </div>
-
-    <!-- Order Ticket / Chat Transcript -->
-    <section class="ticket-log-panel">
-      <div class="ticket-header">
-        <h3>🧾 <span>Live Kitchen Ticket</span></h3>
-        <span style="font-size: 0.75rem; color: #64748b; font-family: var(--font-display);">DRIVE-THRU #402</span>
       </div>
 
-      <div class="ticket-feed" id="ticketFeed">
-        <!-- Live turns append here -->
+      <div class="status-area" id="statusArea">
+        Hold the button and speak your task command...
       </div>
 
-      <form class="keyboard-fallback" id="keyboardForm">
-        <input type="text" id="keyboardInput" placeholder="Type order if microphone unavailable (e.g. 'Add 2 burgers and fries')..." autocomplete="off" />
-        <button type="submit">Send</button>
-      </form>
+      <!-- Quick clickable examples for demo -->
+      <div class="quick-prompts">
+        <span class="prompt-chip" onclick="simulatePrompt('Add task Build Landing Page priority High')">➕ Add "Build Landing Page" (High)</span>
+        <span class="prompt-chip" onclick="simulatePrompt('Add task Setup Supabase Auth priority Low')">➕ Add "Setup Auth" (Low)</span>
+        <span class="prompt-chip" onclick="simulatePrompt('Move Build Landing Page to In Progress')">🔄 Move to In Progress</span>
+        <span class="prompt-chip" onclick="simulatePrompt('Move Build Landing Page to Done')">✅ Move to Done</span>
+        <span class="prompt-chip" onclick="simulatePrompt('Clear all tasks from the board')">🗑️ Clear All</span>
+      </div>
     </section>
+
+    <!-- Kanban Board -->
+    <main class="kanban-board">
+      <!-- Column 1: To Do -->
+      <div class="kanban-col todo" data-status="Todo" id="col-todo">
+        <div class="col-header">
+          <div class="col-title">
+            <span>📋</span>
+            <span>To Do</span>
+          </div>
+          <span class="col-count" id="count-todo">0</span>
+        </div>
+        <div class="task-container" id="container-todo">
+          <div class="task-empty" id="empty-todo">No tasks in To Do</div>
+        </div>
+      </div>
+
+      <!-- Column 2: In Progress -->
+      <div class="kanban-col inprogress" data-status="InProgress" id="col-inprogress">
+        <div class="col-header">
+          <div class="col-title">
+            <span>⚡</span>
+            <span>In Progress</span>
+          </div>
+          <span class="col-count" id="count-inprogress">0</span>
+        </div>
+        <div class="task-container" id="container-inprogress">
+          <div class="task-empty" id="empty-inprogress">No tasks in progress</div>
+        </div>
+      </div>
+
+      <!-- Column 3: Done -->
+      <div class="kanban-col done" data-status="Done" id="col-done">
+        <div class="col-header">
+          <div class="col-title">
+            <span>🎉</span>
+            <span>Done</span>
+          </div>
+          <span class="col-count" id="count-done">0</span>
+        </div>
+        <div class="task-container" id="container-done">
+          <div class="task-empty" id="empty-done">No completed tasks</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Text Input Bar -->
+    <form class="keyboard-bar" id="keyboardForm">
+      <input type="text" id="keyboardInput" placeholder="Type a task command (e.g. 'Add task Test payment integration priority High')..." autocomplete="off" />
+      <button type="submit">Execute</button>
+    </form>
   </div>
 
   <script>
     const BACKEND_URL = "http://localhost:8000";
 
     // DOM Elements
-    const intercomBtn = document.getElementById("intercomBtn");
-    const btnMainLabel = document.getElementById("btnMainLabel");
-    const liveDot = document.getElementById("liveDot");
-    const intercomModeLabel = document.getElementById("intercomModeLabel");
-    const soundwaveBars = document.getElementById("soundwaveBars");
-    const intercomStatus = document.getElementById("intercomStatus");
-    const cart = document.getElementById("cart");
-    const cartEmptyState = document.getElementById("cartEmptyState");
-    const subtotalDisplay = document.getElementById("subtotalDisplay");
-    const taxDisplay = document.getElementById("taxDisplay");
-    const totalDisplay = document.getElementById("totalDisplay");
-    const clearCartBtn = document.getElementById("clearCartBtn");
-    const ticketFeed = document.getElementById("ticketFeed");
+    const holdBtn = document.getElementById("holdBtn");
+    const holdMainText = document.getElementById("holdMainText");
+    const statusArea = document.getElementById("statusArea");
+    const containerTodo = document.getElementById("container-todo");
+    const containerInProgress = document.getElementById("container-inprogress");
+    const containerDone = document.getElementById("container-done");
+    const countTodo = document.getElementById("count-todo");
+    const countInProgress = document.getElementById("count-inprogress");
+    const countDone = document.getElementById("count-done");
+    const emptyTodo = document.getElementById("empty-todo");
+    const emptyInProgress = document.getElementById("empty-inprogress");
+    const emptyDone = document.getElementById("empty-done");
     const keyboardForm = document.getElementById("keyboardForm");
     const keyboardInput = document.getElementById("keyboardInput");
 
-    // Menu Item Prices
-    const MENU_PRICES = {
-      ADD_PIZZA: 14.50,
-      ADD_BURGER: 10.95,
-      ADD_FRIES: 4.50,
-      ADD_DRINK: 2.95
-    };
-
-    let cartData = [];
     let isHolding = false;
     let spokenText = "";
 
@@ -843,11 +593,8 @@
       recognition.lang = navigator.language || "en-US";
 
       recognition.onstart = () => {
-        intercomStatus.textContent = "Listening... Speak your order!";
-        intercomStatus.classList.add("listening");
-        liveDot.classList.add("glowing");
-        soundwaveBars.classList.add("active");
-        intercomModeLabel.textContent = "MIC LIVE";
+        statusArea.textContent = "Listening... Speak your project command!";
+        statusArea.classList.add("listening");
       };
 
       recognition.onresult = (event) => {
@@ -860,30 +607,30 @@
             interim += res[0].transcript;
           }
         }
-        const current = spokenText || interim;
-        if (current) {
-          intercomStatus.textContent = `"${current}"`;
+        const preview = spokenText || interim;
+        if (preview) {
+          statusArea.textContent = `"${preview}"`;
         }
       };
 
       recognition.onerror = (event) => {
-        console.warn("Speech recognition warning:", event.error);
+        console.warn("Speech error:", event.error);
         if (event.error !== "no-speech") {
-          intercomStatus.textContent = `Speech note: ${event.error}`;
+          statusArea.textContent = `Speech note: ${event.error}`;
         }
       };
 
       recognition.onend = () => {
         if (isHolding) {
-          releaseIntercom();
+          releaseHold();
         }
       };
     } else {
-      intercomStatus.textContent = "⚠️ Web Speech API not supported in this browser. Use Chrome or type below.";
+      statusArea.textContent = "⚠️ Web Speech API not supported in this browser. Please use Chrome, Edge, or Safari.";
     }
 
-    // Hold-to-Talk Event Listeners
-    function pressIntercom(e) {
+    // Hold-to-Speak Event Listeners
+    function pressHold(e) {
       if (e) e.preventDefault();
       if (isHolding) return;
       isHolding = true;
@@ -893,12 +640,10 @@
         window.speechSynthesis.cancel();
       }
 
-      intercomBtn.classList.add("pressing");
-      btnMainLabel.textContent = "Listening...";
-      intercomStatus.textContent = "Listening to your order...";
-      intercomStatus.classList.add("listening");
-      liveDot.classList.add("glowing");
-      soundwaveBars.classList.add("active");
+      holdBtn.classList.add("pressing");
+      holdMainText.textContent = "Listening...";
+      statusArea.textContent = "Listening to your project command...";
+      statusArea.classList.add("listening");
 
       if (recognition) {
         try {
@@ -907,17 +652,14 @@
       }
     }
 
-    function releaseIntercom(e) {
+    function releaseHold(e) {
       if (e) e.preventDefault();
       if (!isHolding) return;
       isHolding = false;
 
-      intercomBtn.classList.remove("pressing");
-      btnMainLabel.textContent = "Hold to Talk";
-      intercomStatus.classList.remove("listening");
-      liveDot.classList.remove("glowing");
-      soundwaveBars.classList.remove("active");
-      intercomModeLabel.textContent = "Intercom Ready";
+      holdBtn.classList.remove("pressing");
+      holdMainText.textContent = "Hold to Speak";
+      statusArea.classList.remove("listening");
 
       if (recognition) {
         try {
@@ -928,154 +670,184 @@
       setTimeout(() => {
         const textToSend = spokenText.trim();
         if (textToSend) {
-          dispatchOrderToBackend(textToSend);
+          dispatchCommand(textToSend);
         } else {
-          intercomStatus.textContent = "No speech detected. Hold the button and speak.";
+          statusArea.textContent = "No speech detected. Hold button and speak.";
         }
       }, 250);
     }
 
-    // Mouse handlers
-    intercomBtn.addEventListener("mousedown", pressIntercom);
-    window.addEventListener("mouseup", () => { if (isHolding) releaseIntercom(); });
+    holdBtn.addEventListener("mousedown", pressHold);
+    window.addEventListener("mouseup", () => { if (isHolding) releaseHold(); });
 
-    // Touch handlers for mobile/iPad
-    intercomBtn.addEventListener("touchstart", pressIntercom, { passive: false });
-    window.addEventListener("touchend", () => { if (isHolding) releaseIntercom(); });
-    window.addEventListener("touchcancel", () => { if (isHolding) releaseIntercom(); });
+    holdBtn.addEventListener("touchstart", pressHold, { passive: false });
+    window.addEventListener("touchend", () => { if (isHolding) releaseHold(); });
+    window.addEventListener("touchcancel", () => { if (isHolding) releaseHold(); });
 
-    // Click pill to simulate direct voice order
-    function simulateOrder(text) {
-      dispatchOrderToBackend(text);
+    // Click quick prompt to simulate
+    function simulatePrompt(text) {
+      dispatchCommand(text);
     }
 
-    // Call Backend POST /chat
-    async function dispatchOrderToBackend(userMessage) {
-      intercomStatus.textContent = "Chef Gemma is cooking up a response...";
-      appendTicket("Customer", userMessage);
+    // Dispatch voice/text command to http://localhost:8000/chat
+    async function dispatchCommand(userText) {
+      statusArea.textContent = "Gemma PM is analyzing command...";
 
       try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: userMessage })
+          body: JSON.stringify({ text: userText })
         });
 
         if (!res.ok) {
-          throw new Error(`Server status ${res.status}`);
+          throw new Error(`Server returned ${res.status}`);
         }
 
         const data = await res.json();
-        const reply = data.reply || "Order processed!";
-        const action = data.action || "NONE";
-        const quantity = data.quantity || 1;
+        const replyText = data.reply || "Task updated.";
+        const action = data.action || { command: "NONE" };
 
-        intercomStatus.textContent = `Action: ${action}${quantity > 1 ? ' (' + quantity + 'x)' : ''}`;
-        appendTicket("Chef Gemma", reply);
+        statusArea.textContent = `Gemma: "${replyText}"`;
 
-        // A) Speak aloud via SpeechSynthesis
-        speakAloud(reply);
+        // A) Read response out loud
+        speakResponse(replyText);
 
-        // B) Update Shopping Cart UI
-        processCartAction(action, quantity);
+        // B) Dynamically manipulate Kanban DOM based on action object
+        handleKanbanAction(action);
 
       } catch (err) {
-        console.error("Backend error:", err);
-        intercomStatus.textContent = "Could not connect to restaurant backend at http://localhost:8000";
-        appendTicket("Chef Gemma", "Sorry, the kitchen intercom is currently offline.");
+        console.error("Task board error:", err);
+        statusArea.textContent = "Could not connect to task server at http://localhost:8000";
       }
     }
 
-    // Cart Action Logic
-    function processCartAction(action, qty = 1) {
-      const quantity = Math.max(1, parseInt(qty) || 1);
+    // Dynamic Kanban DOM Manipulation
+    function handleKanbanAction(action) {
+      if (!action || !action.command) return;
+      const cmd = action.command;
 
-      if (action === "ADD_PIZZA") {
-        insertCartItem("🍕", "Wood-Fired Pizza", MENU_PRICES.ADD_PIZZA, quantity);
-      } else if (action === "ADD_BURGER") {
-        insertCartItem("🍔", "Smash Burger", MENU_PRICES.ADD_BURGER, quantity);
-      } else if (action === "ADD_FRIES") {
-        insertCartItem("🍟", "Truffle Fries", MENU_PRICES.ADD_FRIES, quantity);
-      } else if (action === "ADD_DRINK") {
-        insertCartItem("🥤", "Fountain Drink", MENU_PRICES.ADD_DRINK, quantity);
-      } else if (action === "CLEAR_CART") {
-        cartData = [];
-        renderCartUI();
+      if (cmd === "ADD_TASK") {
+        const taskName = action.task_name || "Untitled Task";
+        const priority = (action.priority || "Low").toLowerCase() === "high" ? "High" : "Low";
+        createTaskCard(taskName, priority);
+      } else if (cmd === "MOVE_TASK") {
+        const taskName = action.task_name || "";
+        const targetStatus = normalizeStatus(action.new_status);
+        moveTaskCard(taskName, targetStatus);
+      } else if (cmd === "CLEAR_ALL") {
+        clearAllTasks();
+      }
+
+      updateCounters();
+    }
+
+    function normalizeStatus(status) {
+      if (!status) return "InProgress";
+      const s = status.toLowerCase().replace(/[\s-_]/g, "");
+      if (s.includes("todo")) return "Todo";
+      if (s.includes("progress")) return "InProgress";
+      if (s.includes("done")) return "Done";
+      return "InProgress";
+    }
+
+    function createTaskCard(name, priority) {
+      if (emptyTodo) emptyTodo.style.display = "none";
+
+      const card = document.createElement("div");
+      card.className = `task-card priority-${priority.toLowerCase()}`;
+      card.setAttribute("data-task-name", name.toLowerCase());
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      card.innerHTML = `
+        <div class="task-top">
+          <span class="task-name">${escapeHtml(name)}</span>
+          <span class="priority-badge ${priority.toLowerCase()}">${priority}</span>
+        </div>
+        <div class="task-meta">
+          <span>Created: ${timeStr}</span>
+          <span style="font-size: 0.95rem; cursor: pointer;" onclick="this.closest('.task-card').remove(); updateCounters();" title="Delete Task">✕</span>
+        </div>
+      `;
+
+      containerTodo.appendChild(card);
+    }
+
+    function moveTaskCard(targetName, newStatus) {
+      const allCards = document.querySelectorAll(".task-card");
+      if (allCards.length === 0) return;
+
+      const search = targetName.toLowerCase().trim();
+      let matchedCard = null;
+
+      // 1. Try exact match
+      for (const card of allCards) {
+        const cardName = card.getAttribute("data-task-name") || "";
+        if (cardName === search) {
+          matchedCard = card;
+          break;
+        }
+      }
+
+      // 2. Try partial fuzzy containment match
+      if (!matchedCard && search) {
+        for (const card of allCards) {
+          const cardName = card.getAttribute("data-task-name") || "";
+          if (cardName.includes(search) || search.includes(cardName)) {
+            matchedCard = card;
+            break;
+          }
+        }
+      }
+
+      // 3. Fallback to newest card if no name matched
+      if (!matchedCard && allCards.length > 0) {
+        matchedCard = allCards[allCards.length - 1];
+      }
+
+      if (matchedCard) {
+        let destContainer = containerInProgress;
+        if (newStatus === "Todo") destContainer = containerTodo;
+        if (newStatus === "Done") destContainer = containerDone;
+
+        // Animate move
+        matchedCard.style.opacity = "0.4";
+        matchedCard.style.transform = "scale(0.95)";
+        
+        setTimeout(() => {
+          destContainer.appendChild(matchedCard);
+          matchedCard.style.opacity = "1";
+          matchedCard.style.transform = "scale(1)";
+          updateCounters();
+        }, 150);
       }
     }
 
-    function insertCartItem(emoji, name, unitPrice, quantity) {
-      const match = cartData.find(item => item.name === name);
-      if (match) {
-        match.quantity += quantity;
-      } else {
-        cartData.push({
-          emoji,
-          name,
-          unitPrice,
-          quantity
-        });
-      }
-      renderCartUI();
+    function clearAllTasks() {
+      containerTodo.querySelectorAll(".task-card").forEach(c => c.remove());
+      containerInProgress.querySelectorAll(".task-card").forEach(c => c.remove());
+      containerDone.querySelectorAll(".task-card").forEach(c => c.remove());
+      updateCounters();
     }
 
-    function renderCartUI() {
-      cart.innerHTML = "";
+    function updateCounters() {
+      const todos = containerTodo.querySelectorAll(".task-card").length;
+      const inProgress = containerInProgress.querySelectorAll(".task-card").length;
+      const done = containerDone.querySelectorAll(".task-card").length;
 
-      if (cartData.length === 0) {
-        cart.appendChild(cartEmptyState);
-        cartEmptyState.style.display = "flex";
-      } else {
-        cartData.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "cart-card";
-          const sub = (item.unitPrice * item.quantity).toFixed(2);
+      countTodo.textContent = todos;
+      countInProgress.textContent = inProgress;
+      countDone.textContent = done;
 
-          card.innerHTML = `
-            <div class="cart-card-left">
-              <span class="cart-card-emoji">${item.emoji}</span>
-              <div class="cart-card-details">
-                <h4>${item.name}</h4>
-                <p>$${sub} <span style="font-size: 0.65rem; opacity: 0.7;">($${item.unitPrice.toFixed(2)} ea)</span></p>
-              </div>
-            </div>
-            <span class="cart-card-qty">${item.quantity}x</span>
-          `;
-          cart.appendChild(card);
-        });
-      }
-
-      updateTotals();
+      emptyTodo.style.display = todos === 0 ? "block" : "none";
+      emptyInProgress.style.display = inProgress === 0 ? "block" : "none";
+      emptyDone.style.display = done === 0 ? "block" : "none";
     }
 
-    function updateTotals() {
-      const subtotal = cartData.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-      const tax = subtotal * 0.0825;
-      const total = subtotal + tax;
-
-      subtotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
-      taxDisplay.textContent = `$${tax.toFixed(2)}`;
-      totalDisplay.textContent = `$${total.toFixed(2)}`;
-    }
-
-    clearCartBtn.addEventListener("click", () => {
-      cartData = [];
-      renderCartUI();
-      dispatchOrderToBackend("Clear my cart please");
-    });
-
-    function checkoutOrder() {
-      if (cartData.length === 0) {
-        speakAloud("Your tray is empty! Tell me what food you'd like to order first.");
-        return;
-      }
-      const orderSummary = cartData.map(i => `${i.quantity} ${i.name}`).join(", ");
-      speakAloud(`Order confirmed! Preparing your ${orderSummary}. Total is ${totalDisplay.textContent}. Thank you!`);
-      intercomStatus.textContent = `Order Placed! #${Math.floor(100 + Math.random() * 900)}`;
-    }
-
-    // Speech Synthesis
-    function speakAloud(text) {
+    // SpeechSynthesis Output
+    function speakResponse(text) {
       if (!window.speechSynthesis) return;
 
       window.speechSynthesis.cancel();
@@ -1088,35 +860,18 @@
       utterance.pitch = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
-      const friendlyVoice = voices.find(v => 
+      const preferred = voices.find(v => 
         v.name.includes("Google") || 
         v.name.includes("Samantha") ||
         v.name.includes("Natural") ||
         v.name.includes("Rishi") ||
         v.lang.startsWith("en")
       );
-      if (friendlyVoice) {
-        utterance.voice = friendlyVoice;
+      if (preferred) {
+        utterance.voice = preferred;
       }
 
       window.speechSynthesis.speak(utterance);
-    }
-
-    // Kitchen Ticket Transcript Log
-    function appendTicket(sender, text) {
-      const entry = document.createElement("div");
-      entry.className = `ticket-entry ${sender === "Customer" ? "customer" : "gemma"}`;
-
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      entry.innerHTML = `
-        <div class="ticket-meta">${sender} • ${timeStr}</div>
-        <div>${escapeHtml(text)}</div>
-      `;
-
-      ticketFeed.appendChild(entry);
-      ticketFeed.scrollTop = ticketFeed.scrollHeight;
     }
 
     function escapeHtml(str) {
@@ -1125,13 +880,13 @@
       return div.innerHTML;
     }
 
-    // Fallback Input Form
+    // Keyboard Form
     keyboardForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const val = keyboardInput.value.trim();
       if (val) {
         keyboardInput.value = "";
-        dispatchOrderToBackend(val);
+        dispatchCommand(val);
       }
     });
 
