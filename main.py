@@ -28,12 +28,14 @@ app.add_middleware(
 # Global chat history list to store conversational context
 chat_history: List[Dict[str, str]] = []
 
-# Exact system prompt requested by the user
+# Iron Man J.A.R.V.I.S. AI persona system prompt
 SYSTEM_PROMPT = (
-    "You are an AI project manager. Remember the conversation context. "
-    "You must ALWAYS respond with raw JSON containing exactly two keys: 'reply' "
-    "(a short spoken confirmation) and 'action'. The 'action' key must be an object "
-    "with 'command' (choose one: ADD_TASK, MOVE_TASK, CLEAR_ALL, or NONE). "
+    "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the sophisticated AI assistant created by Tony Stark. "
+    "You speak with calm British elegance, witty politeness, and respectful loyalty, addressing the user as 'Sir'. "
+    "You are currently managing the Stark Industries project directive board. "
+    "Remember the conversation context. You must ALWAYS respond with raw JSON containing exactly two keys: "
+    "'reply' (a crisp, courteous spoken response in classic J.A.R.V.I.S. character, e.g. 'Right away, Sir. Added to the directive queue.', 'Protocol completed, Sir.') "
+    "and 'action'. The 'action' key must be an object with 'command' (choose one: ADD_TASK, MOVE_TASK, CLEAR_ALL, or NONE). "
     "If ADD_TASK, include 'task_name' and 'priority' (High/Low). "
     "If MOVE_TASK, include 'task_name' and 'new_status' (Todo, InProgress, Done)."
 )
@@ -62,23 +64,23 @@ def extract_json(raw_text: str) -> Dict[str, Any]:
             pass
 
     return {
-        "reply": raw_text.replace("{", "").replace("}", "").strip() or "Task received.",
+        "reply": raw_text.replace("{", "").replace("}", "").strip() or "Understood, Sir. Protocol updated.",
         "action": {"command": "NONE"}
     }
 
 
 def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
-    """Rule-based PM fallback to ensure the app works immediately if GEMMA_API_KEY is not set."""
+    """Rule-based J.A.R.V.I.S. engine ensuring instant offline operation with full persona."""
     lower = user_text.lower().strip()
 
     # CLEAR_ALL command (e.g. "Clear the board", "Clear all tasks", "Reset board")
     if (
         re.search(r"\bclear\b.*\b(all|board|tasks?)\b", lower)
-        or re.search(r"\b(reset|empty)\b.*\bboard\b", lower)
-        or any(k in lower for k in ["clear all", "clear board", "empty board", "delete all", "reset board", "clear tasks"])
+        or re.search(r"\b(reset|empty|purge)\b.*\bboard\b", lower)
+        or any(k in lower for k in ["clear all", "clear board", "empty board", "delete all", "reset board", "clear tasks", "purge board"])
     ):
         return {
-            "reply": "Clearing all tasks from the task board.",
+            "reply": "Clearing all directives from the Stark tactical display, Sir.",
             "action": {"command": "CLEAR_ALL"}
         }
 
@@ -96,8 +98,15 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
         new_status = status_map.get(raw_status, "InProgress")
         clean_task = raw_name.replace("task", "").strip().title()
 
+        if new_status == "Done":
+            reply_msg = f"Protocol '{clean_task}' marked as accomplished, Sir. Outstanding work."
+        elif new_status == "InProgress":
+            reply_msg = f"Commencing operation on '{clean_task}', Sir. Updating status to In Progress."
+        else:
+            reply_msg = f"Re-queueing '{clean_task}' into the backlog, Sir."
+
         return {
-            "reply": f"Moved '{clean_task}' to {new_status}.",
+            "reply": reply_msg,
             "action": {
                 "command": "MOVE_TASK",
                 "task_name": clean_task,
@@ -112,7 +121,7 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
         clean_task = re.sub(r"(?i)\btask\b", "", raw_name).strip().title()
         if clean_task:
             return {
-                "reply": f"Marked '{clean_task}' as Done.",
+                "reply": f"Directive '{clean_task}' completed, Sir. Logging into archives.",
                 "action": {
                     "command": "MOVE_TASK",
                     "task_name": clean_task,
@@ -127,7 +136,7 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
         clean_task = re.sub(r"(?i)\btask\b", "", raw_name).strip().title()
         if clean_task and not lower.startswith("start over"):
             return {
-                "reply": f"Moved '{clean_task}' to In Progress.",
+                "reply": f"Understood, Sir. Initializing active protocol for '{clean_task}'.",
                 "action": {
                     "command": "MOVE_TASK",
                     "task_name": clean_task,
@@ -136,12 +145,13 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
             }
 
     # ADD_TASK command (e.g. "Add task build landing page priority high")
-    if any(k in lower for k in ["add", "create", "new task", "put"]):
-        priority = "High" if any(p in lower for p in ["high", "urgent", "critical", "important"]) else "Low"
+    if any(k in lower for k in ["add", "create", "new task", "put", "log task", "initialize task"]):
+        priority = "High" if any(p in lower for p in ["high", "urgent", "critical", "important", "vital"]) else "Low"
         
         # Clean task name extraction
         cleaned_name = user_text
         for prefix in [
+            "initialize task", "log task to", "log task",
             "add a task to", "add task to", "add a task", "add task",
             "create a task to", "create task to", "create a task", "create task",
             "add", "create", "new task"
@@ -154,11 +164,11 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
         cleaned_name = re.sub(r"(?i)\s+priority\s+(high|low)", "", cleaned_name)
         cleaned_name = re.sub(r"(?i)\s+with\s+(high|low)\s+priority", "", cleaned_name)
         cleaned_name = re.sub(r"(?i)\s+(high|low)\s+priority", "", cleaned_name)
-        cleaned_name = cleaned_name.strip(" .:!?,") or "New Task"
+        cleaned_name = cleaned_name.strip(" .:!?,") or "New Directive"
         task_name = cleaned_name[:50].title()
 
         return {
-            "reply": f"Added '{task_name}' to To Do with {priority} priority.",
+            "reply": f"Right away, Sir. Added '{task_name}' to the backlog with {priority} priority.",
             "action": {
                 "command": "ADD_TASK",
                 "task_name": task_name,
@@ -166,8 +176,15 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
             }
         }
 
+    # Default Jarvis conversational reply
+    if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "who are you", "status"]):
+        return {
+            "reply": "Good day, Sir. J.A.R.V.I.S. online and standing by for your directives.",
+            "action": {"command": "NONE"}
+        }
+
     return {
-        "reply": f"I heard: '{user_text}'. Tell me to add a task, move a task, or clear the board.",
+        "reply": f"I hear you, Sir: '{user_text}'. Ready to catalog directives or adjust board protocols at your command.",
         "action": {"command": "NONE"}
     }
 

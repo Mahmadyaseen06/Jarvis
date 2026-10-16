@@ -1,44 +1,49 @@
-# 📋 Voice-Controlled AI Task Board
+# 🤖 J.A.R.V.I.S. — Stark Industries Tactical Directive Board
 
-A voice-first, AI-powered Kanban project management web application built with **FastAPI**, **vanilla HTML/JS**, and **Google Gemma 4** (`google/gemma-4-instruct`).
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Mahmadyaseen06%2FJarvis-00f0ff?logo=github)](https://github.com/Mahmadyaseen06/Jarvis)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![Gemma 4](https://img.shields.io/badge/Model-Gemma--4--Instruct-f59e0b?logo=google)](https://huggingface.co/google/gemma-4-instruct)
 
-Control your project workflow purely with your voice: add tasks with priority ratings, transition cards across Kanban columns, and manage project progress with spoken voice confirmations.
+An authentic **Iron Man J.A.R.V.I.S.**-themed Voice-First Tactical Task Board web application built with **FastAPI**, **vanilla HTML/JS**, and **Google Gemma 4** (`google/gemma-4-instruct`).
+
+Control your engineering directives purely with your voice: command J.A.R.V.I.S. to catalog tasks with priority ratings, transition cards across tactical columns, and receive British-mannered audio confirmations from Tony Stark's personal AI assistant.
 
 ---
 
 ## ✨ Features
 
-- **Voice-In, Voice-Out Loop**:
-  - **Speech Recognition**: Captures microphone audio using the browser's native **Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)**.
-  - **Tactile "Hold to Speak" Button**: Hold or tap to record voice instructions with dynamic visualizer rings and real-time interim transcription feedback.
-  - **Spoken AI Responses**: Speaks assistant confirmations aloud using **`speechSynthesis`**.
-- **Google Gemma 4 AI Project Manager Backend (`main.py`)**:
-  - FastAPI backend with full CORS support.
+- **Iron Man J.A.R.V.I.S. Voice Persona & Core**:
+  - **Pulsing Arc Reactor Core**: Central interactive Arc Reactor button with holographic HUD degree markings and real-time audio waveform visualizer.
+  - **Speech Recognition**: Browser-native **Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)**.
+  - **Authentic British Spoken Output**: Speaks aloud in J.A.R.V.I.S. character (*"Right away, Sir. Added to the directive queue."*, *"Directive completed, Sir. Outstanding work."*).
+- **Procedural Stark HUD Sound FX (Web Audio API)**:
+  - Zero external MP3/audio file dependencies. Generates authentic sci-fi frequency beeps for voice activation, directive moves, additions, and deletions (with mute switch).
+- **Stark Industries Tactical Columns (`index.html`)**:
+  - Columns: **🛡️ Backlog Directives** (To Do), **⚡ In Operation** (In Progress), **🎯 Mission Accomplished** (Done).
+  - **Native HTML5 Drag & Drop**: Silky physical card dragging between all 3 columns with holographic cyan border glow.
+  - **Live Progress & Metrics**: Real-time completion tracker (`PROGRESS: X% (Done/Total)`).
+  - **Search & Priority Filtering**: Instant directive search and priority filter toggles (**All**, **High Priority**, **Low Priority**).
+  - **LocalStorage Persistence**: Directives stay saved across browser refreshes, with a pre-loaded Stark directive suite.
+- **FastAPI + Gemma 4 PM Engine (`main.py`)**:
+  - Full CORS-enabled FastAPI backend.
   - Conversational context memory preserved across turns in global `chat_history`.
-  - Powered by `huggingface_hub.InferenceClient` calling `google/gemma-4-instruct` (configured with `GEMMA_API_KEY`).
-  - Strict system prompt enforces structured raw JSON schema with spoken `reply` and `action` commands.
-  - Built-in zero-latency fallback engine ensures 100% offline functionality if no API key is set.
-- **Dynamic 3-Column Kanban Board (`index.html`)**:
-  - Columns: **To Do**, **In Progress**, **Done** with live item count badges and empty-state placeholders.
-  - **`ADD_TASK`**: Spawns task cards with priority badges (**High** in crimson, **Low** in cyan) and timestamps.
-  - **`MOVE_TASK`**: Synchronous atomic DOM moves with exact & fuzzy title matching.
-  - **`CLEAR_ALL`**: Safely clears all task cards from the board.
-  - Manual controls: Individual card deletion buttons, quick text command input, and example command chips.
+  - Structured JSON action dispatch (`ADD_TASK`, `MOVE_TASK`, `CLEAR_ALL`, `NONE`).
+  - Supports conversational shortcuts (*"Mark flight thrusters as done"*, *"Start working on repulsors"*, *"Purge display"*).
+  - Zero-latency offline fallback engine ensures 100% functionality even when offline.
 
 ---
 
 ## 🏗️ Architecture & Action Schema
 
-### Backend Action Dispatch
-
 The Gemma 4 system prompt enforces structured JSON responses:
 
 ```json
 {
-  "reply": "Added 'Design Landing Page' to To Do with High priority.",
+  "reply": "Right away, Sir. Added 'Calibrate Mark 85 Flight Systems' to the backlog with High priority.",
   "action": {
     "command": "ADD_TASK",
-    "task_name": "Design Landing Page",
+    "task_name": "Calibrate Mark 85 Flight Systems",
     "priority": "High"
   }
 }
@@ -47,8 +52,8 @@ The Gemma 4 system prompt enforces structured JSON responses:
 Supported Commands:
 - `ADD_TASK`: Requires `task_name` (string) and `priority` (`High` or `Low`).
 - `MOVE_TASK`: Requires `task_name` (string) and `new_status` (`Todo`, `InProgress`, or `Done`).
-- `CLEAR_ALL`: Clears all tasks on the board.
-- `NONE`: Conversational query or unrecognized intent.
+- `CLEAR_ALL`: Clears all directives on the tactical board.
+- `NONE`: Conversational queries or status updates.
 
 ---
 
@@ -56,12 +61,13 @@ Supported Commands:
 
 ### 1. Prerequisites
 - Python 3.9+ (Python 3.10 – 3.14 recommended)
-- Modern browser: **Google Chrome** (recommended for full continuous Web Speech support), Microsoft Edge, or Safari.
+- Browser: **Google Chrome** (recommended for native Web Speech API support)
 
 ### 2. Environment Setup
 
 ```bash
-# 1. Clone or navigate to the project directory
+# 1. Clone repository
+git clone https://github.com/Mahmadyaseen06/Jarvis.git
 cd Jarvis
 
 # 2. Create and activate a Python virtual environment
@@ -74,8 +80,6 @@ pip install -r requirements.txt
 
 ### 3. (Optional) Configure Gemma 4 API Key
 
-To enable Google Gemma 4 via Hugging Face Inference:
-
 ```bash
 cp .env.example .env
 ```
@@ -85,11 +89,9 @@ Add your Hugging Face user access token in `.env`:
 GEMMA_API_KEY=hf_your_huggingface_token_here
 ```
 
-*(Note: If omitted, the application seamlessly runs on its built-in rule-based PM fallback engine with zero delay!)*
+*(Note: If omitted, the application runs on its built-in J.A.R.V.I.S. fallback engine with zero delay!)*
 
 ### 4. Run the Application
-
-You can start the server with any of the following:
 
 ```bash
 # Option A: Run convenience script
@@ -108,35 +110,30 @@ Open your browser and navigate to:
 ```
 http://localhost:8000
 ```
-*(FastAPI directly serves `index.html` at `/`, ensuring proper `http://` origin security for microphone access).*
 
 ---
 
-## 🎯 60-Second Live Demo Script
+## 🎯 60-Second Live J.A.R.V.I.S. Demo Script
 
-1. **Open the Task Board**:
-   - Navigate to `http://localhost:8000`. Notice the dark futuristic UI and the 3 columns ("To Do", "In Progress", "Done").
-2. **Add a High Priority Task**:
-   - Press and hold **"HOLD TO SPEAK"** (or click once to toggle) and say:
-     > *"Add a task to build authentication API with high priority"*
-   - The AI responds aloud: *"Added 'Build Authentication Api' to To Do with High priority."*
-   - A new card appears in the **To Do** column with a red `HIGH` badge.
-3. **Add a Low Priority Task**:
+1. **Activate Voice HUD**:
+   - Click the glowing **Arc Reactor** in the center. The core turns tactical red and J.A.R.V.I.S. begins listening.
+2. **Issue a High-Priority Directive**:
    - Speak:
-     > *"Create a task to update documentation with low priority"*
-   - A second card is created with a cyan `LOW` badge.
-4. **Move the Task Across the Board**:
+     > *"J.A.R.V.I.S., add a task to calibrate Mark 85 flight thrusters with high priority"*
+   - 🔊 J.A.R.V.I.S. responds aloud: *"Right away, Sir. Added 'Calibrate Mark 85 Flight Thrusters' to the backlog with High priority."*
+   - A crimson `HIGH` priority card appears in **Backlog Directives**.
+3. **Transition to Active Operation**:
    - Speak:
-     > *"Move Authentication API to In Progress"*
-   - The card instantly transitions to the **In Progress** column, and the column counters update in real time.
-5. **Complete the Task**:
+     > *"Move Mark 85 flight thrusters to In Progress"*
+   - ⚡ Card glides into **In Operation** and a sleek Stark HUD whoosh chime plays.
+4. **Complete the Directive**:
    - Speak:
-     > *"Move Authentication API to Done"*
-   - The card moves to **Done**.
-6. **Clear the Board**:
+     > *"Mark Mark 85 flight thrusters as done"*
+   - 🎯 J.A.R.V.I.S. responds: *"Protocol 'Calibrate Mark 85 Flight Thrusters' marked as accomplished, Sir. Outstanding work."* Card moves to **Mission Accomplished**.
+5. **Purge Protocols**:
    - Speak:
-     > *"Clear the task board"*
-   - All cards are safely removed, returning columns to their empty state.
+     > *"J.A.R.V.I.S., clear the board"*
+   - 🗑️ J.A.R.V.I.S. responds: *"Clearing all directives from the Stark tactical display, Sir."*
 
 ---
 
@@ -148,14 +145,22 @@ Run the full end-to-end backend test suite:
 python3 test_app.py
 ```
 
+Validates:
+- Frontend HTML delivery at `GET /`
+- Structured JSON output for `ADD_TASK` (High and Low priority)
+- State transitions for `MOVE_TASK` to `InProgress` and `Done`
+- Task board reset via `CLEAR_ALL`
+- Conversational context preservation in `GET /history`
+- Session reset via `POST /clear`
+
 ---
 
 ## 📁 Project Structure
 
 ```
 Jarvis/
-├── main.py              # FastAPI server, Gemma 4 LLM client & action router
-├── index.html           # Dark-mode futuristic Kanban UI with Web Speech API
+├── main.py              # FastAPI server, Gemma 4 LLM client & J.A.R.V.I.S. router
+├── index.html           # Iron Man Arc Reactor HUD UI with Web Speech API
 ├── requirements.txt     # Python dependencies (fastapi, uvicorn, pydantic, huggingface_hub)
 ├── test_app.py          # Integration test suite validating API & actions
 ├── run.sh               # Quick startup shell script with virtualenv auto-detection

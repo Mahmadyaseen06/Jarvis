@@ -18,6 +18,7 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Implemented: Voice-Controlled AI Task Board with dark-mode futuristic Kanban board ("To Do", "In Progress", "Done"), Hold-to-Speak native Web Speech button, SpeechSynthesis, and Gemma 4 AI Project Manager action dispatch (`ADD_TASK`, `MOVE_TASK`, `CLEAR_ALL`, `NONE`). Verified DOM card manipulation and fuzzy title matching.
 - Reverted to 074c9bd and applied minimal patch: Eliminated DOM parent-child hierarchy race condition by replacing asynchronous setTimeout with synchronous atomic moves (`destContainer.appendChild`), added safe `card.parentElement.removeChild` checks, updated counters dynamically, and preserved interim+final speech in `spokenText` so button release never drops transcribed voice.
 - Advanced Upgrade: Implemented dual-mode voice activation (Tap-to-Toggle + Hold-to-Speak) to prevent trackpad timing errors; added real-time HTML5 audio waveform canvas; procedural Web Audio API SFX synthesizer; HTML5 native drag-and-drop between columns; real-time task title and priority filtering; and localStorage persistence with realistic sample tasks.
+- Fixed: Resolved button click failure caused by an invalid regex syntax `(?i)` in JavaScript (which broke script parsing at load time). Replaced with standard `/.../gi` flags. Transformed full UI into Stark Industries Arc Reactor HUD and backend into authentic British-mannered Iron Man J.A.R.V.I.S. persona.
 
 
 

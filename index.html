@@ -3,27 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gemma PM — Advanced Voice-Controlled AI Task Board</title>
+  <title>J.A.R.V.I.S. — Stark Industries Tactical Directive Board</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #060913;
-      --bg-surface: #0c1222;
-      --card-bg: rgba(18, 26, 47, 0.75);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover: rgba(30, 41, 69, 0.85);
-      --accent-cyan: #06b6d4;
-      --accent-blue: #3b82f6;
-      --accent-violet: #8b5cf6;
-      --accent-emerald: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-rose: #f43f5e;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --stark-bg: #040810;
+      --stark-card: rgba(8, 16, 32, 0.78);
+      --stark-card-border: rgba(0, 240, 255, 0.18);
+      --stark-card-hover: rgba(14, 28, 56, 0.9);
+      --stark-cyan: #00f0ff;
+      --stark-cyan-glow: rgba(0, 240, 255, 0.5);
+      --stark-gold: #f59e0b;
+      --stark-gold-glow: rgba(245, 158, 11, 0.4);
+      --stark-red: #ef4444;
+      --stark-red-glow: rgba(239, 68, 68, 0.6);
+      --stark-emerald: #10b981;
+      --text-primary: #e0f2fe;
       --text-dim: #64748b;
-      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-display: 'Orbitron', monospace, sans-serif;
+      --font-body: 'Rajdhani', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
 
@@ -34,481 +34,415 @@
     }
 
     body {
-      background-color: var(--bg-dark);
+      background-color: var(--stark-bg);
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.12) 0%, transparent 40%),
-        radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
-        radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text-main);
-      font-family: var(--font-main);
+        radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 15% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(239, 68, 68, 0.06) 0%, transparent 45%),
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
       padding: 24px;
+      overflow-x: hidden;
     }
 
-    .app-wrapper {
+    .container {
       max-width: 1400px;
       margin: 0 auto;
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 22px;
+      gap: 20px;
     }
 
-    /* Glass Navbar */
-    header.top-bar {
+    /* Holographic Top Bar */
+    header.stark-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      background: rgba(12, 18, 34, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
+      background: rgba(6, 12, 26, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 16px;
       padding: 16px 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(0, 240, 255, 0.05);
+      position: relative;
     }
 
-    .brand-section {
+    header.stark-nav::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 10%;
+      width: 80%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--stark-cyan), transparent);
+    }
+
+    .stark-brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .brand-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    .arc-reactor-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 2px solid var(--stark-cyan);
+      box-shadow: 0 0 16px var(--stark-cyan-glow), inset 0 0 10px var(--stark-cyan-glow);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+      position: relative;
+      animation: spin-slow 20s linear infinite;
     }
 
-    .brand-icon svg {
-      width: 24px;
-      height: 24px;
-      fill: #ffffff;
+    @keyframes spin-slow {
+      100% { transform: rotate(360deg); }
     }
 
-    .brand-titles h1 {
-      font-size: 1.35rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 30%, #93c5fd 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .arc-reactor-logo::before {
+      content: "";
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--stark-cyan);
+      box-shadow: 0 0 12px var(--stark-cyan);
+    }
+
+    .stark-titles h1 {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      letter-spacing: 0.15em;
+      color: #ffffff;
+      text-shadow: 0 0 12px var(--stark-cyan-glow);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .brand-titles p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-weight: 500;
+    .stark-titles h1 span {
+      font-size: 0.75rem;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--stark-cyan);
+      color: var(--stark-cyan);
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.1em;
     }
 
-    .header-actions {
+    .stark-titles p {
+      font-size: 0.85rem;
+      color: var(--stark-cyan);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    .nav-metrics {
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
     }
 
-    .stats-pill {
+    .hud-chip {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid var(--stark-card-border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      gap: 8px;
     }
 
-    .stats-pill strong {
-      color: var(--text-main);
-    }
-
-    .progress-bar-mini {
-      width: 70px;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
-      transition: width 0.4s ease;
-    }
-
-    .icon-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      border-radius: 12px;
-      padding: 8px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
+    .hud-btn {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--stark-cyan);
+      color: var(--stark-cyan);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.2s ease;
-      font-family: var(--font-main);
+      text-transform: uppercase;
     }
 
-    .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.2);
+    .hud-btn:hover {
+      background: var(--stark-cyan);
+      color: #000000;
+      box-shadow: 0 0 20px var(--stark-cyan-glow);
     }
 
-    /* Voice & Visualizer Hero Console */
-    section.voice-hero {
-      background: rgba(12, 18, 34, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
+    /* Arc Reactor Hero & Voice HUD */
+    section.jarvis-core {
+      background: rgba(6, 12, 26, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 20px;
       padding: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.6);
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
     }
 
-    .hero-glow {
-      position: absolute;
-      width: 350px;
-      height: 350px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      transition: all 0.5s ease;
-    }
-
-    .hero-glow.active {
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(244, 63, 94, 0.25) 0%, transparent 70%);
-    }
-
-    /* Voice Button & Ring Visualizer */
-    .mic-cluster {
+    .reactor-container {
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
       margin: 10px 0 16px 0;
-      z-index: 2;
     }
 
-    .mic-button {
-      position: relative;
-      width: 84px;
-      height: 84px;
+    .hud-circle-outer {
+      position: absolute;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      border: none;
-      outline: none;
+      border: 1px dashed rgba(0, 240, 255, 0.35);
+      top: -20px;
+      animation: rotate-hud 15s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotate-hud {
+      100% { transform: rotate(360deg); }
+    }
+
+    .arc-reactor-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0284c7 0%, #031525 70%);
+      border: 3px solid var(--stark-cyan);
+      box-shadow: 0 0 30px var(--stark-cyan-glow), inset 0 0 20px var(--stark-cyan-glow);
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 30px rgba(37, 99, 235, 0.5);
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      transition: all 0.3s ease;
       user-select: none;
-      -webkit-user-select: none;
+      outline: none;
+      z-index: 2;
     }
 
-    .mic-button:hover {
-      transform: scale(1.06);
-      box-shadow: 0 10px 36px rgba(6, 182, 212, 0.6);
+    .arc-reactor-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 45px var(--stark-cyan);
     }
 
-    .mic-button.listening {
-      background: linear-gradient(135deg, #e11d48, #f43f5e);
-      box-shadow: 0 0 45px rgba(244, 63, 94, 0.7);
-      transform: scale(1.08);
-      animation: pulse-ring 1.5s infinite;
+    .arc-reactor-btn.active {
+      border-color: var(--stark-red);
+      background: radial-gradient(circle, #b91c1c 0%, #200408 70%);
+      box-shadow: 0 0 45px var(--stark-red-glow), inset 0 0 25px var(--stark-red-glow);
+      animation: reactor-pulse 1.4s infinite;
     }
 
-    @keyframes pulse-ring {
-      0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6), 0 0 30px rgba(244, 63, 94, 0.5); }
-      70% { box-shadow: 0 0 0 22px rgba(244, 63, 94, 0), 0 0 40px rgba(244, 63, 94, 0.7); }
-      100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0), 0 0 30px rgba(244, 63, 94, 0.5); }
+    @keyframes reactor-pulse {
+      0% { box-shadow: 0 0 25px var(--stark-red-glow); }
+      50% { box-shadow: 0 0 50px var(--stark-red); }
+      100% { box-shadow: 0 0 25px var(--stark-red-glow); }
     }
 
-    .mic-button svg {
-      width: 36px;
-      height: 36px;
+    .arc-reactor-btn svg {
+      width: 38px;
+      height: 38px;
       fill: #ffffff;
-      transition: transform 0.2s ease;
+      filter: drop-shadow(0 0 8px #ffffff);
     }
 
-    .mic-button.listening svg {
-      transform: scale(1.1);
-    }
-
-    /* Waveform Canvas */
-    canvas#waveformCanvas {
-      width: 260px;
-      height: 40px;
-      margin: 4px 0 8px 0;
-      opacity: 0.85;
-      z-index: 2;
-    }
-
-    .voice-instructions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      z-index: 2;
-      margin-bottom: 8px;
-    }
-
-    .voice-instructions span {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .voice-instructions .kbd-hint {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 2px 7px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
+    .core-label {
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
       color: #ffffff;
+      text-transform: uppercase;
+      font-weight: 700;
     }
 
-    /* Real-Time Transcript Feedback Console */
-    .transcript-box {
+    canvas#waveformCanvas {
+      width: 280px;
+      height: 36px;
+      margin: 8px 0 10px 0;
+      opacity: 0.9;
+    }
+
+    .hud-transcript {
       width: 100%;
-      max-width: 780px;
-      background: rgba(6, 9, 19, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 14px;
-      padding: 12px 18px;
+      max-width: 850px;
+      background: rgba(2, 6, 14, 0.9);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 12px;
+      padding: 14px 20px;
       text-align: center;
+      font-family: var(--font-mono);
       font-size: 0.95rem;
-      min-height: 48px;
+      min-height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #94a3b8;
-      transition: all 0.25s ease;
-      z-index: 2;
-      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+      color: var(--stark-cyan);
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
     }
 
-    .transcript-box.listening {
-      border-color: rgba(244, 63, 94, 0.4);
-      color: #fda4af;
-      background: rgba(244, 63, 94, 0.04);
+    .hud-transcript.active {
+      border-color: var(--stark-red);
+      color: #fca5a5;
     }
 
-    .transcript-box.speaking {
-      border-color: rgba(6, 182, 212, 0.4);
-      color: #a5f3fc;
-      background: rgba(6, 182, 212, 0.04);
-    }
-
-    /* Quick Action Prompt Chips */
-    .quick-chips-row {
+    /* Command Quick Chips */
+    .stark-chips {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
       margin-top: 14px;
-      z-index: 2;
-      max-width: 900px;
+      max-width: 950px;
     }
 
-    .prompt-chip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
+    .stark-chip {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 6px;
       padding: 6px 14px;
-      font-size: 0.78rem;
-      color: #cbd5e1;
+      font-size: 0.8rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      color: var(--text-primary);
       cursor: pointer;
       transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
       user-select: none;
     }
 
-    .prompt-chip:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(6, 182, 212, 0.5);
+    .stark-chip:hover {
+      background: rgba(0, 240, 255, 0.18);
+      border-color: var(--stark-cyan);
       color: #ffffff;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
     }
 
-    /* Filter & Search Bar */
-    .controls-strip {
+    /* Filter Strip */
+    .filter-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      background: rgba(12, 18, 34, 0.5);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
+      background: rgba(6, 12, 26, 0.6);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 12px;
       padding: 10px 18px;
     }
 
-    .search-box {
+    .search-input-wrap {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(6, 9, 19, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 6px 12px;
-      width: 280px;
+      gap: 10px;
+      background: rgba(2, 6, 14, 0.8);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      width: 300px;
     }
 
-    .search-box svg {
-      width: 16px;
-      height: 16px;
-      fill: var(--text-dim);
-    }
-
-    .search-box input {
+    .search-input-wrap input {
       background: transparent;
       border: none;
       outline: none;
       color: #ffffff;
-      font-family: var(--font-main);
-      font-size: 0.85rem;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
       width: 100%;
     }
 
-    .search-box input::placeholder {
-      color: var(--text-dim);
-    }
-
-    .priority-filters {
-      display: flex;
-      gap: 6px;
-    }
-
-    .filter-btn {
-      background: transparent;
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      border-radius: 8px;
-      padding: 4px 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: var(--font-main);
-    }
-
-    .filter-btn.active, .filter-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* 3-Column Kanban Board */
-    main.kanban-grid {
+    /* 3-Column Tactical Board */
+    main.tactical-board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 20px;
-      min-height: 460px;
+      min-height: 480px;
     }
 
     @media (max-width: 960px) {
-      main.kanban-grid {
+      main.tactical-board {
         grid-template-columns: 1fr;
       }
     }
 
-    .kanban-column {
-      background: rgba(12, 18, 34, 0.6);
+    .tactical-column {
+      background: rgba(6, 14, 28, 0.7);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
+      border: 1px solid var(--stark-card-border);
+      border-radius: 16px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      transition: border-color 0.25s, box-shadow 0.25s;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s ease;
     }
 
-    .kanban-column.drag-over {
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
-      background: rgba(18, 28, 52, 0.8);
+    .tactical-column.drag-hover {
+      border-color: var(--stark-cyan);
+      box-shadow: 0 0 30px var(--stark-cyan-glow);
+      background: rgba(10, 24, 48, 0.85);
     }
 
-    .column-header {
-      padding: 18px 20px;
+    .col-top {
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--card-border);
-      background: rgba(255, 255, 255, 0.015);
+      border-bottom: 1px solid var(--stark-card-border);
+      background: rgba(0, 240, 255, 0.03);
     }
 
-    .column-title-group {
+    .col-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      color: #ffffff;
       display: flex;
       align-items: center;
       gap: 10px;
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: -0.01em;
     }
 
-    .column-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .kanban-column.col-todo .column-dot { background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); }
-    .kanban-column.col-inprogress .column-dot { background: var(--accent-amber); box-shadow: 0 0 10px var(--accent-amber); }
-    .kanban-column.col-done .column-dot { background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald); }
-
-    .column-badge {
-      background: rgba(255, 255, 255, 0.08);
+    .col-badge {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--stark-card-border);
       font-family: var(--font-mono);
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 20px;
-      color: var(--text-muted);
+      padding: 2px 10px;
+      border-radius: 12px;
+      color: var(--stark-cyan);
     }
 
-    .task-drop-zone {
+    .col-drop-zone {
       padding: 16px;
       flex: 1;
       display: flex;
@@ -518,339 +452,289 @@
       overflow-y: auto;
     }
 
-    .empty-state {
+    .empty-hud {
       margin: auto;
       text-align: center;
       color: var(--text-dim);
       font-size: 0.85rem;
-      padding: 30px 10px;
+      font-family: var(--font-mono);
+      padding: 40px 10px;
       user-select: none;
       display: none;
     }
 
-    .empty-state svg {
-      width: 32px;
-      height: 32px;
-      fill: var(--text-dim);
-      margin-bottom: 8px;
-      opacity: 0.6;
-    }
-
-    /* Task Card */
-    .task-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
+    /* Directive Card */
+    .directive-card {
+      background: var(--stark-card);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 10px;
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       cursor: grab;
       user-select: none;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
       position: relative;
     }
 
-    .task-card:active {
-      cursor: grabbing;
-    }
-
-    .task-card:hover {
+    .directive-card:hover {
       transform: translateY(-2px);
-      background: var(--card-hover);
-      border-color: rgba(255, 255, 255, 0.18);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      background: var(--stark-card-hover);
+      border-color: var(--stark-cyan);
+      box-shadow: 0 6px 20px rgba(0, 240, 255, 0.25);
     }
 
-    .task-card.dragging {
-      opacity: 0.4;
+    .directive-card.dragging {
+      opacity: 0.35;
       transform: scale(0.96);
     }
 
-    .task-card-header {
+    .directive-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 10px;
     }
 
-    .task-title {
-      font-size: 0.94rem;
+    .directive-name {
+      font-size: 1.05rem;
       font-weight: 700;
-      line-height: 1.35;
       color: #ffffff;
+      line-height: 1.3;
       word-break: break-word;
+      font-family: var(--font-body);
     }
 
-    .priority-tag {
+    .priority-pill {
+      font-family: var(--font-display);
       font-size: 0.65rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      letter-spacing: 0.08em;
       padding: 3px 8px;
-      border-radius: 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
       flex-shrink: 0;
     }
 
-    .priority-tag.high {
-      background: rgba(244, 63, 94, 0.18);
-      border: 1px solid rgba(244, 63, 94, 0.5);
-      color: #fda4af;
+    .priority-pill.high {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--stark-red);
+      color: #fca5a5;
     }
 
-    .priority-tag.low {
-      background: rgba(16, 185, 129, 0.18);
-      border: 1px solid rgba(16, 185, 129, 0.5);
-      color: #6ee7b7;
+    .priority-pill.low {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--stark-cyan);
+      color: var(--stark-cyan);
     }
 
-    .task-footer {
+    .directive-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       color: var(--text-dim);
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-      padding-top: 8px;
+      font-family: var(--font-mono);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 6px;
     }
 
-    .task-footer span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .task-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .task-btn {
+    .card-del-btn {
       background: transparent;
       border: none;
       color: var(--text-dim);
       cursor: pointer;
+      font-size: 0.9rem;
       padding: 2px 6px;
       border-radius: 4px;
-      font-size: 0.85rem;
-      transition: all 0.15s ease;
+      transition: all 0.2s;
     }
 
-    .task-btn:hover {
-      color: var(--accent-rose);
-      background: rgba(244, 63, 94, 0.1);
+    .card-del-btn:hover {
+      color: var(--stark-red);
+      background: rgba(239, 68, 68, 0.15);
     }
 
-    /* Keyboard Command Form */
-    form.command-strip {
+    /* Bottom Input Bar */
+    form.stark-input-bar {
       display: flex;
       gap: 12px;
-      background: rgba(12, 18, 34, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
+      background: rgba(6, 12, 26, 0.85);
+      border: 1px solid var(--stark-card-border);
+      border-radius: 12px;
       padding: 10px 14px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
 
-    form.command-strip input {
+    form.stark-input-bar input {
       flex: 1;
       background: transparent;
       border: none;
       outline: none;
       color: #ffffff;
-      font-family: var(--font-main);
-      font-size: 0.92rem;
+      font-family: var(--font-body);
+      font-size: 1rem;
     }
 
-    form.command-strip input::placeholder {
-      color: var(--text-dim);
-    }
-
-    form.command-strip button {
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-      color: #ffffff;
+    form.stark-input-bar button {
+      background: linear-gradient(135deg, var(--stark-cyan), #0284c7);
+      color: #000000;
       border: none;
-      border-radius: 10px;
-      padding: 8px 20px;
+      border-radius: 8px;
+      padding: 8px 24px;
+      font-family: var(--font-display);
       font-weight: 700;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
       cursor: pointer;
-      font-family: var(--font-main);
       transition: all 0.2s ease;
     }
 
-    form.command-strip button:hover {
-      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4);
+    form.stark-input-bar button:hover {
+      box-shadow: 0 0 16px var(--stark-cyan);
       transform: translateY(-1px);
     }
   </style>
 </head>
 <body>
-  <div class="app-wrapper">
-    <!-- Top Glass Navigation -->
-    <header class="top-bar">
-      <div class="brand-section">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-        </div>
-        <div class="brand-titles">
-          <h1>GEMMA PM <span>PRO</span></h1>
-          <p>Voice-First AI Project Manager • google/gemma-4-instruct</p>
+  <div class="container">
+    <!-- J.A.R.V.I.S. Top Navigation -->
+    <header class="stark-nav">
+      <div class="stark-brand">
+        <div class="arc-reactor-logo"></div>
+        <div class="stark-titles">
+          <h1>J.A.R.V.I.S. <span>MARK VII</span></h1>
+          <p>Stark Industries AI Task Board & Tactical Directive Protocol</p>
         </div>
       </div>
 
-      <div class="header-actions">
-        <div class="stats-pill">
-          <span>Board Progress:</span>
-          <div class="progress-bar-mini">
-            <div class="progress-bar-fill" id="progressFill"></div>
-          </div>
-          <strong id="progressText">0%</strong>
+      <div class="nav-metrics">
+        <div class="hud-chip">
+          <span>PROGRESS:</span>
+          <strong id="progressStats" style="color: var(--stark-cyan)">0% (0/0)</strong>
         </div>
 
-        <button class="icon-btn" id="sfxToggleBtn" onclick="toggleAudioSFX()" title="Toggle Audio Sound FX">
+        <button class="hud-btn" id="sfxToggle" onclick="toggleSoundSFX()">
           <span id="sfxIcon">🔊</span>
-          <span id="sfxLabel">SFX ON</span>
+          <span id="sfxText">SFX ON</span>
         </button>
 
-        <button class="icon-btn" onclick="resetToSampleTasks()" title="Reset to realistic demo tasks">
-          <span>🔄</span>
-          <span>Sample Tasks</span>
+        <button class="hud-btn" onclick="loadStarkDirectives()">
+          <span>⚡</span>
+          <span>Sample Directives</span>
         </button>
 
-        <button class="icon-btn" onclick="clearBoardVoice()" title="Clear all tasks from the board">
+        <button class="hud-btn" onclick="clearBoardDirectives()">
           <span>🗑️</span>
-          <span>Clear Board</span>
+          <span>Purge Display</span>
         </button>
       </div>
     </header>
 
-    <!-- Voice Control Console -->
-    <section class="voice-hero">
-      <div class="hero-glow" id="heroGlow"></div>
-
-      <div class="mic-cluster">
-        <button class="mic-button" id="micBtn" title="Click to toggle or hold to speak">
-          <svg viewBox="0 0 24 24" id="micSvg">
+    <!-- Arc Reactor Voice Console -->
+    <section class="jarvis-core">
+      <div class="reactor-container">
+        <div class="hud-circle-outer"></div>
+        <button class="arc-reactor-btn" id="reactorBtn" onclick="toggleVoiceSession()" title="Activate J.A.R.V.I.S. Voice Recognition">
+          <svg viewBox="0 0 24 24">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
           </svg>
+          <span class="core-label" id="reactorLabel">ACTIVATE</span>
         </button>
-        <canvas id="waveformCanvas" width="260" height="40"></canvas>
+        <canvas id="waveformCanvas" width="280" height="36"></canvas>
       </div>
 
-      <div class="voice-instructions">
-        <span><kbd class="kbd-hint">Tap Once</kbd> to Start / Stop Voice</span>
-        <span>•</span>
-        <span><kbd class="kbd-hint">Hold</kbd> to Speak &amp; Release</span>
+      <div class="hud-transcript" id="transcriptDisplay">
+        Click the Arc Reactor or speak to issue a directive to J.A.R.V.I.S...
       </div>
 
-      <div class="transcript-box" id="transcriptBox">
-        Tap the microphone or hold to speak your task command...
-      </div>
-
-      <!-- Quick Interactive Prompt Chips -->
-      <div class="quick-chips-row">
-        <span class="prompt-chip" onclick="executeVoiceCommand('Add task Build Stripe Payment API priority High')">➕ Add "Stripe API" (High)</span>
-        <span class="prompt-chip" onclick="executeVoiceCommand('Add task Write Documentation priority Low')">➕ Add "Write Docs" (Low)</span>
-        <span class="prompt-chip" onclick="executeVoiceCommand('Move Stripe Payment API to In Progress')">⚡ Move to In Progress</span>
-        <span class="prompt-chip" onclick="executeVoiceCommand('Mark Stripe Payment API as Done')">✅ Mark as Done</span>
-        <span class="prompt-chip" onclick="executeVoiceCommand('Clear the task board')">🗑️ Clear Board</span>
+      <!-- Quick Command Chips -->
+      <div class="stark-chips">
+        <span class="stark-chip" onclick="handleChipClick('Add task Calibrate Mark 85 Flight Systems priority High')">➕ "Calibrate Mark 85" (High)</span>
+        <span class="stark-chip" onclick="handleChipClick('Add task Review Arc Reactor Diagnostics priority Low')">➕ "Arc Reactor Diagnostic" (Low)</span>
+        <span class="stark-chip" onclick="handleChipClick('Move Mark 85 Flight Systems to In Progress')">⚡ Move to In Progress</span>
+        <span class="stark-chip" onclick="handleChipClick('Mark Mark 85 Flight Systems as Done')">🎯 Mark as Done</span>
+        <span class="stark-chip" onclick="handleChipClick('Clear all directives from the display')">🗑️ Purge Protocols</span>
       </div>
     </section>
 
-    <!-- Search & Filter Bar -->
-    <div class="controls-strip">
-      <div class="search-box">
-        <svg viewBox="0 0 24 24">
-          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-        </svg>
-        <input type="text" id="filterInput" placeholder="Filter tasks by name..." oninput="filterCards()" />
+    <!-- Search & Filter Strip -->
+    <div class="filter-bar">
+      <div class="search-input-wrap">
+        <span style="color: var(--stark-cyan)">🔍</span>
+        <input type="text" id="filterInput" placeholder="Filter directives by title..." oninput="filterDirectives()" />
       </div>
 
-      <div class="priority-filters">
-        <button class="filter-btn active" onclick="setPriorityFilter('all', this)">All</button>
-        <button class="filter-btn" onclick="setPriorityFilter('high', this)">High Priority</button>
-        <button class="filter-btn" onclick="setPriorityFilter('low', this)">Low Priority</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="hud-btn" onclick="filterByPriority('all')">All</button>
+        <button class="hud-btn" onclick="filterByPriority('high')">High Priority</button>
+        <button class="hud-btn" onclick="filterByPriority('low')">Low Priority</button>
       </div>
     </div>
 
-    <!-- 3-Column Kanban Board with Drag & Drop -->
-    <main class="kanban-grid">
-      <!-- Column 1: To Do -->
-      <div class="kanban-column col-todo" data-status="Todo" id="col-todo">
-        <div class="column-header">
-          <div class="column-title-group">
-            <div class="column-dot"></div>
-            <span>To Do</span>
+    <!-- 3-Column Tactical Kanban Display -->
+    <main class="tactical-board">
+      <!-- Column 1: Backlog -->
+      <div class="tactical-column col-todo" id="col-todo">
+        <div class="col-top">
+          <div class="col-title">
+            <span style="color: var(--stark-cyan)">🛡️</span>
+            <span>BACKLOG DIRECTIVES</span>
           </div>
-          <span class="column-badge" id="badge-todo">0</span>
+          <span class="col-badge" id="badge-todo">0</span>
         </div>
-        <div class="task-drop-zone" id="zone-todo" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'Todo')">
-          <div class="empty-state" id="empty-todo">
-            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            <p>No tasks to do<br><small>Speak or drag cards here</small></p>
-          </div>
+        <div class="col-drop-zone" id="zone-todo" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropCard(event, 'Todo')">
+          <div class="empty-hud" id="empty-todo">NO PENDING DIRECTIVES</div>
         </div>
       </div>
 
       <!-- Column 2: In Progress -->
-      <div class="kanban-column col-inprogress" data-status="InProgress" id="col-inprogress">
-        <div class="column-header">
-          <div class="column-title-group">
-            <div class="column-dot"></div>
-            <span>In Progress</span>
+      <div class="tactical-column col-inprogress" id="col-inprogress">
+        <div class="col-top">
+          <div class="col-title">
+            <span style="color: var(--stark-gold)">⚡</span>
+            <span>IN OPERATION</span>
           </div>
-          <span class="column-badge" id="badge-inprogress">0</span>
+          <span class="col-badge" id="badge-inprogress">0</span>
         </div>
-        <div class="task-drop-zone" id="zone-inprogress" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'InProgress')">
-          <div class="empty-state" id="empty-inprogress">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
-            <p>No tasks in progress<br><small>Drag active tasks here</small></p>
-          </div>
+        <div class="col-drop-zone" id="zone-inprogress" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropCard(event, 'InProgress')">
+          <div class="empty-hud" id="empty-inprogress">NO ACTIVE OPERATIONS</div>
         </div>
       </div>
 
       <!-- Column 3: Done -->
-      <div class="kanban-column col-done" data-status="Done" id="col-done">
-        <div class="column-header">
-          <div class="column-title-group">
-            <div class="column-dot"></div>
-            <span>Done</span>
+      <div class="tactical-column col-done" id="col-done">
+        <div class="col-top">
+          <div class="col-title">
+            <span style="color: var(--stark-emerald)">🎯</span>
+            <span>MISSION ACCOMPLISHED</span>
           </div>
-          <span class="column-badge" id="badge-done">0</span>
+          <span class="col-badge" id="badge-done">0</span>
         </div>
-        <div class="task-drop-zone" id="zone-done" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'Done')">
-          <div class="empty-state" id="empty-done">
-            <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-            <p>No completed tasks<br><small>Finished tasks appear here</small></p>
-          </div>
+        <div class="col-drop-zone" id="zone-done" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropCard(event, 'Done')">
+          <div class="empty-hud" id="empty-done">NO COMPLETED MISSIONS</div>
         </div>
       </div>
     </main>
 
-    <!-- Keyboard Bar for Silent / Text Command Input -->
-    <form class="command-strip" id="textForm" onsubmit="handleManualSubmit(event)">
-      <input type="text" id="manualInput" placeholder="Type a task command (e.g. 'Add task Setup OAuth priority High' or 'Move Setup OAuth to Done')..." autocomplete="off" />
-      <button type="submit">Execute</button>
+    <!-- Manual Text Console -->
+    <form class="stark-input-bar" id="commandForm" onsubmit="submitManualCommand(event)">
+      <input type="text" id="manualText" placeholder="Enter directive (e.g. 'Add task Upgrade Repulsor Nodes priority High' or 'Mark Repulsor Nodes as Done')..." autocomplete="off" />
+      <button type="submit">TRANSMIT</button>
     </form>
   </div>
 
   <script>
-    // Dynamic Backend URL
-    const BACKEND_URL = (window.location.origin && window.location.origin.startsWith("http")) 
-      ? window.location.origin 
+    // Relative Backend URL
+    const BACKEND_URL = (window.location.origin && window.location.origin.startsWith("http"))
+      ? window.location.origin
       : "http://localhost:8000";
 
-    // UI Elements
-    const micBtn = document.getElementById("micBtn");
-    const heroGlow = document.getElementById("heroGlow");
-    const transcriptBox = document.getElementById("transcriptBox");
+    // DOM Elements
+    const reactorBtn = document.getElementById("reactorBtn");
+    const reactorLabel = document.getElementById("reactorLabel");
+    const transcriptDisplay = document.getElementById("transcriptDisplay");
     const canvas = document.getElementById("waveformCanvas");
     const ctx = canvas.getContext("2d");
     const zoneTodo = document.getElementById("zone-todo");
@@ -862,12 +746,11 @@
     const emptyTodo = document.getElementById("empty-todo");
     const emptyInProgress = document.getElementById("empty-inprogress");
     const emptyDone = document.getElementById("empty-done");
-    const progressFill = document.getElementById("progressFill");
-    const progressText = document.getElementById("progressText");
-    const manualInput = document.getElementById("manualInput");
+    const progressStats = document.getElementById("progressStats");
+    const manualText = document.getElementById("manualText");
 
     // Audio SFX Engine (Zero-dependency Web Audio API)
-    let sfxEnabled = true;
+    let sfxMuted = false;
     let audioCtx = null;
 
     function getAudioCtx() {
@@ -880,51 +763,51 @@
       return audioCtx;
     }
 
-    function toggleAudioSFX() {
-      sfxEnabled = !sfxEnabled;
-      document.getElementById("sfxIcon").textContent = sfxEnabled ? "🔊" : "🔇";
-      document.getElementById("sfxLabel").textContent = sfxEnabled ? "SFX ON" : "SFX MUTED";
+    function toggleSoundSFX() {
+      sfxMuted = !sfxMuted;
+      document.getElementById("sfxIcon").textContent = sfxMuted ? "🔇" : "🔊";
+      document.getElementById("sfxText").textContent = sfxMuted ? "SFX MUTED" : "SFX ON";
     }
 
-    function playSound(type) {
-      if (!sfxEnabled) return;
+    function playHUDBeep(type) {
+      if (sfxMuted) return;
       try {
-        const ctx = getAudioCtx();
-        const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const actx = getAudioCtx();
+        const now = actx.currentTime;
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(actx.destination);
 
-        if (type === "listen") {
+        if (type === "activate") {
           osc.type = "sine";
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(740, now + 0.12);
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
           gain.gain.setValueAtTime(0.15, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-          osc.start(now);
-          osc.stop(now + 0.18);
-        } else if (type === "success") {
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(520, now);
-          osc.frequency.setValueAtTime(660, now + 0.08);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-          osc.start(now);
-          osc.stop(now + 0.25);
-        } else if (type === "whoosh") {
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(320, now);
-          osc.frequency.exponentialRampToValueAtTime(480, now + 0.15);
-          gain.gain.setValueAtTime(0.12, now);
           gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
           osc.start(now);
           osc.stop(now + 0.2);
-        } else if (type === "delete") {
+        } else if (type === "success") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(580, now);
+          osc.frequency.setValueAtTime(880, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        } else if (type === "move") {
           osc.type = "sine";
-          osc.frequency.setValueAtTime(420, now);
-          osc.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(560, now + 0.12);
           gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.start(now);
+          osc.stop(now + 0.18);
+        } else if (type === "delete") {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(380, now);
+          osc.frequency.exponentialRampToValueAtTime(140, now + 0.15);
+          gain.gain.setValueAtTime(0.1, now);
           gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
           osc.start(now);
           osc.stop(now + 0.18);
@@ -932,72 +815,23 @@
       } catch (err) {}
     }
 
-    // Live Audio Waveform Visualizer
-    let audioStream = null;
-    let analyser = null;
-    let animFrame = null;
-    let waveBuffer = new Uint8Array(64);
+    // Waveform Visualizer
+    let animId = null;
+    let wavePhase = 0;
 
-    async function startWaveform() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioStream = stream;
-        const actx = getAudioCtx();
-        const source = actx.createMediaStreamSource(stream);
-        analyser = actx.createAnalyser();
-        analyser.fftSize = 128;
-        source.connect(analyser);
-        waveBuffer = new Uint8Array(analyser.frequencyBinCount);
-        renderWaveform();
-      } catch (err) {
-        // Fallback procedural animation
-        renderProceduralWave();
-      }
-    }
-
-    function stopWaveform() {
-      if (animFrame) cancelAnimationFrame(animFrame);
-      if (audioStream) {
-        audioStream.getTracks().forEach(t => t.stop());
-        audioStream = null;
-      }
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function renderWaveform() {
-      animFrame = requestAnimationFrame(renderWaveform);
-      if (!analyser) return;
-      analyser.getByteFrequencyData(waveBuffer);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const barWidth = 4;
-      const barGap = 3;
-      const numBars = Math.floor(canvas.width / (barWidth + barGap));
-
-      for (let i = 0; i < numBars; i++) {
-        const val = waveBuffer[i % waveBuffer.length] || 0;
-        const barHeight = Math.max(3, (val / 255) * canvas.height);
-        const x = i * (barWidth + barGap);
-        const y = (canvas.height - barHeight) / 2;
-
-        ctx.fillStyle = isListening ? "#f43f5e" : "#06b6d4";
-        ctx.beginPath();
-        ctx.roundRect ? ctx.roundRect(x, y, barWidth, barHeight, 2) : ctx.rect(x, y, barWidth, barHeight);
-        ctx.fill();
-      }
-    }
-
-    function renderProceduralWave() {
-      let phase = 0;
+    function startWaveform() {
+      if (animId) cancelAnimationFrame(animId);
       function loop() {
-        animFrame = requestAnimationFrame(loop);
+        animId = requestAnimationFrame(loop);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        phase += 0.1;
-        ctx.strokeStyle = isListening ? "#f43f5e" : "#06b6d4";
+        wavePhase += 0.12;
+
+        ctx.strokeStyle = isListening ? "#ef4444" : "#00f0ff";
         ctx.lineWidth = 2;
         ctx.beginPath();
         for (let x = 0; x < canvas.width; x += 4) {
-          const y = (canvas.height / 2) + Math.sin(x * 0.05 + phase) * (isListening ? 10 : 3);
+          const amp = isListening ? 12 : 3;
+          const y = (canvas.height / 2) + Math.sin(x * 0.06 + wavePhase) * amp;
           x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         }
         ctx.stroke();
@@ -1005,27 +839,30 @@
       loop();
     }
 
-    // Web Speech API Dual Controller (Tap-to-Toggle + Hold-to-Speak)
+    function stopWaveform() {
+      if (animId) cancelAnimationFrame(animId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Web Speech API Voice Recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let isListening = false;
-    let holdTimer = null;
-    let isHoldMode = false;
-    let capturedTranscript = "";
+    let activeTranscript = "";
 
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = navigator.language || "en-US";
+      recognition.lang = "en-US";
 
       recognition.onstart = () => {
         isListening = true;
-        micBtn.classList.add("listening");
-        heroGlow.classList.add("active");
-        transcriptBox.classList.add("listening");
-        transcriptBox.textContent = "Listening... Speak your project command!";
-        playSound("listen");
+        reactorBtn.classList.add("active");
+        reactorLabel.textContent = "LISTENING";
+        transcriptDisplay.classList.add("active");
+        transcriptDisplay.textContent = "J.A.R.V.I.S. is listening, Sir...";
+        playHUDBeep("activate");
         startWaveform();
       };
 
@@ -1039,223 +876,177 @@
             interimStr += event.results[i][0].transcript;
           }
         }
-        capturedTranscript = (finalStr + interimStr).trim();
-        if (capturedTranscript) {
-          transcriptBox.textContent = `"${capturedTranscript}"`;
+        activeTranscript = (finalStr + interimStr).trim();
+        if (activeTranscript) {
+          transcriptDisplay.textContent = `"${activeTranscript}"`;
         }
       };
 
       recognition.onerror = (event) => {
-        console.warn("Speech error:", event.error);
         if (event.error !== "no-speech") {
-          transcriptBox.textContent = `Voice note: ${event.error}`;
+          transcriptDisplay.textContent = `J.A.R.V.I.S. Note: ${event.error}`;
         }
       };
 
       recognition.onend = () => {
-        endListeningSession();
+        isListening = false;
+        reactorBtn.classList.remove("active");
+        reactorLabel.textContent = "ACTIVATE";
+        transcriptDisplay.classList.remove("active");
+        stopWaveform();
+
+        const cmd = activeTranscript.trim();
+        if (cmd) {
+          executeCommand(cmd);
+        } else {
+          transcriptDisplay.textContent = "Standing by for your instructions, Sir.";
+        }
       };
     } else {
-      transcriptBox.textContent = "⚠️ Web Speech API not supported in this browser. Please open in Google Chrome or Edge.";
+      transcriptDisplay.textContent = "Web Speech API not supported in this browser. Please use Google Chrome.";
     }
 
-    function startListening() {
-      if (isListening || !recognition) return;
-      capturedTranscript = "";
-      try {
-        recognition.start();
-      } catch (err) {}
-    }
-
-    function stopListening() {
-      if (!isListening || !recognition) return;
-      try {
+    function toggleVoiceSession() {
+      if (!recognition) return;
+      if (isListening) {
         recognition.stop();
-      } catch (err) {}
+      } else {
+        activeTranscript = "";
+        try {
+          recognition.start();
+        } catch (e) {}
+      }
     }
 
-    function endListeningSession() {
-      isListening = false;
-      isHoldMode = false;
-      micBtn.classList.remove("listening");
-      heroGlow.classList.remove("active");
-      transcriptBox.classList.remove("listening");
-      stopWaveform();
-
-      setTimeout(() => {
-        const text = capturedTranscript.trim();
-        if (text) {
-          executeVoiceCommand(text);
-        } else {
-          transcriptBox.textContent = "No command heard. Tap the microphone to try again.";
-        }
-      }, 150);
-    }
-
-    // Dual Event Handlers: Tap vs Hold
-    let pressStartTime = 0;
-
-    micBtn.addEventListener("mousedown", (e) => {
-      pressStartTime = Date.now();
-      holdTimer = setTimeout(() => {
-        isHoldMode = true;
-        if (!isListening) startListening();
-      }, 250);
-    });
-
-    window.addEventListener("mouseup", (e) => {
-      clearTimeout(holdTimer);
-      const pressDuration = Date.now() - pressStartTime;
-      if (isHoldMode) {
-        // Was holding -> release to submit
-        stopListening();
-      } else if (pressDuration < 250) {
-        // Was a tap -> toggle mode
-        if (isListening) {
-          stopListening();
-        } else {
-          startListening();
-        }
-      }
-    });
-
-    // Touch support for mobile / iPad
-    micBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      pressStartTime = Date.now();
-      holdTimer = setTimeout(() => {
-        isHoldMode = true;
-        if (!isListening) startListening();
-      }, 250);
-    }, { passive: false });
-
-    window.addEventListener("touchend", () => {
-      clearTimeout(holdTimer);
-      if (isHoldMode) {
-        stopListening();
-      } else if (Date.now() - pressStartTime < 250) {
-        isListening ? stopListening() : startListening();
-      }
-    });
-
-    // Execute Voice / Text Command
-    async function executeVoiceCommand(text) {
-      if (!text || !text.trim()) return;
-      transcriptBox.classList.add("speaking");
-      transcriptBox.textContent = `Analyzing: "${text}"...`;
+    // Execute Command to Backend
+    async function executeCommand(userText) {
+      if (!userText || !userText.trim()) return;
+      transcriptDisplay.textContent = `J.A.R.V.I.S. Processing: "${userText}"...`;
 
       try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: text })
+          body: JSON.stringify({ text: userText })
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
-        const reply = data.reply || "Task updated.";
+        const reply = data.reply || "Directive acknowledged, Sir.";
         const action = data.action || { command: "NONE" };
 
-        transcriptBox.textContent = `Gemma: "${reply}"`;
-        speakAudio(reply);
-        dispatchBoardAction(action);
-        saveTasksToStorage();
+        transcriptDisplay.textContent = `J.A.R.V.I.S.: "${reply}"`;
+        speakJarvis(reply);
+        dispatchAction(action);
+        saveDirectives();
 
       } catch (err) {
-        console.error("Command error:", err);
-        transcriptBox.textContent = "Server connection note: using local board dispatcher.";
-        // Local fallback in case network blocked
-        dispatchLocalFallback(text);
-      } finally {
-        setTimeout(() => transcriptBox.classList.remove("speaking"), 3000);
+        console.warn("Backend connection note, executing local fallback:", err);
+        fallbackLocalExecution(userText);
       }
     }
 
-    // Spoken Audio Output
-    function speakAudio(text) {
+    function handleChipClick(text) {
+      executeCommand(text);
+    }
+
+    function submitManualCommand(e) {
+      e.preventDefault();
+      const val = manualText.value.trim();
+      if (val) {
+        manualText.value = "";
+        executeCommand(val);
+      }
+    }
+
+    // J.A.R.V.I.S. Spoken Output (SpeechSynthesis)
+    function speakJarvis(text) {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
       if (window.speechSynthesis.paused) window.speechSynthesis.resume();
 
       const utter = new SpeechSynthesisUtterance(text);
       utter.rate = 1.0;
-      utter.pitch = 1.0;
+      utter.pitch = 0.95;
 
       const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(v => 
-        v.name.includes("Google") || 
-        v.name.includes("Samantha") ||
-        v.name.includes("Natural") ||
-        v.lang.startsWith("en")
+      const british = voices.find(v => 
+        v.name.includes("Daniel") || 
+        v.name.includes("Oliver") || 
+        v.name.includes("UK English") || 
+        v.lang === "en-GB"
       );
-      if (preferred) utter.voice = preferred;
+      if (british) utter.voice = british;
 
       window.speechSynthesis.speak(utter);
     }
 
-    // Dynamic Board Dispatcher
-    function dispatchBoardAction(action) {
+    // Tactical Board Action Dispatcher
+    function dispatchAction(action) {
       if (!action || !action.command) return;
 
       if (action.command === "ADD_TASK") {
-        const name = action.task_name || "New Task";
+        const name = action.task_name || "New Directive";
         const priority = (action.priority || "Low").toLowerCase() === "high" ? "High" : "Low";
-        addTaskCard(name, priority, "Todo");
-        playSound("success");
+        createDirectiveCard(name, priority, "Todo");
+        playHUDBeep("success");
       } else if (action.command === "MOVE_TASK") {
         const name = action.task_name || "";
-        const status = normalizeStatus(action.new_status);
-        moveTaskCard(name, status);
-        playSound("whoosh");
+        const status = parseStatus(action.new_status);
+        moveDirective(name, status);
+        playHUDBeep("move");
       } else if (action.command === "CLEAR_ALL") {
-        clearBoardTasks();
-        playSound("delete");
+        purgeAllDirectives();
+        playHUDBeep("delete");
       }
 
       updateMetrics();
     }
 
-    function dispatchLocalFallback(text) {
+    function fallbackLocalExecution(text) {
       const lower = text.toLowerCase();
-      if (lower.includes("clear")) {
-        clearBoardTasks();
-        playSound("delete");
+      if (lower.includes("clear") || lower.includes("purge")) {
+        purgeAllDirectives();
+        playHUDBeep("delete");
+        transcriptDisplay.textContent = "J.A.R.V.I.S.: Display purged, Sir.";
       } else if (lower.includes("add") || lower.includes("create")) {
-        const prio = lower.includes("high") ? "High" : "Low";
-        const name = text.replace(/(?i)(add\s+task|create\s+task|add|create|priority\s+high|priority\s+low)/g, "").trim() || "New Task";
-        addTaskCard(name, prio, "Todo");
-        playSound("success");
+        const prio = (lower.includes("high") || lower.includes("urgent")) ? "High" : "Low";
+        const name = text.replace(/(add\s+task|create\s+task|add|create|priority\s+high|priority\s+low)/gi, "").trim() || "New Directive";
+        createDirectiveCard(name, prio, "Todo");
+        playHUDBeep("success");
+        transcriptDisplay.textContent = `J.A.R.V.I.S.: Directive '${name}' added to backlog, Sir.`;
       } else if (lower.includes("move") || lower.includes("done") || lower.includes("progress")) {
         const target = lower.includes("done") ? "Done" : "InProgress";
-        const all = Array.from(document.querySelectorAll(".task-card"));
+        const all = Array.from(document.querySelectorAll(".directive-card"));
         if (all.length > 0) {
           moveCardTo(all[0], target);
-          playSound("whoosh");
+          playHUDBeep("move");
+          transcriptDisplay.textContent = `J.A.R.V.I.S.: Directive transitioned to ${target}, Sir.`;
         }
       }
       updateMetrics();
-      saveTasksToStorage();
+      saveDirectives();
     }
 
-    function normalizeStatus(status) {
-      if (!status) return "InProgress";
-      const s = status.toLowerCase().replace(/[\s-_]/g, "");
-      if (s.includes("todo")) return "Todo";
-      if (s.includes("progress")) return "InProgress";
-      if (s.includes("done")) return "Done";
+    function parseStatus(s) {
+      if (!s) return "InProgress";
+      const clean = s.toLowerCase().replace(/[\s-_]/g, "");
+      if (clean.includes("todo")) return "Todo";
+      if (clean.includes("progress")) return "InProgress";
+      if (clean.includes("done")) return "Done";
       return "InProgress";
     }
 
-    // Card Creation, Movement, Deletion
-    function addTaskCard(title, priority, columnStatus = "Todo") {
+    // Directive Card DOM Operations
+    function createDirectiveCard(title, priority, status = "Todo") {
       const safePrio = (priority || "Low").toLowerCase() === "high" ? "High" : "Low";
-      const cardId = "card-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
-      const cleanTitle = (title || "Untitled Task").trim();
+      const id = "directive-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      const cleanTitle = (title || "Untitled Directive").trim();
 
       const card = document.createElement("div");
-      card.className = "task-card";
-      card.id = cardId;
+      card.className = "directive-card";
+      card.id = id;
       card.setAttribute("draggable", "true");
       card.setAttribute("data-title", cleanTitle.toLowerCase());
       card.setAttribute("data-priority", safePrio.toLowerCase());
@@ -1264,40 +1055,37 @@
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       card.innerHTML = `
-        <div class="task-card-header">
-          <span class="task-title">${escapeHtml(cleanTitle)}</span>
-          <span class="priority-tag ${safePrio.toLowerCase()}">${safePrio}</span>
+        <div class="directive-header">
+          <span class="directive-name">${escapeHtml(cleanTitle)}</span>
+          <span class="priority-pill ${safePrio.toLowerCase()}">${safePrio}</span>
         </div>
-        <div class="task-footer">
-          <span>🕒 ${timeStr}</span>
-          <div class="task-actions">
-            <button class="task-btn" onclick="deleteCard('${cardId}')" title="Delete Task">✕</button>
-          </div>
+        <div class="directive-meta">
+          <span>STARK PROTOCOL // ${timeStr}</span>
+          <button class="card-del-btn" onclick="deleteDirective('${id}')" title="Dismiss Directive">✕</button>
         </div>
       `;
 
-      // Setup Drag events
-      card.addEventListener("dragstart", handleDragStart);
-      card.addEventListener("dragend", handleDragEnd);
+      card.addEventListener("dragstart", onDragStart);
+      card.addEventListener("dragend", onDragEnd);
 
-      const targetZone = getZoneByStatus(columnStatus);
+      const targetZone = getZone(status);
       targetZone.appendChild(card);
       updateMetrics();
-      saveTasksToStorage();
+      saveDirectives();
     }
 
-    function deleteCard(cardId) {
-      const card = document.getElementById(cardId);
+    function deleteDirective(id) {
+      const card = document.getElementById(id);
       if (card && card.parentElement) {
         card.parentElement.removeChild(card);
-        playSound("delete");
+        playHUDBeep("delete");
         updateMetrics();
-        saveTasksToStorage();
+        saveDirectives();
       }
     }
 
-    function moveTaskCard(targetName, newStatus) {
-      const allCards = Array.from(document.querySelectorAll(".task-card"));
+    function moveDirective(targetName, newStatus) {
+      const allCards = Array.from(document.querySelectorAll(".directive-card"));
       if (allCards.length === 0) return;
 
       const search = (targetName || "").toLowerCase().trim();
@@ -1322,7 +1110,6 @@
         }
       }
 
-      // Fallback: most recent card
       if (!matched) matched = allCards[allCards.length - 1];
 
       if (matched) {
@@ -1330,106 +1117,104 @@
       }
     }
 
-    function moveCardTo(card, newStatus) {
-      const targetZone = getZoneByStatus(newStatus);
+    function moveCardTo(card, status) {
+      const targetZone = getZone(status);
       if (targetZone && card.parentElement !== targetZone) {
         targetZone.appendChild(card);
         updateMetrics();
-        saveTasksToStorage();
+        saveDirectives();
       }
     }
 
-    function getZoneByStatus(status) {
+    function getZone(status) {
       if (status === "Todo") return zoneTodo;
       if (status === "Done") return zoneDone;
       return zoneInProgress;
     }
 
-    function clearBoardTasks() {
-      document.querySelectorAll(".task-card").forEach(c => {
+    function purgeAllDirectives() {
+      document.querySelectorAll(".directive-card").forEach(c => {
         if (c.parentElement) c.parentElement.removeChild(c);
       });
       updateMetrics();
-      saveTasksToStorage();
+      saveDirectives();
     }
 
-    function clearBoardVoice() {
-      executeVoiceCommand("Clear all tasks from the board");
+    function clearBoardDirectives() {
+      executeCommand("Clear all directives from the display");
     }
 
-    // HTML5 Drag and Drop
-    let draggedCard = null;
+    // HTML5 Drag and Drop Handlers
+    let draggedElement = null;
 
-    function handleDragStart(e) {
-      draggedCard = this;
+    function onDragStart(e) {
+      draggedElement = this;
       this.classList.add("dragging");
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", this.id);
     }
 
-    function handleDragEnd() {
+    function onDragEnd() {
       this.classList.remove("dragging");
-      document.querySelectorAll(".kanban-column").forEach(col => col.classList.remove("drag-over"));
-      draggedCard = null;
+      document.querySelectorAll(".tactical-column").forEach(c => c.classList.remove("drag-hover"));
+      draggedElement = null;
     }
 
-    function handleDragOver(e) {
+    function allowDrop(e) {
       e.preventDefault();
       e.dataTransfer.dropEffect = "move";
-      const col = e.currentTarget.closest(".kanban-column");
-      if (col) col.classList.add("drag-over");
+      const col = e.currentTarget.closest(".tactical-column");
+      if (col) col.classList.add("drag-hover");
     }
 
-    function handleDragLeave(e) {
-      const col = e.currentTarget.closest(".kanban-column");
-      if (col) col.classList.remove("drag-over");
+    function leaveDrop(e) {
+      const col = e.currentTarget.closest(".tactical-column");
+      if (col) col.classList.remove("drag-hover");
     }
 
-    function handleDrop(e, status) {
+    function dropCard(e, status) {
       e.preventDefault();
-      const col = e.currentTarget.closest(".kanban-column");
-      if (col) col.classList.remove("drag-over");
+      const col = e.currentTarget.closest(".tactical-column");
+      if (col) col.classList.remove("drag-hover");
 
-      if (draggedCard) {
-        moveCardTo(draggedCard, status);
-        playSound("whoosh");
+      if (draggedElement) {
+        moveCardTo(draggedElement, status);
+        playHUDBeep("move");
       }
     }
 
-    // Search & Filter
-    let activePriorityFilter = "all";
+    // Search and Filtering
+    let currentFilter = "all";
 
-    function filterCards() {
+    function filterDirectives() {
       const query = (document.getElementById("filterInput").value || "").toLowerCase().trim();
-      const allCards = document.querySelectorAll(".task-card");
+      const cards = document.querySelectorAll(".directive-card");
 
-      allCards.forEach(card => {
+      cards.forEach(card => {
         const title = card.getAttribute("data-title") || "";
         const prio = card.getAttribute("data-priority") || "";
         const matchesQuery = !query || title.includes(query);
-        const matchesPrio = (activePriorityFilter === "all") || (prio === activePriorityFilter);
+        const matchesPrio = (currentFilter === "all") || (prio === currentFilter);
 
         card.style.display = (matchesQuery && matchesPrio) ? "flex" : "none";
       });
     }
 
-    function setPriorityFilter(prio, btn) {
-      activePriorityFilter = prio;
-      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      filterCards();
+    function filterByPriority(prio) {
+      currentFilter = prio;
+      filterDirectives();
     }
 
-    // Board Metrics & Progress Bar
+    // Metrics Update
     function updateMetrics() {
-      const todoCards = zoneTodo.querySelectorAll(".task-card");
-      const inProgressCards = zoneInProgress.querySelectorAll(".task-card");
-      const doneCards = zoneDone.querySelectorAll(".task-card");
+      const todoCards = zoneTodo.querySelectorAll(".directive-card");
+      const inProgCards = zoneInProgress.querySelectorAll(".directive-card");
+      const doneCards = zoneDone.querySelectorAll(".directive-card");
 
       const nTodo = todoCards.length;
-      const nProg = inProgressCards.length;
+      const nProg = inProgCards.length;
       const nDone = doneCards.length;
-      const nTotal = nTodo + nProg + nDone;
+      const total = nTodo + nProg + nDone;
 
       badgeTodo.textContent = nTodo;
       badgeInProgress.textContent = nProg;
@@ -1439,41 +1224,40 @@
       emptyInProgress.style.display = nProg === 0 ? "block" : "none";
       emptyDone.style.display = nDone === 0 ? "block" : "none";
 
-      const pct = nTotal === 0 ? 0 : Math.round((nDone / nTotal) * 100);
-      progressFill.style.width = `${pct}%`;
-      progressText.textContent = `${pct}% (${nDone}/${nTotal})`;
+      const pct = total === 0 ? 0 : Math.round((nDone / total) * 100);
+      progressStats.textContent = `${pct}% (${nDone}/${total})`;
     }
 
-    // LocalStorage Persistence
-    const STORAGE_KEY = "GEMMA_KANBAN_BOARD_V2";
+    // Local Storage Persistence
+    const STORAGE_KEY = "JARVIS_TACTICAL_DIRECTIVES_V3";
 
-    function saveTasksToStorage() {
-      const tasks = [];
-      document.querySelectorAll(".task-card").forEach(c => {
-        const parentZone = c.parentElement ? c.parentElement.id : "";
-        let status = "Todo";
-        if (parentZone === "zone-inprogress") status = "InProgress";
-        if (parentZone === "zone-done") status = "Done";
+    function saveDirectives() {
+      const items = [];
+      document.querySelectorAll(".directive-card").forEach(c => {
+        const zone = c.parentElement ? c.parentElement.id : "";
+        let st = "Todo";
+        if (zone === "zone-inprogress") st = "InProgress";
+        if (zone === "zone-done") st = "Done";
 
-        tasks.push({
+        items.push({
           id: c.id,
-          title: c.querySelector(".task-title") ? c.querySelector(".task-title").textContent : "",
+          title: c.querySelector(".directive-name") ? c.querySelector(".directive-name").textContent : "",
           priority: c.getAttribute("data-priority") || "low",
-          status: status
+          status: st
         });
       });
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
       } catch (e) {}
     }
 
-    function loadTasksFromStorage() {
+    function loadDirectives() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const tasks = JSON.parse(raw);
-          if (Array.isArray(tasks) && tasks.length > 0) {
-            tasks.forEach(t => addTaskCard(t.title, t.priority, t.status));
+          const list = JSON.parse(raw);
+          if (Array.isArray(list) && list.length > 0) {
+            list.forEach(item => createDirectiveCard(item.title, item.priority, item.status));
             return true;
           }
         }
@@ -1481,23 +1265,14 @@
       return false;
     }
 
-    // Sample Demo Tasks
-    function resetToSampleTasks() {
-      clearBoardTasks();
-      addTaskCard("Build Stripe Payment Integration", "High", "Todo");
-      addTaskCard("Implement Gemma 4 Voice PM Webhook", "High", "InProgress");
-      addTaskCard("Optimize Mobile Waveform Visualizer", "Low", "InProgress");
-      addTaskCard("Setup FastApi CORS & Test Suite", "Low", "Done");
-      playSound("success");
-    }
-
-    function handleManualSubmit(e) {
-      e.preventDefault();
-      const val = manualInput.value.trim();
-      if (val) {
-        manualInput.value = "";
-        executeVoiceCommand(val);
-      }
+    // Default Stark Directives
+    function loadStarkDirectives() {
+      purgeAllDirectives();
+      createDirectiveCard("Calibrate Mark 85 Flight Thrusters", "High", "Todo");
+      createDirectiveCard("Synthesize Vibranium-Titanium Alloy", "High", "InProgress");
+      createDirectiveCard("Run Diagnostic on Repulsor Emitters", "Low", "InProgress");
+      createDirectiveCard("Deploy Clean Energy Microgrid to Tower", "Low", "Done");
+      playHUDBeep("success");
     }
 
     function escapeHtml(str) {
@@ -1506,11 +1281,11 @@
       return d.innerHTML;
     }
 
-    // Initialization
+    // App Initialization
     window.addEventListener("DOMContentLoaded", () => {
-      const hasStored = loadTasksFromStorage();
-      if (!hasStored) {
-        resetToSampleTasks();
+      const loaded = loadDirectives();
+      if (!loaded) {
+        loadStarkDirectives();
       }
       updateMetrics();
 
