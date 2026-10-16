@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gemma Voice Diner • Voice-First AI Restaurant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Gemma Voice Diner • Drive-Thru & Kitchen Intercom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: rgba(18, 25, 43, 0.75);
-      --card-border: rgba(56, 189, 248, 0.2);
-      --accent-cyan: #38bdf8;
-      --accent-orange: #f97316;
-      --accent-emerald: #10b981;
-      --accent-rose: #f43f5e;
-      --text-main: #f8fafc;
+      --bg-diner: #0d0f15;
+      --card-bg: #151922;
+      --card-border: #262c3d;
+      --primary-orange: #ff6b00;
+      --primary-amber: #f59e0b;
+      --grill-red: #ef4444;
+      --fresh-green: #10b981;
+      --text-primary: #ffffff;
       --text-muted: #94a3b8;
-      --font-main: 'Outfit', -apple-system, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --font-diner: 'Plus Jakarta Sans', sans-serif;
+      --font-display: 'Space Grotesk', sans-serif;
     }
 
     * {
@@ -29,359 +29,559 @@
     }
 
     body {
-      background: radial-gradient(circle at 50% 0%, #151e33 0%, var(--bg) 100%);
-      color: var(--text-main);
-      font-family: var(--font-main);
+      background-color: var(--bg-diner);
+      background-image: radial-gradient(circle at 50% 0%, #201a14 0%, var(--bg-diner) 75%);
+      color: var(--text-primary);
+      font-family: var(--font-diner);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px 40px;
+      padding: 20px 16px 40px;
     }
 
-    .container {
+    .diner-container {
       width: 100%;
-      max-width: 900px;
+      max-width: 980px;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
 
-    /* Header */
-    header {
+    /* Top Diner Canopy Header */
+    header.diner-header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      padding: 16px 24px;
-      border-radius: 20px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
     }
 
-    .brand {
+    header.diner-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ff6b00, #f59e0b, #ef4444, #ff6b00);
+      background-size: 200% 100%;
+      animation: stripeShift 4s linear infinite;
+    }
+
+    @keyframes stripeShift {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    .diner-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .brand-icon {
-      font-size: 1.8rem;
-      background: rgba(249, 115, 22, 0.15);
-      border: 1px solid rgba(249, 115, 22, 0.4);
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+    .neon-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ff6b00, #dc2626);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 0 20px rgba(255, 107, 0, 0.4);
     }
 
-    .brand-title h1 {
-      font-size: 1.3rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff, #fdba74);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .diner-title h1 {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .brand-title p {
-      font-size: 0.78rem;
+    .diner-title p {
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    .status-badge {
+    .ai-indicator {
       display: flex;
       align-items: center;
       gap: 8px;
+      background: #1e2433;
+      border: 1px solid #333c52;
       padding: 6px 14px;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 9999px;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #cbd5e1;
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
+    .indicator-led {
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
-      background: var(--accent-emerald);
-      box-shadow: 0 0 8px var(--accent-emerald);
+      background: var(--fresh-green);
+      box-shadow: 0 0 10px var(--fresh-green);
     }
 
-    /* Grid Layout: Controls & Cart */
-    .dashboard-grid {
+    /* Interactive Menu Showcase Strip */
+    .menu-strip {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 680px) {
+      .menu-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .menu-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .menu-pill:hover {
+      border-color: var(--primary-orange);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 107, 0, 0.15);
+    }
+
+    .menu-pill-emoji {
+      font-size: 1.6rem;
+    }
+
+    .menu-pill-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-pill-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .menu-pill-price {
+      font-size: 0.75rem;
+      color: var(--primary-amber);
+      font-weight: 600;
+    }
+
+    /* Main Interaction Split: Drive-Thru Console & Cart */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 20px;
     }
 
-    @media (max-width: 768px) {
-      .dashboard-grid {
+    @media (max-width: 840px) {
+      .stage-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .panel {
+    /* Food Intercom Box */
+    .intercom-console {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 24px;
-      padding: 24px;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    /* Voice Interaction Zone */
-    .voice-zone {
+      padding: 28px 24px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 10px 0;
-    }
-
-    /* Hold to Speak Button */
-    .hold-button-wrapper {
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
       position: relative;
-      margin: 16px 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    .hold-btn {
-      width: 170px;
-      height: 170px;
+    .intercom-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: #1f2638;
+      border: 1px solid #37425f;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      border: none;
+      background: var(--grill-red);
+      opacity: 0.4;
+    }
+
+    .live-dot.glowing {
+      opacity: 1;
+      box-shadow: 0 0 10px var(--grill-red);
+      animation: blink 0.8s infinite alternate;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Push to Talk Intercom Button */
+    .intercom-btn-wrap {
+      position: relative;
+      margin-bottom: 22px;
+    }
+
+    .intercom-btn {
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      border: 6px solid #232a3d;
       outline: none;
-      cursor: pointer;
-      background: radial-gradient(circle at 35% 35%, #f97316, #9a3412);
-      box-shadow: 0 0 35px rgba(249, 115, 22, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.3);
+      background: linear-gradient(145deg, #ff7a1a, #d44500);
+      box-shadow: 0 12px 28px rgba(212, 69, 0, 0.4), inset 0 4px 8px rgba(255, 255, 255, 0.35);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
       color: #ffffff;
-      font-family: var(--font-main);
-      font-weight: 700;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.15s ease;
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
     }
 
-    .hold-btn:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 45px rgba(249, 115, 22, 0.6);
+    .intercom-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(212, 69, 0, 0.55), inset 0 4px 8px rgba(255, 255, 255, 0.45);
     }
 
-    .hold-btn.active {
-      transform: scale(0.96);
-      background: radial-gradient(circle at 35% 35%, #ef4444, #7f1d1d);
-      box-shadow: 0 0 60px rgba(239, 68, 68, 0.8), inset 0 0 25px rgba(255, 255, 255, 0.4);
-      animation: pulseActive 1s infinite alternate;
+    .intercom-btn:active, .intercom-btn.pressing {
+      transform: translateY(4px) scale(0.97);
+      background: linear-gradient(145deg, #ef4444, #b91c1c);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6), inset 0 2px 5px rgba(0, 0, 0, 0.3);
+      border-color: #ef4444;
     }
 
-    @keyframes pulseActive {
-      0% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.6); }
-      100% { box-shadow: 0 0 75px rgba(239, 68, 68, 0.95); }
+    .mic-icon-svg {
+      width: 46px;
+      height: 46px;
+      fill: #ffffff;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
 
-    .hold-icon {
-      font-size: 2.8rem;
-      margin-bottom: 4px;
-      pointer-events: none;
-    }
-
-    .hold-text {
-      font-size: 0.95rem;
-      letter-spacing: 0.03em;
+    .btn-main-label {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      pointer-events: none;
     }
 
-    .hold-subtext {
-      font-size: 0.7rem;
-      opacity: 0.8;
-      pointer-events: none;
+    .btn-sub-label {
+      font-size: 0.72rem;
+      opacity: 0.85;
+      margin-top: 2px;
     }
 
-    /* Status Area */
-    .status-area {
+    /* Live Audio Soundwave Bars */
+    .soundwave-bars {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+      margin-bottom: 16px;
+    }
+
+    .soundwave-bar {
+      width: 4px;
+      height: 6px;
+      background: #333c52;
+      border-radius: 9999px;
+      transition: height 0.1s ease;
+    }
+
+    .soundwave-bars.active .soundwave-bar {
+      background: var(--primary-orange);
+      animation: waveBounce 0.6s infinite ease-in-out alternate;
+    }
+
+    .soundwave-bars.active .soundwave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .soundwave-bars.active .soundwave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .soundwave-bars.active .soundwave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .soundwave-bars.active .soundwave-bar:nth-child(5) { animation-delay: 0.15s; }
+
+    @keyframes waveBounce {
+      0% { height: 6px; }
+      100% { height: 22px; }
+    }
+
+    /* Status Readout */
+    .intercom-status {
       width: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px dashed rgba(56, 189, 248, 0.3);
+      background: #0f131c;
+      border: 1px solid #232a3d;
       border-radius: 14px;
-      padding: 12px 16px;
-      font-size: 0.9rem;
-      min-height: 48px;
+      padding: 12px 18px;
+      font-size: 0.92rem;
+      text-align: center;
+      min-height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #cbd5e1;
-      font-style: italic;
-      text-align: center;
+      color: #e2e8f0;
+      line-height: 1.4;
     }
 
-    .status-area.active {
-      border-color: var(--accent-orange);
+    .intercom-status.listening {
+      border-color: var(--primary-orange);
       color: #fed7aa;
-      background: rgba(249, 115, 22, 0.08);
+      background: rgba(255, 107, 0, 0.08);
+      font-weight: 600;
     }
 
-    /* Shopping Cart Display */
-    .cart-header {
+    /* Shopping Cart Panel */
+    .cart-station {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    .cart-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 12px;
+      border-bottom: 1px solid #242c3e;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
     }
 
-    .cart-title {
-      font-size: 1.15rem;
+    .cart-top-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .cart-counter {
-      background: var(--accent-orange);
-      color: #ffffff;
-      padding: 2px 10px;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
+    .clear-cart-link {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      background: #1e2433;
+      border: 1px solid #303a50;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
     }
 
+    .clear-cart-link:hover {
+      color: #fca5a5;
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* The Main Cart Div */
     #cart {
       flex: 1;
-      min-height: 240px;
-      max-height: 280px;
+      min-height: 250px;
+      max-height: 310px;
       overflow-y: auto;
-      background: rgba(15, 23, 42, 0.65);
-      border: 2px dashed rgba(249, 115, 22, 0.3);
+      background: #0d1017;
+      border: 2px dashed #283247;
       border-radius: 18px;
       padding: 16px;
       display: flex;
-      flex-wrap: wrap;
-      align-content: flex-start;
-      gap: 12px;
-      transition: all 0.3s ease;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
-    #cart.drag-over, #cart:hover {
-      border-color: rgba(249, 115, 22, 0.6);
+    #cart::-webkit-scrollbar {
+      width: 5px;
+    }
+    #cart::-webkit-scrollbar-thumb {
+      background: #283247;
+      border-radius: 4px;
     }
 
-    .cart-empty {
-      width: 100%;
-      height: 100%;
+    .cart-empty-state {
+      margin: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: var(--text-muted);
-      font-size: 0.9rem;
+      text-align: center;
+      color: #64748b;
       gap: 8px;
       padding: 30px 10px;
     }
 
-    .cart-empty-icon {
-      font-size: 2.4rem;
-      opacity: 0.5;
+    .cart-empty-state span {
+      font-size: 2.8rem;
+      opacity: 0.6;
     }
 
-    /* Cart Item Card */
-    .cart-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-      border: 1px solid rgba(249, 115, 22, 0.35);
+    /* Cart Line Item Card */
+    .cart-card {
+      background: #171d2b;
+      border: 1px solid #263148;
       border-radius: 14px;
-      padding: 8px 14px;
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0.6); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .item-emoji {
-      font-size: 1.8rem;
-    }
-
-    .item-info {
+      padding: 10px 14px;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      animation: slideIn 0.25s ease-out;
     }
 
-    .item-name {
-      font-size: 0.85rem;
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cart-card-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cart-card-emoji {
+      font-size: 2rem;
+    }
+
+    .cart-card-details h4 {
+      font-size: 0.92rem;
       font-weight: 700;
       color: #ffffff;
     }
 
-    .item-price {
-      font-size: 0.72rem;
-      color: var(--accent-orange);
-      font-family: var(--font-mono);
+    .cart-card-details p {
+      font-size: 0.74rem;
+      color: var(--primary-amber);
+      font-family: var(--font-display);
     }
 
-    .cart-summary {
+    .cart-card-qty {
+      background: #252f44;
+      color: #ff6b00;
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #3a4866;
+    }
+
+    /* Cart Total Breakdown */
+    .cart-receipt-totals {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px solid #242c3e;
+      padding-top: 12px;
+    }
+
+    .receipt-row {
       display: flex;
       justify-content: space-between;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .receipt-row.total {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      font-family: var(--font-display);
+      padding-top: 4px;
+    }
+
+    .checkout-btn {
+      margin-top: 10px;
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      color: #ffffff;
+      padding: 12px;
+      border-radius: 14px;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
       align-items: center;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.95rem;
-      font-weight: 600;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s;
     }
 
-    .cart-total {
-      font-family: var(--font-mono);
-      color: #38bdf8;
-      font-size: 1.1rem;
+    .checkout-btn:hover {
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+      transform: translateY(-1px);
     }
 
-    /* Conversation Log */
-    .log-panel {
+    /* Live Order Ticket Log */
+    .ticket-log-panel {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 24px;
+      border-radius: 20px;
       padding: 20px 24px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       display: flex;
       flex-direction: column;
       gap: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
 
-    .log-header {
-      font-size: 1rem;
-      font-weight: 700;
+    .ticket-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px dashed #2e374d;
+      padding-bottom: 10px;
+    }
+
+    .ticket-header h3 {
+      font-family: var(--font-display);
+      font-size: 0.98rem;
       color: #cbd5e1;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .conversation-log {
-      max-height: 240px;
+    .ticket-feed {
+      max-height: 200px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -389,163 +589,213 @@
       padding-right: 6px;
     }
 
-    .log-bubble {
+    .ticket-feed::-webkit-scrollbar {
+      width: 4px;
+    }
+    .ticket-feed::-webkit-scrollbar-thumb {
+      background: #283247;
+      border-radius: 4px;
+    }
+
+    .ticket-entry {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      padding: 10px 14px;
+      background: #0f131c;
+      border: 1px solid #232c40;
       border-radius: 12px;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      animation: fadeIn 0.25s ease-out;
+      padding: 10px 14px;
+      font-size: 0.88rem;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+    .ticket-entry.customer {
+      border-left: 4px solid var(--primary-orange);
     }
 
-    .log-bubble.user {
-      align-self: flex-end;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-bottom-right-radius: 2px;
-      max-width: 80%;
+    .ticket-entry.gemma {
+      border-left: 4px solid var(--primary-amber);
     }
 
-    .log-bubble.ai {
-      align-self: flex-start;
-      background: rgba(249, 115, 22, 0.12);
-      border: 1px solid rgba(249, 115, 22, 0.3);
-      border-bottom-left-radius: 2px;
-      max-width: 80%;
-    }
-
-    .log-label {
+    .ticket-meta {
       font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
 
-    .log-bubble.user .log-label { color: var(--accent-cyan); }
-    .log-bubble.ai .log-label { color: var(--accent-orange); }
+    .ticket-entry.customer .ticket-meta { color: var(--primary-orange); }
+    .ticket-entry.gemma .ticket-meta { color: var(--primary-amber); }
 
-    /* Quick Fallback Input */
-    .input-bar {
+    /* Text Fallback Keyboard */
+    .keyboard-fallback {
       display: flex;
-      gap: 8px;
-      margin-top: 4px;
+      gap: 10px;
+      margin-top: 6px;
     }
 
-    .input-bar input {
+    .keyboard-fallback input {
       flex: 1;
-      background: rgba(15, 23, 42, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #0f131c;
+      border: 1px solid #263148;
       border-radius: 12px;
-      padding: 10px 14px;
+      padding: 11px 16px;
       color: #ffffff;
-      font-family: var(--font-main);
+      font-family: var(--font-diner);
       font-size: 0.9rem;
       outline: none;
     }
 
-    .input-bar input:focus {
-      border-color: var(--accent-orange);
+    .keyboard-fallback input:focus {
+      border-color: var(--primary-orange);
     }
 
-    .send-btn {
-      background: var(--accent-orange);
+    .keyboard-fallback button {
+      background: var(--primary-orange);
       color: #ffffff;
       border: none;
       border-radius: 12px;
-      padding: 0 18px;
+      padding: 0 20px;
+      font-family: var(--font-display);
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .send-btn:hover {
-      background: #ea580c;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="diner-container">
     <!-- Header -->
-    <header>
-      <div class="brand">
-        <div class="brand-icon">🍕</div>
-        <div class="brand-title">
-          <h1>Gemma Voice Diner</h1>
-          <p>Voice-First AI Restaurant Assistant</p>
+    <header class="diner-header">
+      <div class="diner-brand">
+        <div class="neon-logo">🍔</div>
+        <div class="diner-title">
+          <h1>GEMMA DINER</h1>
+          <p>Voice Drive-Thru & Kitchen Intercom</p>
         </div>
       </div>
-      <div class="status-badge">
-        <div class="dot"></div>
+      <div class="ai-indicator">
+        <div class="indicator-led"></div>
         <span>Model: google/gemma-4-instruct</span>
       </div>
     </header>
 
-    <!-- Main Grid: Voice Interaction + Visual Cart -->
-    <div class="dashboard-grid">
-      <!-- Voice Controller Panel -->
-      <section class="panel">
-        <h2 style="font-size: 1.1rem; font-weight: 700;">Voice Drive-Thru</h2>
-        <div class="voice-zone">
-          <div class="hold-button-wrapper">
-            <button class="hold-btn" id="holdBtn">
-              <span class="hold-icon">🎙️</span>
-              <span class="hold-text" id="holdBtnText">Hold to Speak</span>
-              <span class="hold-subtext">Release when done</span>
-            </button>
-          </div>
+    <!-- Visual Menu Board -->
+    <div class="menu-strip">
+      <div class="menu-pill" onclick="simulateOrder('Add a pepperoni pizza')">
+        <span class="menu-pill-emoji">🍕</span>
+        <div class="menu-pill-info">
+          <span class="menu-pill-name">Wood-Fired Pizza</span>
+          <span class="menu-pill-price">$14.50</span>
+        </div>
+      </div>
+      <div class="menu-pill" onclick="simulateOrder('Add a smash burger')">
+        <span class="menu-pill-emoji">🍔</span>
+        <div class="menu-pill-info">
+          <span class="menu-pill-name">Smash Burger</span>
+          <span class="menu-pill-price">$10.95</span>
+        </div>
+      </div>
+      <div class="menu-pill" onclick="simulateOrder('Add crispy french fries')">
+        <span class="menu-pill-emoji">🍟</span>
+        <div class="menu-pill-info">
+          <span class="menu-pill-name">Truffle Fries</span>
+          <span class="menu-pill-price">$4.50</span>
+        </div>
+      </div>
+      <div class="menu-pill" onclick="simulateOrder('Add a cold soda')">
+        <span class="menu-pill-emoji">🥤</span>
+        <div class="menu-pill-info">
+          <span class="menu-pill-name">Fountain Drink</span>
+          <span class="menu-pill-price">$2.95</span>
+        </div>
+      </div>
+    </div>
 
-          <div class="status-area" id="statusArea">
-            Ready! Press and hold the button to order.
-          </div>
+    <!-- Main Workspace: Intercom & Cart -->
+    <div class="stage-grid">
+      <!-- Drive-thru Intercom Console -->
+      <section class="intercom-console">
+        <div class="intercom-badge">
+          <div class="live-dot" id="liveDot"></div>
+          <span id="intercomModeLabel">Intercom Ready</span>
+        </div>
+
+        <div class="intercom-btn-wrap">
+          <button class="intercom-btn" id="intercomBtn">
+            <svg class="mic-icon-svg" viewBox="0 0 24 24">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+            <span class="btn-main-label" id="btnMainLabel">Hold to Talk</span>
+            <span class="btn-sub-label">Release when done</span>
+          </button>
+        </div>
+
+        <div class="soundwave-bars" id="soundwaveBars">
+          <div class="soundwave-bar"></div>
+          <div class="soundwave-bar"></div>
+          <div class="soundwave-bar"></div>
+          <div class="soundwave-bar"></div>
+          <div class="soundwave-bar"></div>
+        </div>
+
+        <div class="intercom-status" id="intercomStatus">
+          Press and hold the button to place your order with Gemma.
         </div>
       </section>
 
-      <!-- Large Visual Shopping Cart -->
-      <section class="panel">
-        <div class="cart-header">
-          <div class="cart-title">
-            🛒 <span>Your Order</span>
+      <!-- Cart Takeout Station -->
+      <section class="cart-station">
+        <div class="cart-top">
+          <div class="cart-top-title">
+            🛒 <span>Takeout Tray</span>
           </div>
-          <span class="cart-counter" id="cartCountBadge">0 items</span>
+          <button class="clear-cart-link" id="clearCartBtn" title="Clear all items">Empty Tray</button>
         </div>
 
-        <!-- The Shopping Cart Div -->
+        <!-- The Visual Cart Div -->
         <div id="cart">
-          <div class="cart-empty" id="cartEmpty">
-            <div class="cart-empty-icon">🛒</div>
-            <p>Your cart is empty.</p>
-            <p style="font-size: 0.78rem; opacity: 0.7;">Say "Add two pizzas" or "I want a burger!"</p>
+          <div class="cart-empty-state" id="cartEmptyState">
+            <span>🥡</span>
+            <strong>Your takeout tray is empty.</strong>
+            <p style="font-size: 0.78rem;">Say "Give me two pizzas and fries!"</p>
           </div>
         </div>
 
-        <div class="cart-summary">
-          <span>Estimated Total:</span>
-          <span class="cart-total" id="cartTotalDisplay">$0.00</span>
+        <div class="cart-receipt-totals">
+          <div class="receipt-row">
+            <span>Subtotal:</span>
+            <span id="subtotalDisplay">$0.00</span>
+          </div>
+          <div class="receipt-row">
+            <span>Tax (8.25%):</span>
+            <span id="taxDisplay">$0.00</span>
+          </div>
+          <div class="receipt-row total">
+            <span>Total:</span>
+            <span style="color: #ff6b00;" id="totalDisplay">$0.00</span>
+          </div>
         </div>
+
+        <button class="checkout-btn" id="checkoutBtn" onclick="checkoutOrder()">
+          <span>✓</span> <span>Place Order</span>
+        </button>
       </section>
     </div>
 
-    <!-- Conversation Log & Fallback -->
-    <section class="log-panel">
-      <div class="log-header">
-        <span>💬</span>
-        <span>You said / AI replied</span>
+    <!-- Order Ticket / Chat Transcript -->
+    <section class="ticket-log-panel">
+      <div class="ticket-header">
+        <h3>🧾 <span>Live Kitchen Ticket</span></h3>
+        <span style="font-size: 0.75rem; color: #64748b; font-family: var(--font-display);">DRIVE-THRU #402</span>
       </div>
 
-      <div class="conversation-log" id="conversationLog">
-        <!-- Messages stream here -->
+      <div class="ticket-feed" id="ticketFeed">
+        <!-- Live turns append here -->
       </div>
 
-      <form class="input-bar" id="textForm">
-        <input type="text" id="textInput" placeholder="Type an order if microphone is unavailable (e.g. 'Add a pizza')..." autocomplete="off" />
-        <button type="submit" class="send-btn">Send</button>
+      <form class="keyboard-fallback" id="keyboardForm">
+        <input type="text" id="keyboardInput" placeholder="Type order if microphone unavailable (e.g. 'Add 2 burgers and fries')..." autocomplete="off" />
+        <button type="submit">Send</button>
       </form>
     </section>
   </div>
@@ -554,110 +804,120 @@
     const BACKEND_URL = "http://localhost:8000";
 
     // DOM Elements
-    const holdBtn = document.getElementById("holdBtn");
-    const holdBtnText = document.getElementById("holdBtnText");
-    const statusArea = document.getElementById("statusArea");
+    const intercomBtn = document.getElementById("intercomBtn");
+    const btnMainLabel = document.getElementById("btnMainLabel");
+    const liveDot = document.getElementById("liveDot");
+    const intercomModeLabel = document.getElementById("intercomModeLabel");
+    const soundwaveBars = document.getElementById("soundwaveBars");
+    const intercomStatus = document.getElementById("intercomStatus");
     const cart = document.getElementById("cart");
-    const cartEmpty = document.getElementById("cartEmpty");
-    const cartCountBadge = document.getElementById("cartCountBadge");
-    const cartTotalDisplay = document.getElementById("cartTotalDisplay");
-    const conversationLog = document.getElementById("conversationLog");
-    const textForm = document.getElementById("textForm");
-    const textInput = document.getElementById("textInput");
+    const cartEmptyState = document.getElementById("cartEmptyState");
+    const subtotalDisplay = document.getElementById("subtotalDisplay");
+    const taxDisplay = document.getElementById("taxDisplay");
+    const totalDisplay = document.getElementById("totalDisplay");
+    const clearCartBtn = document.getElementById("clearCartBtn");
+    const ticketFeed = document.getElementById("ticketFeed");
+    const keyboardForm = document.getElementById("keyboardForm");
+    const keyboardInput = document.getElementById("keyboardInput");
 
-    // Cart State
-    let cartItems = [];
-    const PRICES = {
+    // Menu Item Prices
+    const MENU_PRICES = {
       ADD_PIZZA: 14.50,
       ADD_BURGER: 10.95,
       ADD_FRIES: 4.50,
       ADD_DRINK: 2.95
     };
 
+    let cartData = [];
+    let isHolding = false;
+    let spokenText = "";
+
     // Web Speech API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
-    let isHolding = false;
-    let finalTranscription = "";
 
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
-      recognition.continuous = false; // Turn-based for hold-to-speak
+      recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = navigator.language || "en-US";
 
       recognition.onstart = () => {
-        statusArea.textContent = "Listening... Speak your order now!";
-        statusArea.classList.add("active");
+        intercomStatus.textContent = "Listening... Speak your order!";
+        intercomStatus.classList.add("listening");
+        liveDot.classList.add("glowing");
+        soundwaveBars.classList.add("active");
+        intercomModeLabel.textContent = "MIC LIVE";
       };
 
       recognition.onresult = (event) => {
         let interim = "";
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const item = event.results[i];
-          if (item.isFinal) {
-            finalTranscription = item[0].transcript;
+          const res = event.results[i];
+          if (res.isFinal) {
+            spokenText = res[0].transcript;
           } else {
-            interim += item[0].transcript;
+            interim += res[0].transcript;
           }
         }
-        const preview = finalTranscription || interim;
-        if (preview) {
-          statusArea.textContent = `"${preview}"`;
+        const current = spokenText || interim;
+        if (current) {
+          intercomStatus.textContent = `"${current}"`;
         }
       };
 
       recognition.onerror = (event) => {
-        console.warn("Speech error:", event.error);
+        console.warn("Speech recognition warning:", event.error);
         if (event.error !== "no-speech") {
-          statusArea.textContent = `Speech note: ${event.error}`;
+          intercomStatus.textContent = `Speech note: ${event.error}`;
         }
       };
 
       recognition.onend = () => {
-        // If user released or recognition timed out
         if (isHolding) {
-          stopHold();
+          releaseIntercom();
         }
       };
     } else {
-      statusArea.textContent = "⚠️ Web Speech API not supported in this browser. Please use Chrome, Edge, or Safari.";
+      intercomStatus.textContent = "⚠️ Web Speech API not supported in this browser. Use Chrome or type below.";
     }
 
-    // Hold to Speak Event Listeners (Desktop Mouse & Mobile Touch)
-    function startHold(e) {
+    // Hold-to-Talk Event Listeners
+    function pressIntercom(e) {
       if (e) e.preventDefault();
       if (isHolding) return;
       isHolding = true;
-      finalTranscription = "";
+      spokenText = "";
 
-      // Stop any pending speech synthesis
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
 
-      holdBtn.classList.add("active");
-      holdBtnText.textContent = "Listening...";
-      statusArea.textContent = "Listening... Speak your order!";
-      statusArea.classList.add("active");
+      intercomBtn.classList.add("pressing");
+      btnMainLabel.textContent = "Listening...";
+      intercomStatus.textContent = "Listening to your order...";
+      intercomStatus.classList.add("listening");
+      liveDot.classList.add("glowing");
+      soundwaveBars.classList.add("active");
 
       if (recognition) {
         try {
           recognition.start();
-        } catch (err) {
-          console.warn("Recognition already active:", err);
-        }
+        } catch (err) {}
       }
     }
 
-    function stopHold(e) {
+    function releaseIntercom(e) {
       if (e) e.preventDefault();
       if (!isHolding) return;
       isHolding = false;
 
-      holdBtn.classList.remove("active");
-      holdBtnText.textContent = "Hold to Speak";
-      statusArea.classList.remove("active");
+      intercomBtn.classList.remove("pressing");
+      btnMainLabel.textContent = "Hold to Talk";
+      intercomStatus.classList.remove("listening");
+      liveDot.classList.remove("glowing");
+      soundwaveBars.classList.remove("active");
+      intercomModeLabel.textContent = "Intercom Ready";
 
       if (recognition) {
         try {
@@ -665,130 +925,157 @@
         } catch (err) {}
       }
 
-      // Send whatever was transcribed after a tiny buffer
       setTimeout(() => {
-        const textToSend = finalTranscription.trim();
+        const textToSend = spokenText.trim();
         if (textToSend) {
-          sendOrder(textToSend);
+          dispatchOrderToBackend(textToSend);
         } else {
-          statusArea.textContent = "No speech detected. Hold the button and speak.";
+          intercomStatus.textContent = "No speech detected. Hold the button and speak.";
         }
       }, 250);
     }
 
-    // Mouse events
-    holdBtn.addEventListener("mousedown", startHold);
-    window.addEventListener("mouseup", () => { if (isHolding) stopHold(); });
+    // Mouse handlers
+    intercomBtn.addEventListener("mousedown", pressIntercom);
+    window.addEventListener("mouseup", () => { if (isHolding) releaseIntercom(); });
 
-    // Touch events for mobile/tablets
-    holdBtn.addEventListener("touchstart", startHold, { passive: false });
-    window.addEventListener("touchend", () => { if (isHolding) stopHold(); });
-    window.addEventListener("touchcancel", () => { if (isHolding) stopHold(); });
+    // Touch handlers for mobile/iPad
+    intercomBtn.addEventListener("touchstart", pressIntercom, { passive: false });
+    window.addEventListener("touchend", () => { if (isHolding) releaseIntercom(); });
+    window.addEventListener("touchcancel", () => { if (isHolding) releaseIntercom(); });
 
-    // Send transcribed text to FastAPI backend
-    async function sendOrder(userText) {
-      statusArea.textContent = "Querying Gemma 4...";
-      appendLog("You", userText);
+    // Click pill to simulate direct voice order
+    function simulateOrder(text) {
+      dispatchOrderToBackend(text);
+    }
+
+    // Call Backend POST /chat
+    async function dispatchOrderToBackend(userMessage) {
+      intercomStatus.textContent = "Chef Gemma is cooking up a response...";
+      appendTicket("Customer", userMessage);
 
       try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: userText })
+          body: JSON.stringify({ text: userMessage })
         });
 
         if (!res.ok) {
-          throw new Error(`Server returned ${res.status}`);
+          throw new Error(`Server status ${res.status}`);
         }
 
         const data = await res.json();
-        const replyText = data.reply || "Order processed!";
+        const reply = data.reply || "Order processed!";
         const action = data.action || "NONE";
+        const quantity = data.quantity || 1;
 
-        statusArea.textContent = `Action: ${action}${data.quantity > 1 ? ' (x' + data.quantity + ')' : ''}`;
-        appendLog("Gemma AI", replyText);
+        intercomStatus.textContent = `Action: ${action}${quantity > 1 ? ' (' + quantity + 'x)' : ''}`;
+        appendTicket("Chef Gemma", reply);
 
-        // A) Speak the reply aloud simultaneously
-        speakReply(replyText);
+        // A) Speak aloud via SpeechSynthesis
+        speakAloud(reply);
 
-        // B) Update Cart UI instantly based on 'action' and 'quantity'
-        handleCartAction(action, data.quantity || 1);
+        // B) Update Shopping Cart UI
+        processCartAction(action, quantity);
 
       } catch (err) {
-        console.error("Order error:", err);
-        statusArea.textContent = "Could not reach server at http://localhost:8000";
-        appendLog("Gemma AI", "Sorry, I couldn't reach the restaurant server.");
+        console.error("Backend error:", err);
+        intercomStatus.textContent = "Could not connect to restaurant backend at http://localhost:8000";
+        appendTicket("Chef Gemma", "Sorry, the kitchen intercom is currently offline.");
       }
     }
 
-    // Action Key Handler with Multi-item and Quantities
-    function handleCartAction(action, quantity = 1) {
-      const qty = Math.max(1, parseInt(quantity) || 1);
+    // Cart Action Logic
+    function processCartAction(action, qty = 1) {
+      const quantity = Math.max(1, parseInt(qty) || 1);
+
       if (action === "ADD_PIZZA") {
-        addCartItem("🍕", "Artisan Pizza", PRICES.ADD_PIZZA, qty);
+        insertCartItem("🍕", "Wood-Fired Pizza", MENU_PRICES.ADD_PIZZA, quantity);
       } else if (action === "ADD_BURGER") {
-        addCartItem("🍔", "Gourmet Burger", PRICES.ADD_BURGER, qty);
+        insertCartItem("🍔", "Smash Burger", MENU_PRICES.ADD_BURGER, quantity);
       } else if (action === "ADD_FRIES") {
-        addCartItem("🍟", "Crispy Fries", PRICES.ADD_FRIES, qty);
+        insertCartItem("🍟", "Truffle Fries", MENU_PRICES.ADD_FRIES, quantity);
       } else if (action === "ADD_DRINK") {
-        addCartItem("🥤", "Cold Soda / Drink", PRICES.ADD_DRINK, qty);
+        insertCartItem("🥤", "Fountain Drink", MENU_PRICES.ADD_DRINK, quantity);
       } else if (action === "CLEAR_CART") {
-        clearCartUI();
+        cartData = [];
+        renderCartUI();
       }
     }
 
-    function addCartItem(emoji, name, price, quantity = 1) {
-      const existing = cartItems.find(item => item.name === name);
-      if (existing) {
-        existing.quantity += quantity;
+    function insertCartItem(emoji, name, unitPrice, quantity) {
+      const match = cartData.find(item => item.name === name);
+      if (match) {
+        match.quantity += quantity;
       } else {
-        cartItems.push({
+        cartData.push({
           emoji,
           name,
-          price,
+          unitPrice,
           quantity
         });
       }
-      renderCart();
+      renderCartUI();
     }
 
-    function renderCart() {
+    function renderCartUI() {
       cart.innerHTML = "";
-      if (cartItems.length === 0) {
-        cart.appendChild(cartEmpty);
-        cartEmpty.style.display = "flex";
+
+      if (cartData.length === 0) {
+        cart.appendChild(cartEmptyState);
+        cartEmptyState.style.display = "flex";
       } else {
-        cartItems.forEach(item => {
-          const itemCard = document.createElement("div");
-          itemCard.className = "cart-item";
-          const subtotal = (item.price * item.quantity).toFixed(2);
-          itemCard.innerHTML = `
-            <span class="item-emoji">${item.emoji}</span>
-            <div class="item-info">
-              <span class="item-name">${item.quantity > 1 ? item.quantity + 'x ' : ''}${item.name}</span>
-              <span class="item-price">$${subtotal} <span style="font-size: 0.65rem; opacity: 0.7;">($${item.price.toFixed(2)} ea)</span></span>
+        cartData.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "cart-card";
+          const sub = (item.unitPrice * item.quantity).toFixed(2);
+
+          card.innerHTML = `
+            <div class="cart-card-left">
+              <span class="cart-card-emoji">${item.emoji}</span>
+              <div class="cart-card-details">
+                <h4>${item.name}</h4>
+                <p>$${sub} <span style="font-size: 0.65rem; opacity: 0.7;">($${item.unitPrice.toFixed(2)} ea)</span></p>
+              </div>
             </div>
+            <span class="cart-card-qty">${item.quantity}x</span>
           `;
-          cart.appendChild(itemCard);
+          cart.appendChild(card);
         });
       }
-      updateCartTotals();
+
+      updateTotals();
     }
 
-    function clearCartUI() {
-      cartItems = [];
-      renderCart();
+    function updateTotals() {
+      const subtotal = cartData.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+      const tax = subtotal * 0.0825;
+      const total = subtotal + tax;
+
+      subtotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+      taxDisplay.textContent = `$${tax.toFixed(2)}`;
+      totalDisplay.textContent = `$${total.toFixed(2)}`;
     }
 
-    function updateCartTotals() {
-      const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-      cartCountBadge.textContent = `${totalCount} item${totalCount === 1 ? '' : 's'}`;
-      const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      cartTotalDisplay.textContent = `$${total.toFixed(2)}`;
+    clearCartBtn.addEventListener("click", () => {
+      cartData = [];
+      renderCartUI();
+      dispatchOrderToBackend("Clear my cart please");
+    });
+
+    function checkoutOrder() {
+      if (cartData.length === 0) {
+        speakAloud("Your tray is empty! Tell me what food you'd like to order first.");
+        return;
+      }
+      const orderSummary = cartData.map(i => `${i.quantity} ${i.name}`).join(", ");
+      speakAloud(`Order confirmed! Preparing your ${orderSummary}. Total is ${totalDisplay.textContent}. Thank you!`);
+      intercomStatus.textContent = `Order Placed! #${Math.floor(100 + Math.random() * 900)}`;
     }
 
-    // SpeechSynthesis API
-    function speakReply(text) {
+    // Speech Synthesis
+    function speakAloud(text) {
       if (!window.speechSynthesis) return;
 
       window.speechSynthesis.cancel();
@@ -800,56 +1087,54 @@
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
 
-      // Select natural voice if available
       const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(v => 
-        v.name.includes("Natural") || 
+      const friendlyVoice = voices.find(v => 
         v.name.includes("Google") || 
         v.name.includes("Samantha") ||
+        v.name.includes("Natural") ||
         v.name.includes("Rishi") ||
         v.lang.startsWith("en")
       );
-      if (preferred) {
-        utterance.voice = preferred;
+      if (friendlyVoice) {
+        utterance.voice = friendlyVoice;
       }
 
       window.speechSynthesis.speak(utterance);
     }
 
-    // Append to "You said / AI replied" log
-    function appendLog(speaker, message) {
-      const bubble = document.createElement("div");
-      bubble.className = `log-bubble ${speaker === "You" ? "user" : "ai"}`;
+    // Kitchen Ticket Transcript Log
+    function appendTicket(sender, text) {
+      const entry = document.createElement("div");
+      entry.className = `ticket-entry ${sender === "Customer" ? "customer" : "gemma"}`;
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      bubble.innerHTML = `
-        <div class="log-label">${speaker} • ${timeStr}</div>
-        <div>${escapeHtml(message)}</div>
+      entry.innerHTML = `
+        <div class="ticket-meta">${sender} • ${timeStr}</div>
+        <div>${escapeHtml(text)}</div>
       `;
 
-      conversationLog.appendChild(bubble);
-      conversationLog.scrollTop = conversationLog.scrollHeight;
+      ticketFeed.appendChild(entry);
+      ticketFeed.scrollTop = ticketFeed.scrollHeight;
     }
 
-    function escapeHtml(text) {
+    function escapeHtml(str) {
       const div = document.createElement("div");
-      div.textContent = text;
+      div.textContent = str;
       return div.innerHTML;
     }
 
-    // Text Fallback Form
-    textForm.addEventListener("submit", (e) => {
+    // Fallback Input Form
+    keyboardForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const val = textInput.value.trim();
+      const val = keyboardInput.value.trim();
       if (val) {
-        textInput.value = "";
-        sendOrder(val);
+        keyboardInput.value = "";
+        dispatchOrderToBackend(val);
       }
     });
 
-    // Warm up speech voices
     if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
