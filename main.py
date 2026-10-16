@@ -156,7 +156,7 @@ def call_google_ai_studio(history: List[Dict[str, str]], api_key: str) -> Dict[s
         data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json"}
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with urllib.request.urlopen(req, timeout=20) as resp:
         res = json.loads(resp.read().decode("utf-8"))
         raw_text = res["candidates"][0]["content"]["parts"][0]["text"]
         return extract_json(raw_text)
