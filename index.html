@@ -366,7 +366,7 @@
       </div>
 
       <!-- Chat Stream -->
-      <div class="flex-1 overflow-y-auto pr-2 space-y-space-md" id="chat-stream-container">
+      <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-3" id="chat-stream-container">
         <div class="p-space-sm rounded border border-outline-variant/30 text-center text-outline font-label-sm text-label-sm">
           // NEURAL CORE INITIALIZED // AWAITING MASTER DIRECTIVE
         </div>
@@ -505,7 +505,10 @@
 <!-- ===================================================================== -->
 <script>
   // ── CONFIG ──────────────────────────────────────────────────────────────
-  const API_BASE = 'http://localhost:8000';
+  // Auto-detect backend URL: same host, port 8000
+  const API_BASE = window.location.port === '8000'
+    ? window.location.origin
+    : `${window.location.protocol}//${window.location.hostname}:8000`;
   let defenseActive = false;
   let micListening = false;
   let widgetCount = 0;
@@ -547,15 +550,19 @@
   }
 
   // ── SEND MESSAGE TO BACKEND ──────────────────────────────────────────────
-  async function sendToJarvis(text) {
-    if (isProcessing || !text.trim()) return;
-    isProcessing = true;
+  async function sendToJarvis(text, { silent = false, lockInput = true } = {}) {
+    if (!text.trim()) return;
+    // Only lock the main send button for user-typed messages
+    if (lockInput && isProcessing) return;
+    if (lockInput) isProcessing = true;
 
     const sendBtn = document.getElementById('send-btn');
-    sendBtn.classList.add('btn-loading');
+    if (lockInput) sendBtn.classList.add('btn-loading');
 
-    appendUserLog(text);
-    showThinkingIndicator();
+    if (!silent) {
+      appendUserLog(text);
+      showThinkingIndicator();
+    }
 
     try {
       const t0 = performance.now();
@@ -574,7 +581,7 @@
       }
 
       const data = await res.json();
-      removeThinkingIndicator();
+      if (!silent) removeThinkingIndicator();
       appendJarvisLog(data.reply);
 
       // Update session counter
@@ -583,32 +590,34 @@
       document.getElementById('footer-req-count').textContent = reqCount;
 
       // Handle action commands from backend
-      handleAction(data.action, data.reply);
+      handleAction(data.action);
 
       // Speak the reply
       speakReply(data.reply);
 
     } catch (e) {
-      removeThinkingIndicator();
-      appendJarvisLog(`Connection error, Sir: ${e.message}. Please verify the backend is running.`);
+      if (!silent) removeThinkingIndicator();
+      appendJarvisLog(`Unable to reach neural core, Sir. Error: ${e.message}`);
     } finally {
-      isProcessing = false;
-      sendBtn.classList.remove('btn-loading');
+      if (lockInput) {
+        isProcessing = false;
+        sendBtn.classList.remove('btn-loading');
+      }
     }
   }
 
   // ── HANDLE BACKEND ACTIONS ───────────────────────────────────────────────
-  function handleAction(action, reply) {
+  function handleAction(action) {
     if (!action || !action.command) return;
     const cmd = action.command;
 
     if (cmd === 'SYSTEM_SCAN') {
       triggerCorePulse();
       flashSystemScan();
-    } else if (cmd === 'ACTIVATE_DEFENSE' && !defenseActive) {
-      setDefenseMode(true);
-    } else if (cmd === 'STAND_DOWN' && defenseActive) {
-      setDefenseMode(false);
+    } else if (cmd === 'ACTIVATE_DEFENSE') {
+      setDefenseMode(true);   // always apply — backend said so
+    } else if (cmd === 'STAND_DOWN') {
+      setDefenseMode(false);  // always apply — backend said so
     } else if (cmd === 'DEPLOY_WIDGET') {
       const name = action.widget_name || 'Telemetry Sensor';
       addWidget(name);
@@ -627,19 +636,29 @@
 
   // ── QUICK ACTIONS ────────────────────────────────────────────────────────
   function executeQuickDiagnostic() {
-    sendToJarvis("Run full system diagnostics and scan all avionics.");
+    // Immediately show scan animation, then send to AI in background
+    triggerCorePulse();
+    flashSystemScan();
+    sendToJarvis("Run full system diagnostics and scan all avionics.", { lockInput: false });
   }
 
   function deployDataWidget() {
-    sendToJarvis("Deploy a new telemetry data widget to the holographic HUD.");
+    // Immediately deploy a placeholder widget, AI confirms in chat
+    const placeholders = ['Arc Reactor Harmonic', 'Repulsor Output', 'Suit Thermal Matrix', 'Neural Sync Grid'];
+    const name = placeholders[widgetCount % placeholders.length];
+    addWidget(name);
+    sendToJarvis(`Deploy a telemetry widget called "${name}" to the holographic HUD.`, { lockInput: false });
   }
 
   // ── DEFENSE MODE ─────────────────────────────────────────────────────────
   function toggleDefenseMode() {
-    const msg = defenseActive
-      ? "Stand down. Disengage defense protocols and return to standby."
-      : "Activate defense protocols. Switch to tactical alert mode.";
-    sendToJarvis(msg);
+    // Flip UI instantly — don't wait for AI
+    const goActive = !defenseActive;
+    setDefenseMode(goActive);
+    const msg = goActive
+      ? "Defense protocols engaged. Switch to tactical alert mode."
+      : "Stand down. Disengage defense protocols. Return to standby.";
+    sendToJarvis(msg, { lockInput: false });
   }
 
   function setDefenseMode(active) {
