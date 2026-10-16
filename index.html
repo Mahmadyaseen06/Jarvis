@@ -598,18 +598,19 @@
       };
 
       recognition.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        let finalStr = "";
+        let interimStr = "";
+        for (let i = 0; i < event.results.length; ++i) {
           const res = event.results[i];
           if (res.isFinal) {
-            spokenText = res[0].transcript;
+            finalStr += res[0].transcript + " ";
           } else {
-            interim += res[0].transcript;
+            interimStr += res[0].transcript;
           }
         }
-        const preview = spokenText || interim;
-        if (preview) {
-          statusArea.textContent = `"${preview}"`;
+        spokenText = (finalStr + interimStr).trim();
+        if (spokenText) {
+          statusArea.textContent = `"${spokenText}"`;
         }
       };
 
@@ -752,11 +753,10 @@
     }
 
     function createTaskCard(name, priority) {
-      if (emptyTodo) emptyTodo.style.display = "none";
-
+      const safePriority = (priority || "Low").toLowerCase() === "high" ? "High" : "Low";
       const card = document.createElement("div");
-      card.className = `task-card priority-${priority.toLowerCase()}`;
-      card.setAttribute("data-task-name", name.toLowerCase());
+      card.className = `task-card priority-${safePriority.toLowerCase()}`;
+      card.setAttribute("data-task-name", (name || "Task").toLowerCase().trim());
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -764,34 +764,43 @@
       card.innerHTML = `
         <div class="task-top">
           <span class="task-name">${escapeHtml(name)}</span>
-          <span class="priority-badge ${priority.toLowerCase()}">${priority}</span>
+          <span class="priority-badge ${safePriority.toLowerCase()}">${safePriority}</span>
         </div>
         <div class="task-meta">
           <span>Created: ${timeStr}</span>
-          <span style="font-size: 0.95rem; cursor: pointer;" onclick="this.closest('.task-card').remove(); updateCounters();" title="Delete Task">✕</span>
+          <span style="font-size: 0.95rem; cursor: pointer; padding: 2px 6px;" onclick="deleteTask(this)" title="Delete Task">✕</span>
         </div>
       `;
 
       containerTodo.appendChild(card);
+      updateCounters();
+    }
+
+    function deleteTask(btn) {
+      const card = btn.closest(".task-card");
+      if (card && card.parentElement) {
+        card.parentElement.removeChild(card);
+        updateCounters();
+      }
     }
 
     function moveTaskCard(targetName, newStatus) {
-      const allCards = document.querySelectorAll(".task-card");
+      const allCards = Array.from(document.querySelectorAll(".task-card"));
       if (allCards.length === 0) return;
 
-      const search = targetName.toLowerCase().trim();
+      const search = (targetName || "").toLowerCase().trim();
       let matchedCard = null;
 
       // 1. Try exact match
       for (const card of allCards) {
-        const cardName = card.getAttribute("data-task-name") || "";
+        const cardName = (card.getAttribute("data-task-name") || "").trim();
         if (cardName === search) {
           matchedCard = card;
           break;
         }
       }
 
-      // 2. Try partial fuzzy containment match
+      // 2. Try partial containment match
       if (!matchedCard && search) {
         for (const card of allCards) {
           const cardName = card.getAttribute("data-task-name") || "";
@@ -803,7 +812,7 @@
       }
 
       // 3. Fallback to newest card if no name matched
-      if (!matchedCard && allCards.length > 0) {
+      if (!matchedCard) {
         matchedCard = allCards[allCards.length - 1];
       }
 
@@ -812,38 +821,39 @@
         if (newStatus === "Todo") destContainer = containerTodo;
         if (newStatus === "Done") destContainer = containerDone;
 
-        // Animate move
-        matchedCard.style.opacity = "0.4";
-        matchedCard.style.transform = "scale(0.95)";
-        
-        setTimeout(() => {
+        // Perform safe atomic DOM move (appendChild automatically unbinds from old parent)
+        if (destContainer && matchedCard.parentElement !== destContainer) {
           destContainer.appendChild(matchedCard);
-          matchedCard.style.opacity = "1";
-          matchedCard.style.transform = "scale(1)";
-          updateCounters();
-        }, 150);
+        }
+        updateCounters();
       }
     }
 
     function clearAllTasks() {
-      containerTodo.querySelectorAll(".task-card").forEach(c => c.remove());
-      containerInProgress.querySelectorAll(".task-card").forEach(c => c.remove());
-      containerDone.querySelectorAll(".task-card").forEach(c => c.remove());
+      document.querySelectorAll(".task-card").forEach(c => {
+        if (c && c.parentElement) {
+          c.parentElement.removeChild(c);
+        }
+      });
       updateCounters();
     }
 
     function updateCounters() {
-      const todos = containerTodo.querySelectorAll(".task-card").length;
-      const inProgress = containerInProgress.querySelectorAll(".task-card").length;
-      const done = containerDone.querySelectorAll(".task-card").length;
+      const todoCards = containerTodo.querySelectorAll(".task-card");
+      const inProgressCards = containerInProgress.querySelectorAll(".task-card");
+      const doneCards = containerDone.querySelectorAll(".task-card");
 
-      countTodo.textContent = todos;
-      countInProgress.textContent = inProgress;
-      countDone.textContent = done;
+      countTodo.textContent = todoCards.length;
+      countInProgress.textContent = inProgressCards.length;
+      countDone.textContent = doneCards.length;
 
-      emptyTodo.style.display = todos === 0 ? "block" : "none";
-      emptyInProgress.style.display = inProgress === 0 ? "block" : "none";
-      emptyDone.style.display = done === 0 ? "block" : "none";
+      const emptyTodoEl = document.getElementById("empty-todo");
+      const emptyInProgressEl = document.getElementById("empty-inprogress");
+      const emptyDoneEl = document.getElementById("empty-done");
+
+      if (emptyTodoEl) emptyTodoEl.style.display = todoCards.length === 0 ? "block" : "none";
+      if (emptyInProgressEl) emptyInProgressEl.style.display = inProgressCards.length === 0 ? "block" : "none";
+      if (emptyDoneEl) emptyDoneEl.style.display = doneCards.length === 0 ? "block" : "none";
     }
 
     // SpeechSynthesis Output

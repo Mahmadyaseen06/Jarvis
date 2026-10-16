@@ -16,6 +16,7 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Expanded: Added `ADD_FRIES` (🍟 $4.50) and `ADD_DRINK` (🥤 $2.95) actions and speech quantity extraction (e.g. "three pizzas", "2 burgers"). Cart groups items with quantity multipliers and calculates exact totals.
 - Redesigned UI: Transformed frontend into an authentic, dedicated **Gemma Voice Diner** drive-thru intercom. Features a physical tactile "HOLD TO TALK" button with ON-AIR LED, interactive food menu strip, dynamic takeout tray, tax/total calculation, and a live thermal kitchen ticket feed. All traces of generic sci-fi Jarvis styling removed.
 - Implemented: Voice-Controlled AI Task Board with dark-mode futuristic Kanban board ("To Do", "In Progress", "Done"), Hold-to-Speak native Web Speech button, SpeechSynthesis, and Gemma 4 AI Project Manager action dispatch (`ADD_TASK`, `MOVE_TASK`, `CLEAR_ALL`, `NONE`). Verified DOM card manipulation and fuzzy title matching.
+- Reverted to 074c9bd and applied minimal patch: Eliminated DOM parent-child hierarchy race condition by replacing asynchronous setTimeout with synchronous atomic moves (`destContainer.appendChild`), added safe `card.parentElement.removeChild` checks, updated counters dynamically, and preserved interim+final speech in `spokenText` so button release never drops transcribed voice.
 
 
 

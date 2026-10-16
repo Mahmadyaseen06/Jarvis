@@ -71,8 +71,12 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
     """Rule-based PM fallback to ensure the app works immediately if GEMMA_API_KEY is not set."""
     lower = user_text.lower().strip()
 
-    # CLEAR_ALL command
-    if any(k in lower for k in ["clear all", "clear board", "empty board", "delete all", "reset board"]):
+    # CLEAR_ALL command (e.g. "Clear the board", "Clear all tasks", "Reset board")
+    if (
+        re.search(r"\bclear\b.*\b(all|board|tasks?)\b", lower)
+        or re.search(r"\b(reset|empty)\b.*\bboard\b", lower)
+        or any(k in lower for k in ["clear all", "clear board", "empty board", "delete all", "reset board", "clear tasks"])
+    ):
         return {
             "reply": "Clearing all tasks from the task board.",
             "action": {"command": "CLEAR_ALL"}
@@ -107,7 +111,11 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
         
         # Clean task name extraction
         cleaned_name = user_text
-        for prefix in ["add task", "add a task", "add", "create task", "create a task", "create", "new task"]:
+        for prefix in [
+            "add a task to", "add task to", "add a task", "add task",
+            "create a task to", "create task to", "create a task", "create task",
+            "add", "create", "new task"
+        ]:
             if lower.startswith(prefix):
                 cleaned_name = user_text[len(prefix):].strip()
                 break
