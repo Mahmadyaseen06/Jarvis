@@ -13,6 +13,8 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Note: In Safari on macOS (WebKit), setting `recognition.continuous = true` causes WebKit to immediately abort speech recognition with a fatal `network` error. Fixed by detecting Safari (`continuous = false` on Safari, `true` on Chrome), auto-fallback from `en-IN` to global `en-US` if speech server is unreachable, and adding clear macOS Dictation / Chrome browser guidance.
 - Verified: End-to-end voice loop operational in Google Chrome. Real-time microphone capture, conversation memory tracking in FastAPI, and spoken audio response verified.
 - Implemented: Gemma 4 Voice Diner app with `huggingface_hub.InferenceClient` calling `google/gemma-4-instruct`, structured JSON action dispatch (ADD_PIZZA, ADD_BURGER, CLEAR_CART, NONE), Hold-to-Speak native Web Speech button, and visual animated cart UI.
+- Expanded: Added `ADD_FRIES` (🍟 $4.50) and `ADD_DRINK` (🥤 $2.95) actions and speech quantity extraction (e.g. "three pizzas", "2 burgers"). Cart groups items with quantity multipliers and calculates exact totals.
+
 
 
 

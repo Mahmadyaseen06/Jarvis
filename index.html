@@ -569,7 +569,9 @@
     let cartItems = [];
     const PRICES = {
       ADD_PIZZA: 14.50,
-      ADD_BURGER: 10.95
+      ADD_BURGER: 10.95,
+      ADD_FRIES: 4.50,
+      ADD_DRINK: 2.95
     };
 
     // Web Speech API
@@ -703,14 +705,14 @@
         const replyText = data.reply || "Order processed!";
         const action = data.action || "NONE";
 
-        statusArea.textContent = `Action: ${action}`;
+        statusArea.textContent = `Action: ${action}${data.quantity > 1 ? ' (x' + data.quantity + ')' : ''}`;
         appendLog("Gemma AI", replyText);
 
         // A) Speak the reply aloud simultaneously
         speakReply(replyText);
 
-        // B) Update Cart UI instantly based on 'action'
-        handleCartAction(action);
+        // B) Update Cart UI instantly based on 'action' and 'quantity'
+        handleCartAction(action, data.quantity || 1);
 
       } catch (err) {
         console.error("Order error:", err);
@@ -719,48 +721,69 @@
       }
     }
 
-    // Action Key Handler
-    function handleCartAction(action) {
+    // Action Key Handler with Multi-item and Quantities
+    function handleCartAction(action, quantity = 1) {
+      const qty = Math.max(1, parseInt(quantity) || 1);
       if (action === "ADD_PIZZA") {
-        addCartItem("🍕", "Artisan Pizza", PRICES.ADD_PIZZA);
+        addCartItem("🍕", "Artisan Pizza", PRICES.ADD_PIZZA, qty);
       } else if (action === "ADD_BURGER") {
-        addCartItem("🍔", "Gourmet Burger", PRICES.ADD_BURGER);
+        addCartItem("🍔", "Gourmet Burger", PRICES.ADD_BURGER, qty);
+      } else if (action === "ADD_FRIES") {
+        addCartItem("🍟", "Crispy Fries", PRICES.ADD_FRIES, qty);
+      } else if (action === "ADD_DRINK") {
+        addCartItem("🥤", "Cold Soda / Drink", PRICES.ADD_DRINK, qty);
       } else if (action === "CLEAR_CART") {
         clearCartUI();
       }
     }
 
-    function addCartItem(emoji, name, price) {
-      if (cartEmpty) {
-        cartEmpty.style.display = "none";
+    function addCartItem(emoji, name, price, quantity = 1) {
+      const existing = cartItems.find(item => item.name === name);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        cartItems.push({
+          emoji,
+          name,
+          price,
+          quantity
+        });
       }
+      renderCart();
+    }
 
-      const itemCard = document.createElement("div");
-      itemCard.className = "cart-item";
-      itemCard.innerHTML = `
-        <span class="item-emoji">${emoji}</span>
-        <div class="item-info">
-          <span class="item-name">${name}</span>
-          <span class="item-price">$${price.toFixed(2)}</span>
-        </div>
-      `;
-
-      cart.appendChild(itemCard);
-      cartItems.push({ name, price });
+    function renderCart() {
+      cart.innerHTML = "";
+      if (cartItems.length === 0) {
+        cart.appendChild(cartEmpty);
+        cartEmpty.style.display = "flex";
+      } else {
+        cartItems.forEach(item => {
+          const itemCard = document.createElement("div");
+          itemCard.className = "cart-item";
+          const subtotal = (item.price * item.quantity).toFixed(2);
+          itemCard.innerHTML = `
+            <span class="item-emoji">${item.emoji}</span>
+            <div class="item-info">
+              <span class="item-name">${item.quantity > 1 ? item.quantity + 'x ' : ''}${item.name}</span>
+              <span class="item-price">$${subtotal} <span style="font-size: 0.65rem; opacity: 0.7;">($${item.price.toFixed(2)} ea)</span></span>
+            </div>
+          `;
+          cart.appendChild(itemCard);
+        });
+      }
       updateCartTotals();
     }
 
     function clearCartUI() {
-      cart.innerHTML = "";
       cartItems = [];
-      cart.appendChild(cartEmpty);
-      cartEmpty.style.display = "flex";
-      updateCartTotals();
+      renderCart();
     }
 
     function updateCartTotals() {
-      cartCountBadge.textContent = `${cartItems.length} item${cartItems.length === 1 ? '' : 's'}`;
-      const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+      const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+      cartCountBadge.textContent = `${totalCount} item${totalCount === 1 ? '' : 's'}`;
+      const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       cartTotalDisplay.textContent = `$${total.toFixed(2)}`;
     }
 
