@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(
-    title="Voice-Controlled AI Task Board",
-    description="Kanban project manager powered by FastAPI and Google Gemma 4"
+    title="J.A.R.V.I.S. Holographic AI System Dashboard",
+    description="Advanced sci-fi AI assistant backend powered by FastAPI and Google Gemma 4"
 )
 
 # Enable CORS for all origins
@@ -25,19 +25,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global chat history list to store conversational context
+# Global chat history list to store context
 chat_history: List[Dict[str, str]] = []
 
-# Iron Man J.A.R.V.I.S. AI persona system prompt
+# Upgraded J.A.R.V.I.S. System Prompt
 SYSTEM_PROMPT = (
-    "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the sophisticated AI assistant created by Tony Stark. "
-    "You speak with calm British elegance, witty politeness, and respectful loyalty, addressing the user as 'Sir'. "
-    "You are currently managing the Stark Industries project directive board. "
-    "Remember the conversation context. You must ALWAYS respond with raw JSON containing exactly two keys: "
-    "'reply' (a crisp, courteous spoken response in classic J.A.R.V.I.S. character, e.g. 'Right away, Sir. Added to the directive queue.', 'Protocol completed, Sir.') "
-    "and 'action'. The 'action' key must be an object with 'command' (choose one: ADD_TASK, MOVE_TASK, CLEAR_ALL, or NONE). "
-    "If ADD_TASK, include 'task_name' and 'priority' (High/Low). "
-    "If MOVE_TASK, include 'task_name' and 'new_status' (Todo, InProgress, Done)."
+    "You are an advanced, witty AI system assistant operating a holographic dashboard, similar to Jarvis from Iron Man. "
+    "Keep responses concise, intelligent, and slightly dry. Always respond in valid JSON with two keys: 'reply' "
+    "(your spoken text) and 'action'. The 'action' key must be an object with a 'command' field. Available commands: \n"
+    "  - SYSTEM_SCAN (simulates running diagnostics)\n"
+    "  - ACTIVATE_DEFENSE (turns the UI red/alert mode)\n"
+    "  - DEPLOY_WIDGET (adds a data widget to the screen with a 'widget_name' field)\n"
+    "  - NONE (just chatting)."
 )
 
 class ChatInput(BaseModel):
@@ -64,127 +63,74 @@ def extract_json(raw_text: str) -> Dict[str, Any]:
             pass
 
     return {
-        "reply": raw_text.replace("{", "").replace("}", "").strip() or "Understood, Sir. Protocol updated.",
+        "reply": raw_text.replace("{", "").replace("}", "").strip() or "All holographic systems online, Sir.",
         "action": {"command": "NONE"}
     }
 
 
-def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
+def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
     """Rule-based J.A.R.V.I.S. engine ensuring instant offline operation with full persona."""
     lower = user_text.lower().strip()
 
-    # CLEAR_ALL command (e.g. "Clear the board", "Clear all tasks", "Reset board")
-    if (
-        re.search(r"\bclear\b.*\b(all|board|tasks?)\b", lower)
-        or re.search(r"\b(reset|empty|purge)\b.*\bboard\b", lower)
-        or any(k in lower for k in ["clear all", "clear board", "empty board", "delete all", "reset board", "clear tasks", "purge board"])
-    ):
+    # 1. SYSTEM_SCAN (simulates running diagnostics)
+    if any(k in lower for k in ["scan", "diagnostic", "diagnostics", "check systems", "system check", "run scan", "status report", "telemetry check"]):
         return {
-            "reply": "Clearing all directives from the Stark tactical display, Sir.",
-            "action": {"command": "CLEAR_ALL"}
+            "reply": "Initiating comprehensive diagnostic scan across all holographic arrays. Stand by, Sir.",
+            "action": {"command": "SYSTEM_SCAN"}
         }
 
-    # MOVE_TASK command (e.g. "Move landing page to In Progress" or "Move auth to Done")
-    move_match = re.search(r"move\s+(?:the\s+)?(.+?)\s+to\s+(todo|to-do|in\s*progress|done)", lower)
-    if move_match:
-        raw_name = move_match.group(1).strip()
-        raw_status = move_match.group(2).replace(" ", "").replace("-", "")
-
-        status_map = {
-            "todo": "Todo",
-            "inprogress": "InProgress",
-            "done": "Done"
+    # 2. ACTIVATE_DEFENSE (turns UI red / alert mode)
+    if any(k in lower for k in [
+        "defense", "activate defense", "defense protocol", "alert mode", "red alert",
+        "shields up", "threat detected", "combat mode", "lockdown", "emergency", "defend"
+    ]):
+        return {
+            "reply": "Defense protocols engaged, Sir. Switching holographic systems to maximum security alert.",
+            "action": {"command": "ACTIVATE_DEFENSE"}
         }
-        new_status = status_map.get(raw_status, "InProgress")
-        clean_task = raw_name.replace("task", "").strip().title()
 
-        if new_status == "Done":
-            reply_msg = f"Protocol '{clean_task}' marked as accomplished, Sir. Outstanding work."
-        elif new_status == "InProgress":
-            reply_msg = f"Commencing operation on '{clean_task}', Sir. Updating status to In Progress."
-        else:
-            reply_msg = f"Re-queueing '{clean_task}' into the backlog, Sir."
+    # 3. DEPLOY_WIDGET (adds a data widget to the screen with widget_name)
+    if any(k in lower for k in ["deploy widget", "add widget", "widget", "deploy", "monitor", "telemetry", "gauge", "panel"]):
+        # Extract meaningful widget title
+        cleaned = re.sub(r"(?i)\b(deploy\s+widget|add\s+widget|create\s+widget|deploy|add|create|widget|panel|monitor)\b", "", user_text).strip(" .:!?,")
+        widget_name = cleaned.title() if cleaned else "Arc Reactor Telemetry"
+
+        # Preset stylish fallback names if generic
+        if len(widget_name) < 3 or widget_name.lower() in ["widget", "a widget", "new"]:
+            preset_names = [
+                "Arc Reactor Output",
+                "Repulsor Core Thermal Grid",
+                "Orbital Satlink Uplink",
+                "Threat Assessment Radar",
+                "Mark 85 Suit Telemetry",
+                "Clean Energy Microgrid"
+            ]
+            widget_name = preset_names[len(chat_history) % len(preset_names)]
 
         return {
-            "reply": reply_msg,
+            "reply": f"Deploying {widget_name} to the holographic HUD array, Sir.",
             "action": {
-                "command": "MOVE_TASK",
-                "task_name": clean_task,
-                "new_status": new_status
+                "command": "DEPLOY_WIDGET",
+                "widget_name": widget_name
             }
         }
 
-    # Natural Language Shortcut: Complete / Finish / Mark as Done
-    done_match = re.search(r"^(?:mark\s+(?:the\s+)?(.+?)\s+as\s+done|complete\s+(?:the\s+)?(.+)|finish\s+(?:the\s+)?(.+))$", lower)
-    if done_match:
-        raw_name = (done_match.group(1) or done_match.group(2) or done_match.group(3) or "").strip()
-        clean_task = re.sub(r"(?i)\btask\b", "", raw_name).strip().title()
-        if clean_task:
-            return {
-                "reply": f"Directive '{clean_task}' completed, Sir. Logging into archives.",
-                "action": {
-                    "command": "MOVE_TASK",
-                    "task_name": clean_task,
-                    "new_status": "Done"
-                }
-            }
-
-    # Natural Language Shortcut: Start working on / Work on
-    start_match = re.search(r"^(?:start\s+(?:working\s+on\s+)?(?:the\s+)?(.+)|begin\s+(?:working\s+on\s+)?(?:the\s+)?(.+))$", lower)
-    if start_match:
-        raw_name = (start_match.group(1) or start_match.group(2) or "").strip()
-        clean_task = re.sub(r"(?i)\btask\b", "", raw_name).strip().title()
-        if clean_task and not lower.startswith("start over"):
-            return {
-                "reply": f"Understood, Sir. Initializing active protocol for '{clean_task}'.",
-                "action": {
-                    "command": "MOVE_TASK",
-                    "task_name": clean_task,
-                    "new_status": "InProgress"
-                }
-            }
-
-    # ADD_TASK command (e.g. "Add task build landing page priority high")
-    if any(k in lower for k in ["add", "create", "new task", "put", "log task", "initialize task"]):
-        priority = "High" if any(p in lower for p in ["high", "urgent", "critical", "important", "vital"]) else "Low"
-        
-        # Clean task name extraction
-        cleaned_name = user_text
-        for prefix in [
-            "initialize task", "log task to", "log task",
-            "add a task to", "add task to", "add a task", "add task",
-            "create a task to", "create task to", "create a task", "create task",
-            "add", "create", "new task"
-        ]:
-            if lower.startswith(prefix):
-                cleaned_name = user_text[len(prefix):].strip()
-                break
-        
-        # Strip priority indicators from name
-        cleaned_name = re.sub(r"(?i)\s+priority\s+(high|low)", "", cleaned_name)
-        cleaned_name = re.sub(r"(?i)\s+with\s+(high|low)\s+priority", "", cleaned_name)
-        cleaned_name = re.sub(r"(?i)\s+(high|low)\s+priority", "", cleaned_name)
-        cleaned_name = cleaned_name.strip(" .:!?,") or "New Directive"
-        task_name = cleaned_name[:50].title()
-
+    # 4. Stand down / normal mode
+    if any(k in lower for k in ["stand down", "cancel alert", "deactivate defense", "normal mode", "all clear"]):
         return {
-            "reply": f"Right away, Sir. Added '{task_name}' to the backlog with {priority} priority.",
-            "action": {
-                "command": "ADD_TASK",
-                "task_name": task_name,
-                "priority": priority
-            }
+            "reply": "Disengaging combat alert status. Returning holographic systems to standard standby, Sir.",
+            "action": {"command": "ACTIVATE_DEFENSE", "status": "standby"}
         }
 
-    # Default Jarvis conversational reply
-    if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "who are you", "status"]):
+    # 5. Conversational witty British replies (NONE)
+    if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "who are you", "what can you do"]):
         return {
-            "reply": "Good day, Sir. J.A.R.V.I.S. online and standing by for your directives.",
+            "reply": "Always a pleasure, Sir. J.A.R.V.I.S. at your service. Tell me to run diagnostics, deploy widgets, or engage defense protocols.",
             "action": {"command": "NONE"}
         }
 
     return {
-        "reply": f"I hear you, Sir: '{user_text}'. Ready to catalog directives or adjust board protocols at your command.",
+        "reply": f"Understood, Sir. Monitoring '{user_text}'. All primary systems remain at peak efficiency.",
         "action": {"command": "NONE"}
     }
 
@@ -216,7 +162,6 @@ def chat_endpoint(payload: ChatInput):
 
     # Read GEMMA_API_KEY from environment
     api_key = os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN")
-
     response_data = None
 
     # 2. Call google/gemma-4-instruct via InferenceClient if key is configured
@@ -239,21 +184,25 @@ def chat_endpoint(payload: ChatInput):
 
         except Exception as e:
             print(f"[Gemma InferenceClient Warning]: {e}")
-            response_data = fallback_pm_engine(user_text)
+            response_data = fallback_jarvis_engine(user_text)
     else:
         # Fast local fallback ensuring immediate offline functionality
-        response_data = fallback_pm_engine(user_text)
+        response_data = fallback_jarvis_engine(user_text)
 
     # Validate action object and command
     if not isinstance(response_data.get("action"), dict):
         response_data["action"] = {"command": "NONE"}
 
-    valid_commands = {"ADD_TASK", "MOVE_TASK", "CLEAR_ALL", "NONE"}
-    if response_data["action"].get("command") not in valid_commands:
+    valid_commands = {"SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "NONE"}
+    cmd = response_data["action"].get("command")
+    if cmd not in valid_commands:
         response_data["action"]["command"] = "NONE"
 
+    if cmd == "DEPLOY_WIDGET" and not response_data["action"].get("widget_name"):
+        response_data["action"]["widget_name"] = "Telemetry Sensor Grid"
+
     if "reply" not in response_data:
-        response_data["reply"] = "Board updated."
+        response_data["reply"] = "Holographic array synchronized, Sir."
 
     # 3. Append assistant reply to conversational context
     chat_history.append({"role": "assistant", "content": response_data["reply"]})

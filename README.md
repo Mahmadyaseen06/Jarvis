@@ -1,36 +1,33 @@
-# 🤖 J.A.R.V.I.S. — Stark Industries Tactical Directive Board
+# 🤖 J.A.R.V.I.S. — Holographic AI System Dashboard
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Mahmadyaseen06%2FJarvis-00f0ff?logo=github)](https://github.com/Mahmadyaseen06/Jarvis)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![Gemma 4](https://img.shields.io/badge/Model-Gemma--4--Instruct-f59e0b?logo=google)](https://huggingface.co/google/gemma-4-instruct)
 
-An authentic **Iron Man J.A.R.V.I.S.**-themed Voice-First Tactical Task Board web application built with **FastAPI**, **vanilla HTML/JS**, and **Google Gemma 4** (`google/gemma-4-instruct`).
+An authentic **Iron Man J.A.R.V.I.S.** Holographic AI System Dashboard built with **FastAPI**, **vanilla HTML/JS**, and **Google Gemma 4** (`google/gemma-4-instruct`).
 
-Control your engineering directives purely with your voice: command J.A.R.V.I.S. to catalog tasks with priority ratings, transition cards across tactical columns, and receive British-mannered audio confirmations from Tony Stark's personal AI assistant.
+Control your holographic command center purely through voice: command J.A.R.V.I.S. to sweep diagnostic lasers across the screen, engage red alert defense protocols, deploy live data widgets to the HUD, and chat with Tony Stark's personal AI assistant.
 
 ---
 
 ## ✨ Features
 
-- **Iron Man J.A.R.V.I.S. Voice Persona & Core**:
-  - **Pulsing Arc Reactor Core**: Central interactive Arc Reactor button with holographic HUD degree markings and real-time audio waveform visualizer.
-  - **Speech Recognition**: Browser-native **Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)**.
-  - **Authentic British Spoken Output**: Speaks aloud in J.A.R.V.I.S. character (*"Right away, Sir. Added to the directive queue."*, *"Directive completed, Sir. Outstanding work."*).
-- **Procedural Stark HUD Sound FX (Web Audio API)**:
-  - Zero external MP3/audio file dependencies. Generates authentic sci-fi frequency beeps for voice activation, directive moves, additions, and deletions (with mute switch).
-- **Stark Industries Tactical Columns (`index.html`)**:
-  - Columns: **🛡️ Backlog Directives** (To Do), **⚡ In Operation** (In Progress), **🎯 Mission Accomplished** (Done).
-  - **Native HTML5 Drag & Drop**: Silky physical card dragging between all 3 columns with holographic cyan border glow.
-  - **Live Progress & Metrics**: Real-time completion tracker (`PROGRESS: X% (Done/Total)`).
-  - **Search & Priority Filtering**: Instant directive search and priority filter toggles (**All**, **High Priority**, **Low Priority**).
-  - **LocalStorage Persistence**: Directives stay saved across browser refreshes, with a pre-loaded Stark directive suite.
-- **FastAPI + Gemma 4 PM Engine (`main.py`)**:
-  - Full CORS-enabled FastAPI backend.
-  - Conversational context memory preserved across turns in global `chat_history`.
-  - Structured JSON action dispatch (`ADD_TASK`, `MOVE_TASK`, `CLEAR_ALL`, `NONE`).
-  - Supports conversational shortcuts (*"Mark flight thrusters as done"*, *"Start working on repulsors"*, *"Purge display"*).
-  - Zero-latency offline fallback engine ensures 100% functionality even when offline.
+- **J.A.R.V.I.S. Sci-Fi HUD Command Center (`index.html`)**:
+  - Dark-mode high-tech aesthetic (`#0a0a0a`) with glowing cyan/blue accents and monospace grid lines.
+  - Animated **"Voice Link Active"** button with a pulsating holographic glow ring while listening.
+  - Real-time audio waveform canvas visualizer driven by the Web Audio API.
+  - Robotic/British spoken audio confirmations via tuned `speechSynthesis.getVoices()`.
+- **Holographic System Commands**:
+  - 🔬 **`SYSTEM_SCAN`**: Triggers a laser line sweep animation across the screen and prints live matrix-style diagnostic telemetry.
+  - 🚨 **`ACTIVATE_DEFENSE`**: Instantly transforms glowing accents from cyan to emergency red and flashes a high-voltage `"DEFENSE PROTOCOLS ENGAGED"` alert banner.
+  - 📊 **`DEPLOY_WIDGET`**: Dynamically creates glowing glassmorphism cards on the dashboard displaying the `widget_name` provided by Gemma (e.g. Arc Reactor Output, Repulsor Grid, Orbital Satlink).
+  - 💬 **`NONE`**: Concise, witty, British-mannered conversational AI banter.
+- **FastAPI + Gemma 4 Backend (`main.py`)**:
+  - Full CORS-enabled FastAPI backend serving both API and frontend.
+  - Multi-turn conversation history tracked in global `chat_history`.
+  - Powered by `huggingface_hub.InferenceClient` calling `google/gemma-4-instruct`.
+  - Built-in offline fallback engine guarantees 100% functionality without requiring external API keys.
 
 ---
 
@@ -40,20 +37,21 @@ The Gemma 4 system prompt enforces structured JSON responses:
 
 ```json
 {
-  "reply": "Right away, Sir. Added 'Calibrate Mark 85 Flight Systems' to the backlog with High priority.",
+  "reply": "Initiating comprehensive diagnostic scan across all holographic arrays. Stand by, Sir.",
   "action": {
-    "command": "ADD_TASK",
-    "task_name": "Calibrate Mark 85 Flight Systems",
-    "priority": "High"
+    "command": "SYSTEM_SCAN"
   }
 }
 ```
 
-Supported Commands:
-- `ADD_TASK`: Requires `task_name` (string) and `priority` (`High` or `Low`).
-- `MOVE_TASK`: Requires `task_name` (string) and `new_status` (`Todo`, `InProgress`, or `Done`).
-- `CLEAR_ALL`: Clears all directives on the tactical board.
-- `NONE`: Conversational queries or status updates.
+### Available Commands
+
+| Command | Action Effect | Example Voice Prompt |
+|---|---|---|
+| `SYSTEM_SCAN` | Sweeps laser across screen & streams diagnostic matrix | *"Jarvis, run a full system scan"* |
+| `ACTIVATE_DEFENSE` | Turns HUD to emergency red & flashes alert banner | *"Engage defense protocols / red alert"* |
+| `DEPLOY_WIDGET` | Deploys glassmorphism widget with `widget_name` | *"Deploy widget Arc Reactor Output"* |
+| `NONE` | Natural conversational dialog with J.A.R.V.I.S. | *"Hello Jarvis, what is your status?"* |
 
 ---
 
@@ -61,7 +59,7 @@ Supported Commands:
 
 ### 1. Prerequisites
 - Python 3.9+ (Python 3.10 – 3.14 recommended)
-- Browser: **Google Chrome** (recommended for native Web Speech API support)
+- Browser: **Google Chrome** (recommended for Web Speech API support)
 
 ### 2. Environment Setup
 
@@ -89,7 +87,7 @@ Add your Hugging Face user access token in `.env`:
 GEMMA_API_KEY=hf_your_huggingface_token_here
 ```
 
-*(Note: If omitted, the application runs on its built-in J.A.R.V.I.S. fallback engine with zero delay!)*
+*(Note: If omitted, the application runs on its built-in rule-based J.A.R.V.I.S. engine with zero delay!)*
 
 ### 4. Run the Application
 
@@ -115,25 +113,24 @@ http://localhost:8000
 
 ## 🎯 60-Second Live J.A.R.V.I.S. Demo Script
 
-1. **Activate Voice HUD**:
-   - Click the glowing **Arc Reactor** in the center. The core turns tactical red and J.A.R.V.I.S. begins listening.
-2. **Issue a High-Priority Directive**:
+1. **Activate Voice Link**:
+   - Click the glowing **Voice Link** button. The ring pulses red and J.A.R.V.I.S. begins listening.
+2. **Execute System Diagnostic**:
    - Speak:
-     > *"J.A.R.V.I.S., add a task to calibrate Mark 85 flight thrusters with high priority"*
-   - 🔊 J.A.R.V.I.S. responds aloud: *"Right away, Sir. Added 'Calibrate Mark 85 Flight Thrusters' to the backlog with High priority."*
-   - A crimson `HIGH` priority card appears in **Backlog Directives**.
-3. **Transition to Active Operation**:
+     > *"Jarvis, run a full system scan"*
+   - 🔊 A glowing laser line sweeps across the screen while diagnostic telemetry floods the console.
+3. **Engage Defense Protocols**:
    - Speak:
-     > *"Move Mark 85 flight thrusters to In Progress"*
-   - ⚡ Card glides into **In Operation** and a sleek Stark HUD whoosh chime plays.
-4. **Complete the Directive**:
+     > *"Engage defense protocols and activate red alert"*
+   - 🚨 The entire HUD switches from cyan to tactical emergency red, flashing the alert banner.
+4. **Deploy Live Data Widgets**:
    - Speak:
-     > *"Mark Mark 85 flight thrusters as done"*
-   - 🎯 J.A.R.V.I.S. responds: *"Protocol 'Calibrate Mark 85 Flight Thrusters' marked as accomplished, Sir. Outstanding work."* Card moves to **Mission Accomplished**.
-5. **Purge Protocols**:
+     > *"Deploy widget Arc Reactor Thermal Output"*
+   - 📊 A glowing glassmorphism telemetry widget appears on the HUD with live efficiency meters.
+5. **Stand Down**:
    - Speak:
-     > *"J.A.R.V.I.S., clear the board"*
-   - 🗑️ J.A.R.V.I.S. responds: *"Clearing all directives from the Stark tactical display, Sir."*
+     > *"Stand down Jarvis, return to normal mode"*
+   - 🟢 Systems return to calm cyan standby status.
 
 ---
 
@@ -145,14 +142,6 @@ Run the full end-to-end backend test suite:
 python3 test_app.py
 ```
 
-Validates:
-- Frontend HTML delivery at `GET /`
-- Structured JSON output for `ADD_TASK` (High and Low priority)
-- State transitions for `MOVE_TASK` to `InProgress` and `Done`
-- Task board reset via `CLEAR_ALL`
-- Conversational context preservation in `GET /history`
-- Session reset via `POST /clear`
-
 ---
 
 ## 📁 Project Structure
@@ -160,9 +149,9 @@ Validates:
 ```
 Jarvis/
 ├── main.py              # FastAPI server, Gemma 4 LLM client & J.A.R.V.I.S. router
-├── index.html           # Iron Man Arc Reactor HUD UI with Web Speech API
+├── index.html           # Holographic Sci-Fi HUD UI with Web Speech API
 ├── requirements.txt     # Python dependencies (fastapi, uvicorn, pydantic, huggingface_hub)
-├── test_app.py          # Integration test suite validating API & actions
+├── test_app.py          # Integration test suite validating all commands
 ├── run.sh               # Quick startup shell script with virtualenv auto-detection
 ├── run.py               # Cross-platform Python server launcher
 ├── .env.example         # Template for GEMMA_API_KEY / HF_TOKEN
