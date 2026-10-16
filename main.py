@@ -135,6 +135,33 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
     }
 
 
+def call_google_ai_studio(history: List[Dict[str, str]], api_key: str) -> Dict[str, Any]:
+    """Call Google AI Studio endpoint natively with structured JSON output."""
+    import urllib.request
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+
+    contents = []
+    for m in history:
+        role = "user" if m.get("role") == "user" else "model"
+        contents.append({"role": role, "parts": [{"text": m.get("content", "")}]})
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "contents": contents,
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 400, "responseMimeType": "application/json"}
+    }
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+        raw_text = res["candidates"][0]["content"]["parts"][0]["text"]
+        return extract_json(raw_text)
+
+
 @app.get("/")
 def get_frontend():
     """Serve index.html at root."""
@@ -149,7 +176,7 @@ def chat_endpoint(payload: ChatInput):
     """
     POST /chat endpoint:
     - Appends user text to chat_history.
-    - Calls google/gemma-4-instruct via InferenceClient.
+    - Connects to Google AI Studio (Gemma/Gemini) or Hugging Face.
     - Parses structured JSON response.
     - Appends assistant reply to history and returns JSON.
     """
@@ -164,26 +191,45 @@ def chat_endpoint(payload: ChatInput):
     api_key = os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN")
     response_data = None
 
-    # 2. Call google/gemma-4-instruct via InferenceClient if key is configured
+    # 2. Call AI provider if key is configured
     if api_key:
+        api_key_clean = api_key.strip()
         try:
-            client = InferenceClient(token=api_key)
-
-            messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-            messages.extend(chat_history)
-
-            response = client.chat_completion(
-                model="google/gemma-4-instruct",
-                messages=messages,
-                max_tokens=250,
-                temperature=0.2
-            )
-
-            raw_reply = response.choices[0].message.content
-            response_data = extract_json(raw_reply)
+            # Check for Google AI Studio key format (starts with AQ. or AIza)
+            if api_key_clean.startswith("AQ.") or api_key_clean.startswith("AIza"):
+                response_data = call_google_ai_studio(chat_history, api_key_clean)
+            # Check for Hugging Face token format (starts with hf_)
+            elif api_key_clean.startswith("hf_"):
+                client = InferenceClient(token=api_key_clean)
+                messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+                messages.extend(chat_history)
+                response = client.chat_completion(
+                    model="google/gemma-4-instruct",
+                    messages=messages,
+                    max_tokens=250,
+                    temperature=0.2
+                )
+                raw_reply = response.choices[0].message.content
+                response_data = extract_json(raw_reply)
+            else:
+                # Try Google first, fall back to Hugging Face
+                try:
+                    response_data = call_google_ai_studio(chat_history, api_key_clean)
+                except Exception:
+                    client = InferenceClient(token=api_key_clean)
+                    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+                    messages.extend(chat_history)
+                    response = client.chat_completion(
+                        model="google/gemma-4-instruct",
+                        messages=messages,
+                        max_tokens=250,
+                        temperature=0.2
+                    )
+                    raw_reply = response.choices[0].message.content
+                    response_data = extract_json(raw_reply)
 
         except Exception as e:
-            print(f"[Gemma InferenceClient Warning]: {e}")
+            print(f"[AI Provider Warning]: {e}")
             response_data = fallback_jarvis_engine(user_text)
     else:
         # Fast local fallback ensuring immediate offline functionality
