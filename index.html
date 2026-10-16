@@ -872,10 +872,15 @@
       orbButton.style.cursor = "not-allowed";
     }
 
+    // Browser engine detection
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
     // Initialize Speech Recognition
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
-      recognition.continuous = true; // Never kill listener on short pause!
+      // Crucial: Safari WebKit crashes with a 'network' error if continuous is true!
+      // In Chrome/Edge, continuous keeps the stream open.
+      recognition.continuous = !isSafari;
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
       
@@ -897,17 +902,20 @@
         isListening = true;
         setUIState("listening");
         if (!latestTranscript) {
-          interimPreview.textContent = "Listening... Speak naturally (no rush)";
+          interimPreview.textContent = "Listening... Speak naturally";
           interimPreview.classList.remove("active");
         }
       };
 
       recognition.onresult = (event) => {
         let interim = "";
+        let finalDetected = false;
+
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const item = event.results[i];
           if (item.isFinal) {
             accumulatedSpeech += " " + item[0].transcript;
+            finalDetected = true;
           } else {
             interim += item[0].transcript;
           }
@@ -920,28 +928,56 @@
           interimPreview.classList.add("active");
           sendVoiceNowBtn.style.display = "inline-flex";
 
-          // Natural conversation pause detector: 1.4s of silence sends the message
           clearTimeout(speechSilenceTimer);
+
+          // If in Safari (which finishes on each turn) or after 1.4s pause:
+          const pauseThreshold = isSafari ? 700 : 1400;
           speechSilenceTimer = setTimeout(() => {
             commitAndSendSpeech();
-          }, 1400);
+          }, pauseThreshold);
         }
       };
 
       recognition.onerror = (event) => {
         console.warn("Speech recognition status:", event.error);
         if (event.error === "no-speech") {
-          // Benign silence event: DO NOT stop listening! Keep microphone open.
+          // Benign silence: keep listening unless user stopped
+          if (isSafari && userWantsListening && !isThinking && !isSpeaking) {
+            setTimeout(() => {
+              try { if (userWantsListening) recognition.start(); } catch (e) {}
+            }, 250);
+          }
           return;
         }
-        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-          interimPreview.textContent = "⚠️ Mic permission denied. Click the lock/camera icon in your address bar to allow mic access.";
+
+        if (event.error === "network") {
+          // 1. Try automatic fallback to en-US if regional language server is unreachable
+          if (recognition.lang !== "en-US") {
+            console.log("Speech network error on", recognition.lang, "- auto retrying with en-US...");
+            recognition.lang = "en-US";
+            if (langSelect) langSelect.value = "en-US";
+            interimPreview.textContent = "Switching speech server to en-US, listening...";
+            setTimeout(() => {
+              if (userWantsListening) {
+                try { recognition.start(); return; } catch (e) {}
+              }
+            }, 300);
+            return;
+          }
+
+          // 2. Clear instructions if both fail
+          if (isSafari) {
+            interimPreview.innerHTML = "⚠️ Safari Speech Network Error: Enable <strong>System Settings → Keyboard → Dictation</strong>, or use <strong>Google Chrome</strong>.";
+          } else {
+            interimPreview.innerHTML = "⚠️ Speech Network Error: Google Speech servers unreachable. Check internet/VPN or use Google Chrome.";
+          }
           userWantsListening = false;
           stopListeningState();
           return;
         }
-        if (event.error === "network") {
-          interimPreview.textContent = "⚠️ Web Speech network issue. Check internet or use the text box below.";
+
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+          interimPreview.textContent = "⚠️ Mic permission denied. Click the lock/camera icon in your address bar to allow mic access.";
           userWantsListening = false;
           stopListeningState();
           return;
@@ -951,9 +987,14 @@
       recognition.onend = () => {
         // Keep listening alive if user wants it and we're not currently processing or speaking
         if (userWantsListening && !isThinking && !isSpeaking) {
-          try {
-            recognition.start();
-          } catch (e) {}
+          const delay = isSafari ? 300 : 80;
+          setTimeout(() => {
+            try {
+              if (userWantsListening && !isThinking && !isSpeaking) {
+                recognition.start();
+              }
+            } catch (e) {}
+          }, delay);
         } else {
           stopListeningState();
         }
