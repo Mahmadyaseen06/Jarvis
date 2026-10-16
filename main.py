@@ -105,6 +105,36 @@ def fallback_pm_engine(user_text: str) -> Dict[str, Any]:
             }
         }
 
+    # Natural Language Shortcut: Complete / Finish / Mark as Done
+    done_match = re.search(r"^(?:mark\s+(?:the\s+)?(.+?)\s+as\s+done|complete\s+(?:the\s+)?(.+)|finish\s+(?:the\s+)?(.+))$", lower)
+    if done_match:
+        raw_name = (done_match.group(1) or done_match.group(2) or done_match.group(3) or "").strip()
+        clean_task = re.sub(r"(?i)\btask\b", "", raw_name).strip().title()
+        if clean_task:
+            return {
+                "reply": f"Marked '{clean_task}' as Done.",
+                "action": {
+                    "command": "MOVE_TASK",
+                    "task_name": clean_task,
+                    "new_status": "Done"
+                }
+            }
+
+    # Natural Language Shortcut: Start working on / Work on
+    start_match = re.search(r"^(?:start\s+(?:working\s+on\s+)?(?:the\s+)?(.+)|begin\s+(?:working\s+on\s+)?(?:the\s+)?(.+))$", lower)
+    if start_match:
+        raw_name = (start_match.group(1) or start_match.group(2) or "").strip()
+        clean_task = re.sub(r"(?i)\btask\b", "", raw_name).strip().title()
+        if clean_task and not lower.startswith("start over"):
+            return {
+                "reply": f"Moved '{clean_task}' to In Progress.",
+                "action": {
+                    "command": "MOVE_TASK",
+                    "task_name": clean_task,
+                    "new_status": "InProgress"
+                }
+            }
+
     # ADD_TASK command (e.g. "Add task build landing page priority high")
     if any(k in lower for k in ["add", "create", "new task", "put"]):
         priority = "High" if any(p in lower for p in ["high", "urgent", "critical", "important"]) else "Low"
