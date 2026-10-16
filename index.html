@@ -1,1035 +1,933 @@
-<!DOCTYPE html><html class="dark" lang="en"><head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>J.A.R.V.I.S. // MK-85 HUD COMMAND CENTER</title>
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com" rel="preconnect">
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=Syne:wght@600;700;800&amp;family=Orbitron:wght@500;700;900&amp;display=swap" rel="stylesheet">
-<!-- Material Symbols Outlined -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<!-- Tailwind CSS v3 -->
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>J.A.R.V.I.S. // OS-V8.4 - Stark Industries Tactical Avionics</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Tailwind Config based on Target Holographic Cyan & Electric Blue Theme -->
 <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
       theme: {
         extend: {
           "colors": {
-            "surface-bright": "#1e293b",
-            "tertiary": "#eef7ff",
-            "on-tertiary": "#00354a",
-            "on-secondary-fixed": "#001d31",
-            "on-secondary-container": "#002c47",
-            "surface-variant": "#132135",
-            "outline-variant": "#1e3a5f",
-            "on-primary-fixed": "#002022",
-            "on-primary-container": "#006970",
-            "primary-fixed": "#7df4ff",
-            "on-error": "#690005",
+            "on-primary": "#003642",
+            "on-surface-variant": "#bbc9cf",
+            "secondary": "#ffdb9f",
+            "surface-bright": "#353946",
+            "surface-container-high": "#262a37",
+            "outline": "#859398",
+            "on-secondary-container": "#6b4b00",
+            "secondary-fixed-dim": "#ffba26",
+            "surface-variant": "#313442",
+            "surface": "#0f131f",
+            "inverse-surface": "#dfe2f3",
+            "on-background": "#dfe2f3",
             "error-container": "#93000a",
-            "inverse-primary": "#006970",
-            "tertiary-container": "#aee0ff",
-            "tertiary-fixed": "#c4e7ff",
-            "primary-container": "#00f0ff",
-            "inverse-on-surface": "#2c3039",
-            "error": "#ffb4ab",
-            "surface-container-lowest": "#050b14",
-            "inverse-surface": "#dfe2ee",
-            "surface-container-highest": "#17273e",
-            "surface-dim": "#080f1d",
-            "surface": "#080f1d",
-            "secondary": "#38bdf8",
-            "on-secondary": "#003351",
-            "on-secondary-fixed-variant": "#004b73",
-            "primary": "#00f0ff",
-            "outline": "#4b7194",
-            "on-primary": "#00262b",
+            "surface-dim": "#0f131f",
+            "primary-fixed": "#b4ebff",
+            "on-secondary": "#422d00",
+            "on-secondary-fixed-variant": "#5e4100",
+            "on-tertiary-container": "#005c3b",
+            "primary-container": "#00d4ff",
             "on-error-container": "#ffdad6",
-            "tertiary-fixed-dim": "#7bd0ff",
-            "on-tertiary-fixed-variant": "#004c69",
-            "secondary-fixed-dim": "#93ccff",
-            "surface-container-low": "#0b1526",
-            "on-surface-variant": "#8ec2de",
-            "on-tertiary-fixed": "#001e2c",
-            "surface-tint": "#00f0ff",
-            "on-background": "#e2f1f8",
-            "background": "#050b14",
-            "surface-container-high": "#122033",
-            "on-primary-fixed-variant": "#004f54",
-            "primary-fixed-dim": "#00dbe9",
-            "secondary-fixed": "#cce5ff",
-            "secondary-container": "#0284c7",
-            "on-tertiary-container": "#00668b",
-            "surface-container": "#0e1a2d",
-            "on-surface": "#e2f1f8"
+            "tertiary-container": "#00de94",
+            "outline-variant": "#3c494e",
+            "error": "#ffb4ab",
+            "secondary-fixed": "#ffdea9",
+            "on-error": "#690005",
+            "on-tertiary": "#003822",
+            "inverse-primary": "#00677e",
+            "tertiary": "#3dfcad",
+            "background": "#0f131f",
+            "on-tertiary-fixed-variant": "#005234",
+            "on-tertiary-fixed": "#002112",
+            "on-primary-fixed-variant": "#004e5f",
+            "on-primary-fixed": "#001f27",
+            "on-surface": "#dfe2f3",
+            "surface-container-lowest": "#0a0e1a",
+            "surface-container-low": "#171b28",
+            "inverse-on-surface": "#2c303d",
+            "tertiary-fixed-dim": "#00e297",
+            "surface-container": "#1b1f2c",
+            "on-primary-container": "#00586b",
+            "surface-container-highest": "#313442",
+            "on-secondary-fixed": "#271900",
+            "secondary-container": "#ffb700",
+            "primary": "#a8e8ff",
+            "primary-fixed-dim": "#3cd7ff",
+            "surface-tint": "#3cd7ff",
+            "tertiary-fixed": "#4dffb2"
           },
           "borderRadius": {
-            "DEFAULT": "0.25rem",
-            "lg": "0.5rem",
-            "xl": "0.75rem",
-            "full": "9999px"
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "margin-sm": "1rem",
+            "gutter-sm": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "margin": "2rem",
+            "gutter": "1.25rem",
+            "margin-lg": "3rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem",
+            "gutter-lg": "1.75rem"
           },
           "fontFamily": {
-            "headline-lg-mobile": ["Syne", "sans-serif"],
-            "display-lg": ["Syne", "sans-serif"],
-            "body-sm": ["Space Mono", "monospace"],
-            "headline-sm": ["Syne", "sans-serif"],
-            "label-lg": ["Space Mono", "monospace"],
-            "headline-lg": ["Syne", "sans-serif"],
-            "label-sm": ["Space Mono", "monospace"],
-            "headline-md": ["Syne", "sans-serif"],
-            "body-lg": ["Space Mono", "monospace"],
-            "label-md": ["Space Mono", "monospace"],
-            "body-md": ["Space Mono", "monospace"],
-            "display-md": ["Syne", "sans-serif"]
+            "orbitron": ["Orbitron", "sans-serif"],
+            "headline-sm": ["Space Grotesk"],
+            "label-sm": ["JetBrains Mono"],
+            "label-lg": ["JetBrains Mono"],
+            "body-sm": ["JetBrains Mono"],
+            "body-lg": ["JetBrains Mono"],
+            "body-md": ["JetBrains Mono"],
+            "label-md": ["JetBrains Mono"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "display-lg": ["Space Grotesk"],
+            "display-lg-mobile": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "label-sm": ["9px", { "lineHeight": "12px", "letterSpacing": "0.15em", "fontWeight": "500" }],
+            "label-lg": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+            "body-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }],
+            "body-lg": ["15px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["13px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "label-md": ["10px", { "lineHeight": "14px", "letterSpacing": "0.12em", "fontWeight": "500" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "0.06em", "fontWeight": "700" }]
           }
         }
       }
     }
   </script>
 <style>
-    /* Custom HUD Animations and Grid Styles */
-    :root {
-      --hud-accent: #00f0ff;
-      --hud-glow: rgba(0, 240, 255, 0.45);
-      --hud-border: rgba(0, 240, 255, 0.35);
-      --hud-bg-panel: rgba(5, 11, 20, 0.88);
-    }
-    
-    body.defense-active {
-      --hud-accent: #ef4444;
-      --hud-glow: rgba(239, 68, 68, 0.5);
-      --hud-border: rgba(239, 68, 68, 0.6);
-      --hud-bg-panel: rgba(24, 8, 8, 0.92);
-    }
-
-    .hud-grid-bg {
-      background-color: #050b14;
+    .hud-bg-grid {
       background-size: 32px 32px;
       background-image: 
-        linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+        linear-gradient(to right, rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
     }
+    .hud-scanline {
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 212, 255, 0.02) 50%, rgba(0, 212, 255, 0.02));
+      background-size: 100% 4px;
+    }
+    @keyframes spin-clockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes spin-counter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+    @keyframes reactor-pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.65)); }
+      50% { transform: scale(1.03); filter: drop-shadow(0 0 35px rgba(0, 212, 255, 0.95)); }
+    }
+    @keyframes voice-wave { 0%, 100% { height: 4px; } 50% { height: 18px; } }
+    @keyframes thinking-dot { 0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
 
-    @keyframes rotateClockwise {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes rotateCounter {
-      from { transform: rotate(360deg); }
-      to { transform: rotate(0deg); }
-    }
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 0.9; transform: scale(1); filter: drop-shadow(0 0 8px var(--hud-accent)); }
-      50% { opacity: 0.45; transform: scale(0.96); filter: drop-shadow(0 0 16px var(--hud-accent)); }
-    }
-    @keyframes scanDown {
-      0% { top: 0%; opacity: 0.95; }
-      50% { top: 96%; opacity: 0.95; }
-      100% { top: 0%; opacity: 0; }
-    }
-    @keyframes radarSweep {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    .animate-spin-slow { animation: spin-clockwise 22s linear infinite; }
+    .animate-spin-reverse { animation: spin-counter 16s linear infinite; }
+    .animate-spin-fast { animation: spin-clockwise 8s linear infinite; }
+    .animate-reactor-pulse { animation: reactor-pulse 3.5s ease-in-out infinite; }
 
-    .anim-spin-cw { animation: rotateClockwise 14s linear infinite; }
-    .anim-spin-fast { animation: rotateClockwise 5s linear infinite; }
-    .anim-spin-ccw { animation: rotateCounter 18s linear infinite; }
-    .anim-pulse-core { animation: pulseGlow 3s ease-in-out infinite; }
-    .anim-radar { animation: radarSweep 3.2s linear infinite; }
+    .reticle-corner { position: absolute; width: 6px; height: 6px; pointer-events: none; }
+    .reticle-tl { top: -1px; left: -1px; border-top: 1.5px solid #00d4ff; border-left: 1.5px solid #00d4ff; }
+    .reticle-tr { top: -1px; right: -1px; border-top: 1.5px solid #00d4ff; border-right: 1.5px solid #00d4ff; }
+    .reticle-bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid #00d4ff; border-left: 1.5px solid #00d4ff; }
+    .reticle-br { bottom: -1px; right: -1px; border-bottom: 1.5px solid #00d4ff; border-right: 1.5px solid #00d4ff; }
 
-    /* Tactical Chamfered Clip */
-    .hud-chamfer {
-      clip-path: polygon(
-        0 8px, 8px 0, 
-        calc(100% - 8px) 0, 100% 8px, 
-        100% calc(100% - 8px), calc(100% - 8px) 100%, 
-        8px 100%, 0 calc(100% - 8px)
-      );
-    }
-    .hud-chamfer-lg {
-      clip-path: polygon(
-        0 14px, 14px 0, 
-        calc(100% - 14px) 0, 100% 14px, 
-        100% calc(100% - 14px), calc(100% - 14px) 100%, 
-        14px 100%, 0 calc(100% - 14px)
-      );
-    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(10, 14, 26, 0.8); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.35); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.6); }
 
-    /* Laser Scanner Beam */
-    .scanner-beam {
-      position: fixed;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, transparent, var(--hud-accent), #ffffff, var(--hud-accent), transparent);
-      box-shadow: 0 0 24px 8px var(--hud-accent);
-      z-index: 9999;
-      pointer-events: none;
-      display: none;
+    /* Thinking indicator */
+    .thinking-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: #00d4ff; margin: 0 2px;
     }
-    .scanning .scanner-beam {
-      display: block;
-      animation: scanDown 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
+    .thinking-dot:nth-child(1) { animation: thinking-dot 1.4s ease-in-out infinite 0s; }
+    .thinking-dot:nth-child(2) { animation: thinking-dot 1.4s ease-in-out infinite 0.2s; }
+    .thinking-dot:nth-child(3) { animation: thinking-dot 1.4s ease-in-out infinite 0.4s; }
 
-    /* Scrollbar styling for CLI */
-    ::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #050b14;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1e3a5f;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #00f0ff;
-    }
+    /* Loading state on send button */
+    .btn-loading { opacity: 0.6; pointer-events: none; }
+
+    /* Connection status indicator */
+    #conn-status-dot { transition: background 0.3s, box-shadow 0.3s; }
   </style>
 </head>
-<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased overflow-x-hidden min-h-screen relative hud-grid-bg selection:bg-primary selection:text-on-primary">
-<!-- Fullscreen Tactical Scanner Beam -->
-<div class="scanner-beam" id="scannerBeam"></div>
+<body class="bg-surface-container-lowest text-on-surface font-body-md text-body-md min-h-screen relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container hud-scanline">
 
-<!-- EMERGENCY DEFENSE MODE BANNER -->
-<aside aria-label="Defcon 1 Alert Banner" class="hidden w-full bg-error-container text-on-error-container border-b border-error px-6 py-2 flex items-center justify-between z-50 text-label-md font-label-md tracking-widest animate-pulse" id="defenseBanner">
-  <div class="flex items-center gap-2">
-    <span class="material-symbols-outlined text-error text-base">emergency_home</span>
-    <span class="font-bold">CRITICAL WARNING // DEFCON 1 ARMED // TACTICAL DEFENSE MATRIX ENGAGED</span>
-  </div>
-  <div class="flex items-center gap-4">
-    <span class="hidden md:inline">SYSTEM: J.A.R.V.I.S. OVERRIDE: 042-ALPHA</span>
-    <button class="px-3 py-1 bg-error text-on-error font-bold uppercase tracking-widest text-label-sm hover:bg-surface-container-highest transition-colors" onclick="standDownProcedure()">
-      STAND DOWN
-    </button>
-  </div>
-</aside>
+<!-- Tactical Grid Ambient Layer -->
+<div class="fixed inset-0 hud-bg-grid opacity-70 pointer-events-none z-0"></div>
+<div class="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary-container/5 rounded-full blur-[140px] pointer-events-none z-0"></div>
 
-<!-- TOP HUD BAR -->
-<header class="flex justify-between items-center w-full px-6 py-2 border-b border-outline-variant/60 bg-surface-container-lowest/95 sticky top-0 z-40 backdrop-blur-md">
-  <div class="flex items-center gap-4">
-    <!-- Arc Reactor Core Indicator -->
-    <div class="relative w-10 h-10 flex items-center justify-center cursor-pointer group" onclick="triggerLaserScan()" title="Arc Reactor Core Matrix Indicator">
-      <svg class="absolute inset-0 w-full h-full anim-spin-cw text-primary" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" fill="none" opacity="0.7" r="46" stroke="currentColor" stroke-dasharray="6 4" stroke-width="2"></circle>
-      </svg>
-      <svg class="absolute inset-1 w-8 h-8 anim-spin-ccw text-secondary" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" fill="none" opacity="0.9" r="42" stroke="currentColor" stroke-dasharray="14 10" stroke-width="4"></circle>
-      </svg>
-      <div class="w-3.5 h-3.5 bg-primary rounded-none anim-pulse-core rotate-45 shadow-[0_0_14px_#00f0ff]"></div>
+<!-- ===== TOP HEADER BAR ===== -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin h-16 border-b border-outline-variant/40 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_0_16px_rgba(0,212,255,0.08)] transition-colors duration-500" id="top-nav-bar">
+  <!-- Left: Identity -->
+  <div class="flex items-center gap-space-md">
+    <div class="flex items-center gap-space-sm">
+      <span class="w-2.5 h-2.5 bg-primary-container rounded-sm shadow-[0_0_10px_#00d4ff] animate-pulse"></span>
+      <h1 class="font-orbitron text-headline-sm font-bold tracking-widest text-primary-container uppercase drop-shadow-[0_0_8px_rgba(0,212,255,0.7)]">J.A.R.V.I.S.</h1>
     </div>
-    <div class="flex flex-col">
-      <span class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary drop-shadow-[0_0_8px_rgba(0,240,255,0.4)]">J.A.R.V.I.S.</span>
-      <span class="text-label-sm font-label-sm text-outline tracking-widest">MK-85 HOLOGRAPHIC HUD</span>
+    <div class="hidden lg:flex items-center gap-space-xs text-outline border-l border-outline-variant/60 pl-space-md">
+      <span class="font-label-sm text-label-sm text-outline tracking-wider">// MK-85 NEURAL CORE</span>
+      <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-label-sm bg-primary-container/10 border border-primary-container/30 text-primary">V8.4-ONLINE</span>
     </div>
   </div>
 
-  <nav class="hidden lg:flex items-center gap-6">
-    <a class="text-on-surface-variant tracking-wider py-1 hover:text-primary transition-colors text-label-md font-label-md" href="#voice-link">VOICE LINK</a>
-    <a class="text-on-surface-variant tracking-wider py-1 hover:text-primary transition-colors text-label-md font-label-md" href="#widgets">WIDGETS</a>
-    <a class="text-on-surface-variant tracking-wider py-1 hover:text-primary transition-colors text-label-md font-label-md" href="#comms">COMMS</a>
-    <a class="text-on-surface-variant tracking-wider py-1 hover:text-primary transition-colors text-label-md font-label-md" href="#matrix-diagnostics">DIAGNOSTICS</a>
-    <a class="text-primary border-b-2 border-primary font-bold tracking-widest py-1 text-label-md font-label-md drop-shadow-[0_0_8px_rgba(0,240,255,0.5)]" href="#widgets">TACTICAL</a>
-  </nav>
-
-  <div class="flex items-center gap-3">
-    <div class="hidden xl:flex items-center gap-2 text-label-sm font-label-sm">
-      <div class="px-2 py-1 bg-surface-container-low border border-outline-variant text-primary flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,240,255,0.15)]">
-        <span class="w-1.5 h-1.5 bg-primary rounded-none animate-ping"></span>
-        <span>GEMMA 4: ONLINE</span>
+  <!-- Center: Status Badges -->
+  <div class="flex items-center gap-space-sm">
+    <!-- AI Connection Status -->
+    <div class="flex items-center gap-1.5 px-space-sm py-1 rounded bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary shadow-[0_0_10px_rgba(0,222,148,0.15)]" id="ai-status-pill">
+      <span class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_6px_#3dfcad]" id="conn-status-dot"></span>
+      <span class="font-label-sm text-label-sm font-semibold tracking-wider" id="conn-status-text">CONNECTING...</span>
+    </div>
+    <!-- Core % -->
+    <div class="hidden sm:flex items-center gap-2 px-space-sm py-1 rounded bg-primary-container/10 border border-primary-container/30 text-primary">
+      <div class="w-10 h-1.5 bg-surface-container-highest rounded-full overflow-hidden flex">
+        <div class="h-full bg-primary-container shadow-[0_0_6px_#00d4ff]" id="core-bar" style="width:100%"></div>
       </div>
-      <div class="px-2 py-1 bg-surface-container-low border border-outline-variant text-secondary flex items-center gap-1.5">
-        <span class="material-symbols-outlined text-xs">memory</span>
-        <span>CORE: 100%</span>
-      </div>
+      <span class="font-label-sm text-label-sm font-medium tracking-wider text-primary" id="core-pct-label">CORE 100%</span>
     </div>
-    <!-- Clear Memory -->
-    <button class="px-3 py-1.5 border border-outline-variant text-primary font-label-md text-label-md uppercase tracking-wider hover:bg-surface-container hover:border-primary transition-colors duration-150 flex items-center gap-1.5" onclick="clearMemoryBuffer()">
-      <span class="material-symbols-outlined text-sm">memory</span>
-      <span class="hidden sm:inline">CLEAR MEMORY</span>
+    <!-- Defense Toggle -->
+    <button class="flex items-center gap-1.5 px-space-sm py-1 rounded transition-all duration-300 bg-secondary-container/10 border border-secondary-container/40 text-secondary-container hover:bg-secondary-container/20" id="header-defense-toggle" onclick="toggleDefenseMode()">
+      <span class="w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_6px_#ffb700]" id="defense-dot"></span>
+      <span class="font-label-sm text-label-sm font-semibold tracking-wider" id="defense-label">DEFENSE STANDBY</span>
     </button>
-    <!-- Defense Mode Button -->
-    <button class="px-3.5 py-1.5 bg-secondary-container/80 border border-primary/50 text-white font-label-md text-label-md font-bold uppercase tracking-wider hover:bg-primary hover:text-on-primary transition-all duration-150 flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,240,255,0.35)]" id="defenseModeBtn" onclick="toggleDefenseMode()">
-      <span class="material-symbols-outlined text-sm">shield</span>
-      <span>DEFCON 5 // STANDBY</span>
-    </button>
-    <!-- Laser Scan Action -->
-    <button class="p-1.5 border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary transition-colors" onclick="triggerLaserScan()" title="Trigger System Scan">
-      <span class="material-symbols-outlined text-lg">radar</span>
-    </button>
+  </div>
+
+  <!-- Right: Nav + Clear -->
+  <div class="flex items-center gap-space-md">
+    <nav class="hidden xl:flex items-center gap-space-md border-r border-outline-variant/40 pr-space-md">
+      <a class="font-label-lg text-label-lg text-primary border-b-2 border-primary-container font-semibold tracking-wider pb-1" href="#telemetry">TELEMETRY</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors tracking-wide" href="#diagnostics">DIAGNOSTICS</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors tracking-wide" href="#defense" onclick="toggleDefenseMode(); return false;">DEFENSE MATRIX</a>
+    </nav>
+    <div class="relative group">
+      <button class="w-9 h-9 rounded-full flex items-center justify-center border border-primary-container/40 bg-surface-container-low text-primary-container hover:bg-primary-container hover:text-surface-container-lowest transition-all duration-200 shadow-[0_0_12px_rgba(0,212,255,0.25)] hover:shadow-[0_0_20px_rgba(0,212,255,0.6)] active:scale-95" id="clear-session-btn" onclick="clearSessionConsole()">
+        <span class="material-symbols-outlined text-[18px]">power_settings_new</span>
+      </button>
+      <span class="absolute right-0 top-11 hidden group-hover:block font-label-sm text-[8px] bg-surface-container-high border border-outline-variant px-2 py-0.5 rounded shadow-lg whitespace-nowrap text-primary">CLEAR SESSION</span>
+    </div>
   </div>
 </header>
 
-<!-- MAIN HUD INTERFACE WRAPPER -->
-<div class="flex w-full min-h-[calc(100vh-53px)] relative">
-  <!-- LEFT SIDEBAR CONSOLE -->
-  <aside class="hidden md:flex flex-col justify-between h-[calc(100vh-53px)] w-64 border-r border-outline-variant/60 bg-surface-container-lowest p-4 sticky top-[53px] z-30">
-    <div class="flex flex-col gap-1 pb-4 border-b border-outline-variant/60">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-xl">track_changes</span>
-        <span class="text-headline-sm font-headline-sm font-extrabold text-primary drop-shadow-[0_0_6px_rgba(0,240,255,0.4)]">MK-85 CONSOLE</span>
+<!-- ===== MAIN WORKSPACE ===== -->
+<main class="relative z-10 pt-24 pb-16 px-gutter max-w-7xl mx-auto flex flex-col gap-space-xl">
+
+  <!-- HERO: Arc Reactor -->
+  <section class="flex flex-col items-center justify-center pt-space-md pb-space-lg">
+    <div class="flex items-center justify-center gap-3 mb-space-lg text-outline font-label-sm text-label-sm tracking-widest uppercase">
+      <span class="w-8 h-[1px] bg-primary-container/40"></span>
+      <span class="text-primary-container">// MARK LXXXV // SPATIAL QUANTUM MATRIX</span>
+      <span class="w-8 h-[1px] bg-primary-container/40"></span>
+    </div>
+
+    <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center group cursor-pointer select-none" onclick="triggerCorePulse()">
+      <svg class="absolute inset-0 w-full h-full animate-spin-slow opacity-60 pointer-events-none" viewBox="0 0 300 300">
+        <circle cx="150" cy="150" fill="none" r="140" stroke="#00d4ff" stroke-dasharray="14 10 2 10" stroke-opacity="0.5" stroke-width="1.5"/>
+        <circle cx="150" cy="150" fill="none" r="145" stroke="#ffb700" stroke-dasharray="2 30" stroke-opacity="0.4" stroke-width="1"/>
+        <line stroke="#00d4ff" stroke-width="2" x1="150" x2="150" y1="2" y2="14"/>
+        <line stroke="#00d4ff" stroke-width="2" x1="150" x2="150" y1="286" y2="298"/>
+        <line stroke="#00d4ff" stroke-width="2" x1="2" x2="14" y1="150" y2="150"/>
+        <line stroke="#00d4ff" stroke-width="2" x1="286" x2="298" y1="150" y2="150"/>
+      </svg>
+      <svg class="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] animate-spin-reverse opacity-75 pointer-events-none" viewBox="0 0 260 260">
+        <circle cx="130" cy="130" fill="none" r="115" stroke="#3cd7ff" stroke-dasharray="35 15 5 15" stroke-opacity="0.7" stroke-width="2"/>
+        <circle cx="130" cy="130" fill="none" r="95" stroke="#a8e8ff" stroke-dasharray="8 8" stroke-opacity="0.3" stroke-width="1"/>
+      </svg>
+      <svg class="absolute inset-8 w-[calc(100%-4rem)] h-[calc(100%-4rem)] animate-spin-fast opacity-85 pointer-events-none" viewBox="0 0 220 220">
+        <circle cx="110" cy="110" fill="none" r="80" stroke="#00d4ff" stroke-dasharray="20 40" stroke-linecap="round" stroke-width="3"/>
+        <polygon fill="none" points="110,40 170,145 50,145" stroke="#ffb700" stroke-opacity="0.5" stroke-width="1.5"/>
+        <polygon fill="none" points="110,180 50,75 170,75" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="1.5"/>
+      </svg>
+      <div class="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-surface-container-lowest via-surface-container to-surface-container-low border-2 border-primary-container/80 flex items-center justify-center animate-reactor-pulse shadow-[0_0_30px_rgba(0,212,255,0.7)] group-hover:shadow-[0_0_55px_rgba(0,212,255,0.95)] transition-all" id="arc-reactor-core">
+        <div class="w-16 h-16 rounded-full bg-primary-container/20 border border-primary flex items-center justify-center shadow-[inset_0_0_15px_#00d4ff]">
+          <span class="material-symbols-outlined text-primary-container text-3xl group-hover:scale-110 transition-transform" id="reactor-icon">bolt</span>
+        </div>
+        <span class="absolute -top-1 w-2 h-2 bg-primary-container rounded-full shadow-[0_0_8px_#00d4ff]"></span>
+        <span class="absolute -bottom-1 w-2 h-2 bg-primary-container rounded-full shadow-[0_0_8px_#00d4ff]"></span>
       </div>
-      <span class="text-label-sm font-label-sm text-outline tracking-widest uppercase">SYS.LOC // 884-B</span>
     </div>
 
-    <div class="flex flex-col gap-1.5 my-4">
-      <button class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors duration-150 text-left w-full text-label-md font-label-md uppercase tracking-wider" onclick="handleQuickCommand('Run system diagnostic scan')">
-        <span class="material-symbols-outlined text-lg">radar</span>
-        <span>SYSTEM SCAN</span>
-      </button>
-      <a class="flex items-center gap-3 px-3 py-2 bg-surface-container-low text-primary border-l-2 border-primary font-bold text-label-md font-label-md uppercase tracking-wider shadow-[inset_0_0_12px_rgba(0,240,255,0.1)]" href="#voice-link">
-        <span class="material-symbols-outlined text-lg">graphic_eq</span>
-        <span>VOICE LINK</span>
-      </a>
-      <button class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors duration-150 text-left w-full text-label-md font-label-md uppercase tracking-wider" onclick="handleQuickCommand('Activate defense protocols')">
-        <span class="material-symbols-outlined text-lg">shield</span>
-        <span>DEFENSE GRID</span>
-      </button>
-      <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors duration-150 text-label-md font-label-md uppercase tracking-wider" href="#matrix-diagnostics">
-        <span class="material-symbols-outlined text-lg">terminal</span>
-        <span>DIAGNOSTICS</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors duration-150 text-label-md font-label-md uppercase tracking-wider" href="#widgets">
-        <span class="material-symbols-outlined text-lg">track_changes</span>
-        <span>WIDGET DECK</span>
-      </a>
+    <div class="mt-space-lg text-center flex flex-col items-center gap-1">
+      <h2 class="font-orbitron font-extrabold text-headline-lg tracking-[0.2em] text-primary drop-shadow-[0_0_12px_rgba(0,212,255,0.6)]" id="mic-status-label">TAP THE MIC TO SPEAK</h2>
+      <p class="font-body-md text-outline font-label-md tracking-wider" id="mic-status-sub">or type your command below // Jarvis Neural Transceiver Ready</p>
     </div>
+  </section>
 
-    <div class="flex flex-col gap-3 pt-4 border-t border-outline-variant/60">
-      <div class="flex flex-col gap-1 text-label-sm font-label-sm">
-        <button class="flex items-center gap-2 px-2 py-1.5 text-on-surface-variant hover:text-primary transition-colors text-left uppercase" onclick="overrideSecurity()">
-          <span class="material-symbols-outlined text-sm">lock</span>
-          <span>SECURITY OVERRIDE</span>
+  <!-- QUICK ACTION BUTTONS -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+    <!-- Diagnostics -->
+    <button class="relative group p-space-md bg-surface-container-lowest/70 backdrop-blur-md border border-primary-container/30 rounded text-left transition-all duration-200 hover:border-primary-container hover:bg-surface-container-low/80 hover:shadow-[0_0_20px_rgba(0,212,255,0.2)] active:scale-[0.98]" onclick="executeQuickDiagnostic()">
+      <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div><div class="reticle-corner reticle-bl"></div><div class="reticle-corner reticle-br"></div>
+      <div class="flex items-start gap-space-sm">
+        <div class="w-10 h-10 rounded bg-primary-container/10 border border-primary-container/40 flex items-center justify-center text-primary-container group-hover:shadow-[0_0_10px_#00d4ff] transition-shadow">
+          <span class="material-symbols-outlined text-[20px]">build</span>
+        </div>
+        <div>
+          <div class="font-orbitron font-semibold text-headline-sm text-on-surface group-hover:text-primary transition-colors">Run Diagnostics</div>
+          <div class="font-label-sm text-label-sm text-outline tracking-wider mt-0.5">Scan all avionics &amp; systems</div>
+        </div>
+      </div>
+      <div class="mt-3 flex items-center justify-between text-[9px] font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+        <span>PARAM: RE-CHECK</span><span class="text-tertiary">READY</span>
+      </div>
+    </button>
+
+    <!-- Activate Defense -->
+    <button class="relative group p-space-md bg-surface-container-lowest/70 backdrop-blur-md border border-secondary-container/40 rounded text-left transition-all duration-200 hover:border-secondary-container hover:bg-surface-container-low/80 hover:shadow-[0_0_20px_rgba(255,183,0,0.25)] active:scale-[0.98]" id="quick-defense-btn" onclick="toggleDefenseMode()">
+      <div class="reticle-corner reticle-tl !border-secondary-container"></div><div class="reticle-corner reticle-tr !border-secondary-container"></div><div class="reticle-corner reticle-bl !border-secondary-container"></div><div class="reticle-corner reticle-br !border-secondary-container"></div>
+      <div class="flex items-start gap-space-sm">
+        <div class="w-10 h-10 rounded bg-secondary-container/10 border border-secondary-container/40 flex items-center justify-center text-secondary-container group-hover:shadow-[0_0_10px_#ffb700] transition-shadow" id="quick-defense-icon">
+          <span class="material-symbols-outlined text-[20px]">shield</span>
+        </div>
+        <div>
+          <div class="font-orbitron font-semibold text-headline-sm text-on-surface group-hover:text-secondary-container transition-colors" id="quick-defense-title">Activate Defense</div>
+          <div class="font-label-sm text-label-sm text-outline tracking-wider mt-0.5" id="quick-defense-desc">Switch to tactical alert mode</div>
+        </div>
+      </div>
+      <div class="mt-3 flex items-center justify-between text-[9px] font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+        <span>THREAT THRESHOLD</span><span class="text-secondary-container" id="quick-defense-status">STANDBY</span>
+      </div>
+    </button>
+
+    <!-- Deploy Widget -->
+    <button class="relative group p-space-md bg-surface-container-lowest/70 backdrop-blur-md border border-primary-container/30 rounded text-left transition-all duration-200 hover:border-primary-container hover:bg-surface-container-low/80 hover:shadow-[0_0_20px_rgba(0,212,255,0.2)] active:scale-[0.98]" onclick="deployDataWidget()">
+      <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div><div class="reticle-corner reticle-bl"></div><div class="reticle-corner reticle-br"></div>
+      <div class="flex items-start gap-space-sm">
+        <div class="w-10 h-10 rounded bg-primary-container/10 border border-primary-container/40 flex items-center justify-center text-primary-container group-hover:shadow-[0_0_10px_#00d4ff] transition-shadow">
+          <span class="material-symbols-outlined text-[20px]">monitoring</span>
+        </div>
+        <div>
+          <div class="font-orbitron font-semibold text-headline-sm text-on-surface group-hover:text-primary transition-colors">Add Data Widget</div>
+          <div class="font-label-sm text-label-sm text-outline tracking-wider mt-0.5">Deploy a live telemetry monitor</div>
+        </div>
+      </div>
+      <div class="mt-3 flex items-center justify-between text-[9px] font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+        <span>SLOTS: AVAILABLE</span><span class="text-primary-container" id="widget-count-label">+ DEPLOY</span>
+      </div>
+    </button>
+  </section>
+
+  <!-- COMMAND INPUT -->
+  <section class="relative bg-surface-container-lowest/85 backdrop-blur-md border border-outline-variant/50 border-b-2 border-b-primary-container rounded p-space-sm shadow-[0_4px_24px_rgba(0,212,255,0.1)]">
+    <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div>
+    <form class="flex items-center gap-space-sm w-full" id="command-form" onsubmit="handleCommandSubmit(event)">
+      <div class="flex items-center gap-1.5 pl-2 text-secondary-container font-label-lg text-label-lg font-bold tracking-wider select-none">
+        <span>JARVIS://</span>
+        <span class="w-2 h-4 bg-primary-container inline-block animate-pulse"></span>
+      </div>
+      <input autocomplete="off" class="flex-1 bg-transparent border-0 focus:ring-0 text-on-surface placeholder-outline font-label-lg text-label-lg focus:outline-none px-space-sm py-2" id="command-input" placeholder="Ask J.A.R.V.I.S. anything..." type="text"/>
+      <div class="flex items-center gap-space-xs pr-1">
+        <!-- Mic -->
+        <button class="relative w-9 h-9 rounded flex items-center justify-center border border-outline-variant/60 text-outline hover:text-primary-container hover:border-primary-container/80 transition-all active:scale-95 group" id="mic-actuator-btn" onclick="toggleVoice()" title="Voice Input" type="button">
+          <span class="material-symbols-outlined text-[19px]" id="mic-icon">mic</span>
+          <span class="hidden absolute inset-0 rounded border-2 border-primary-container animate-ping pointer-events-none" id="mic-pulse-ring"></span>
         </button>
-        <button class="flex items-center gap-2 px-2 py-1.5 text-on-surface-variant hover:text-primary transition-colors text-left uppercase" onclick="handleQuickCommand('Deploy Arc Reactor Telemetry widget')">
-          <span class="material-symbols-outlined text-sm">data_exploration</span>
-          <span>DEPLOY WIDGET</span>
+        <!-- Send -->
+        <button class="px-space-md py-2 rounded bg-primary-container/15 hover:bg-primary-container/30 border border-primary-container text-primary-container font-orbitron font-semibold text-label-lg tracking-widest flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(0,212,255,0.2)] hover:shadow-[0_0_18px_rgba(0,212,255,0.5)] active:scale-95" id="send-btn" type="submit">
+          <span>SEND</span>
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
         </button>
       </div>
-      <button class="w-full py-2 border border-outline-variant bg-surface-container-low text-primary hover:bg-surface-container hover:border-primary transition-colors text-label-md font-label-md font-bold tracking-widest uppercase shadow-[0_0_8px_rgba(0,240,255,0.15)]" onclick="standDownProcedure()">
-        STAND DOWN
-      </button>
-    </div>
-  </aside>
+    </form>
+  </section>
 
-  <!-- MAIN HOLOGRAPHIC CANVAS -->
-  <main class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto w-full">
-    <!-- SECTION 1: VOICE LINK HERO SECTION -->
-    <section class="relative border border-primary/50 bg-surface-container-lowest/85 p-6 md:p-8 hud-chamfer-lg shadow-[0_0_30px_rgba(0,240,255,0.1)] backdrop-blur-xl flex flex-col items-center" id="voice-link">
-      <div class="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-primary shadow-[0_0_6px_#00f0ff]"></div>
-      <div class="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-primary shadow-[0_0_6px_#00f0ff]"></div>
-      <div class="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-primary shadow-[0_0_6px_#00f0ff]"></div>
-      <div class="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-primary shadow-[0_0_6px_#00f0ff]"></div>
+  <!-- RESPONSE AREA -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
 
-      <div class="w-full flex items-center justify-between pb-4 border-b border-outline-variant/60 mb-6">
+    <!-- LEFT: Neural Feedback Stream -->
+    <div class="lg:col-span-7 bg-surface-container-lowest/75 backdrop-blur-md border border-outline-variant/40 rounded p-space-md relative flex flex-col h-[520px]" id="diagnostics">
+      <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div><div class="reticle-corner reticle-bl"></div><div class="reticle-corner reticle-br"></div>
+      <div class="flex items-center justify-between pb-space-sm border-b border-outline-variant/40 mb-space-md">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-3.5 bg-primary inline-block shadow-[0_0_6px_#00f0ff]"></span>
-          <span class="text-label-sm font-label-sm uppercase tracking-widest text-primary drop-shadow-[0_0_6px_rgba(0,240,255,0.4)]">VOICE LINK // COGNITIVE MATRIX</span>
+          <span class="material-symbols-outlined text-primary-container text-[20px]">graphic_eq</span>
+          <span class="font-orbitron font-semibold text-headline-sm text-primary tracking-wider">NEURAL FEEDBACK STREAM</span>
         </div>
-        <div class="flex items-center gap-4 text-label-sm font-label-sm text-outline">
-          <span class="hidden sm:inline">FREQ: 142.850 MHZ</span>
-          <span class="text-primary flex items-center gap-1 drop-shadow-[0_0_6px_rgba(0,240,255,0.3)]">
-            <span class="w-2 h-2 bg-primary rounded-none animate-ping"></span>
-            LIVE SYNCHRONIZATION
-          </span>
-        </div>
-      </div>
-
-      <!-- Central Holographic Voice Orb & Targeting Rings -->
-      <div class="relative w-64 h-64 md:w-72 md:h-72 my-2 flex items-center justify-center">
-        <svg class="absolute inset-0 w-full h-full anim-spin-cw text-primary/50" viewBox="0 0 300 300">
-          <circle cx="150" cy="150" fill="none" r="140" stroke="currentColor" stroke-dasharray="2 12" stroke-width="1"></circle>
-          <circle cx="150" cy="150" fill="none" r="132" stroke="currentColor" stroke-dasharray="1 8" stroke-width="1.5"></circle>
-          <text class="text-[9px] font-mono" fill="currentColor" x="145" y="16">0°</text>
-          <text class="text-[9px] font-mono" fill="currentColor" x="282" y="153">90°</text>
-          <text class="text-[9px] font-mono" fill="currentColor" x="142" y="292">180°</text>
-          <text class="text-[9px] font-mono" fill="currentColor" x="5" y="153">270°</text>
-        </svg>
-
-        <svg class="absolute inset-4 w-[calc(100%-32px)] h-[calc(100%-32px)] anim-spin-ccw text-secondary/70" viewBox="0 0 260 260">
-          <circle cx="130" cy="130" fill="none" r="115" stroke="currentColor" stroke-dasharray="35 30 10 30" stroke-width="2"></circle>
-          <circle cx="130" cy="130" fill="none" r="95" stroke="currentColor" stroke-dasharray="4 6" stroke-width="1"></circle>
-        </svg>
-
-        <div class="absolute inset-10 border border-primary/60 anim-spin-fast rounded-none"></div>
-        <div class="absolute inset-12 border border-dashed border-secondary/50 anim-spin-ccw"></div>
-
-        <!-- Pulsing Central Voice Core Button -->
-        <button class="relative z-10 w-28 h-28 md:w-32 md:h-32 rounded-full bg-surface-container-high border-2 border-primary flex flex-col items-center justify-center group shadow-[0_0_24px_rgba(0,240,255,0.45)] hover:shadow-[0_0_40px_rgba(0,240,255,0.8)] transition-all cursor-pointer select-none" id="micOrb" onclick="toggleMicActivation()" title="Click to Speak to J.A.R.V.I.S.">
-          <span class="material-symbols-outlined text-primary text-4xl group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_#00f0ff]" id="micIcon">graphic_eq</span>
-          <span class="text-label-sm font-label-sm text-primary font-bold tracking-widest mt-1 drop-shadow-[0_0_4px_rgba(0,240,255,0.5)]" id="micLabel">VOICE LINK</span>
-          <div class="absolute inset-0 rounded-full border border-primary/60 animate-ping pointer-events-none" id="micPing"></div>
-        </button>
-      </div>
-
-      <!-- Live Audio Oscilloscope Canvas -->
-      <div class="w-full max-w-2xl h-14 bg-surface-container-lowest border border-outline-variant/60 my-4 relative overflow-hidden flex items-center justify-center">
-        <canvas class="w-full h-full" height="60" id="waveformCanvas" width="700"></canvas>
-        <div class="absolute left-2 top-1 text-[8px] font-mono text-outline uppercase tracking-widest">WAVE_SPECTRA // 48.0 KHZ</div>
-      </div>
-
-      <!-- Live Holographic Transcript Box -->
-      <div class="w-full max-w-3xl bg-surface-container-low border border-outline-variant/60 p-4 space-y-3 font-body-sm text-body-sm">
-        <div class="flex items-start gap-2.5">
-          <span class="text-secondary font-bold min-w-[100px] text-label-md font-label-md uppercase tracking-wider">COMMANDER:</span>
-          <p class="text-on-surface leading-relaxed" id="transcriptUser">
-            "J.A.R.V.I.S., standing by for tactical commands."
-          </p>
-        </div>
-        <div class="flex items-start gap-2.5 pt-2 border-t border-outline-variant/40">
-          <span class="text-primary font-bold min-w-[100px] text-label-md font-label-md uppercase tracking-wider drop-shadow-[0_0_6px_rgba(0,240,255,0.4)]">J.A.R.V.I.S.:</span>
-          <p class="text-primary leading-relaxed font-body-md text-body-md drop-shadow-[0_0_4px_rgba(0,240,255,0.25)]" id="transcriptJarvis">
-            "All holographic systems online and calibrated, Sir. Click 'Voice Link' or enter any tactical query."
-          </p>
+        <div class="flex items-end gap-1 h-5 px-2 py-0.5 bg-surface-container-low rounded border border-outline-variant/30" id="audio-waveform-bars">
+          <span class="w-1 bg-primary-container rounded-sm" style="animation: voice-wave 1.1s ease-in-out infinite;"></span>
+          <span class="w-1 bg-primary-container rounded-sm" style="animation: voice-wave 0.7s ease-in-out infinite 0.2s;"></span>
+          <span class="w-1 bg-primary-container rounded-sm" style="animation: voice-wave 1.4s ease-in-out infinite 0.4s;"></span>
+          <span class="w-1 bg-primary-container rounded-sm" style="animation: voice-wave 0.9s ease-in-out infinite 0.1s;"></span>
+          <span class="w-1 bg-primary-container rounded-sm" style="animation: voice-wave 1.2s ease-in-out infinite 0.3s;"></span>
         </div>
       </div>
 
-      <!-- Quick-Action Sci-Fi Command Chip Bar -->
-      <div class="w-full max-w-3xl flex flex-wrap gap-2 justify-center mt-5">
-        <button class="px-3 py-1.5 bg-surface-container border border-primary/60 text-primary hover:bg-primary hover:text-on-primary transition-all text-label-sm font-label-sm uppercase tracking-wider shadow-[0_0_6px_rgba(0,240,255,0.2)]" onclick="handleQuickCommand('Run system diagnostic scan')">
-          ⚡ SYSTEM SCAN
-        </button>
-        <button class="px-3 py-1.5 bg-surface-container border border-primary/60 text-primary hover:bg-primary hover:text-on-primary transition-all text-label-sm font-label-sm uppercase tracking-wider shadow-[0_0_6px_rgba(0,240,255,0.2)]" onclick="handleQuickCommand('Activate defense protocols')">
-          🛡️ ACTIVATE DEFENSE
-        </button>
-        <button class="px-3 py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-all text-label-sm font-label-sm uppercase tracking-wider" onclick="handleQuickCommand('Deploy Arc Reactor Telemetry widget')">
-          📊 DEPLOY WIDGET
-        </button>
-        <button class="px-3 py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-all text-label-sm font-label-sm uppercase tracking-wider" onclick="handleQuickCommand('Deploy Threat Assessment Radar widget')">
-          📡 RADAR WIDGET
-        </button>
-        <button class="px-3 py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-all text-label-sm font-label-sm uppercase tracking-wider" onclick="handleQuickCommand('Who are you and what is your status?')">
-          🤖 STATUS REPORT
-        </button>
-        <button class="px-3 py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-all text-label-sm font-label-sm uppercase tracking-wider" onclick="handleQuickCommand('Stand down defense protocols')">
-          🔄 STAND DOWN
-        </button>
+      <!-- Chat Stream -->
+      <div class="flex-1 overflow-y-auto pr-2 space-y-space-md" id="chat-stream-container">
+        <div class="p-space-sm rounded border border-outline-variant/30 text-center text-outline font-label-sm text-label-sm">
+          // NEURAL CORE INITIALIZED // AWAITING MASTER DIRECTIVE
+        </div>
       </div>
 
-      <!-- Sci-Fi Command Execution Input Bar -->
-      <form class="w-full max-w-3xl mt-4 flex items-stretch border border-outline-variant bg-surface-container-lowest focus-within:border-primary focus-within:shadow-[0_0_12px_rgba(0,240,255,0.3)] transition-all" id="commandForm" onsubmit="handleCommandSubmit(event)">
-        <span class="px-3 py-2 text-primary font-mono text-label-md font-label-md select-none bg-surface-container-low border-r border-outline-variant flex items-center">
-          &gt; STARK_EXEC//_
+      <div class="pt-space-xs border-t border-outline-variant/30 mt-space-sm flex items-center justify-between text-[10px] font-label-sm text-outline">
+        <span class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+          NEURAL LATENCY: <span id="neural-latency-val">—</span>ms
         </span>
-        <input class="flex-1 bg-transparent px-3 py-2 text-on-surface font-body-sm text-body-sm placeholder:text-outline focus:outline-none uppercase border-none focus:ring-0" id="commandInput" placeholder="ENTER TACTICAL COMMAND OR VOCAL QUERY..." type="text">
-        <button class="px-4 py-2 bg-gradient-to-r from-secondary-container to-primary text-on-primary font-label-md text-label-md font-bold tracking-wider hover:opacity-90 shadow-[0_0_12px_rgba(0,240,255,0.4)] transition-all flex items-center gap-1.5" type="submit">
-          <span class="material-symbols-outlined text-sm">graphic_eq</span>
-          <span>EXECUTE</span>
-        </button>
-      </form>
-    </section>
+        <span id="session-req-count">REQUESTS: 0</span>
+      </div>
+    </div>
 
-    <!-- SECTION 2: DEPLOYED HOLOGRAPHIC WIDGETS DECK -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4" id="widgets">
-      <!-- WIDGET 1: ARC REACTOR OUTPUT -->
-      <div class="border border-outline-variant/60 bg-surface-container-lowest/85 p-5 relative hud-chamfer hover:border-primary transition-colors group shadow-[0_0_15px_rgba(0,240,255,0.05)]">
-        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60 mb-4">
-          <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-3 bg-primary shadow-[0_0_6px_#00f0ff]"></span>
-            <span class="text-label-sm font-label-sm text-primary tracking-widest uppercase">ARC REACTOR OUTPUT</span>
-          </div>
-          <span class="material-symbols-outlined text-outline text-base group-hover:text-primary transition-colors">memory</span>
+    <!-- RIGHT: Live Telemetry -->
+    <div class="lg:col-span-5 flex flex-col gap-space-md" id="telemetry">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 bg-primary-container rounded-sm shadow-[0_0_6px_#00d4ff]"></span>
+          <h3 class="font-orbitron font-semibold text-headline-sm text-primary tracking-wider">LIVE TELEMETRY</h3>
         </div>
-        <div class="flex items-center justify-around my-2">
-          <div class="relative w-28 h-28 flex items-center justify-center">
-            <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" fill="none" r="42" stroke="#0e1a2d" stroke-width="8"></circle>
-              <circle class="text-primary drop-shadow-[0_0_6px_#00f0ff]" cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-dasharray="264" stroke-dashoffset="5" stroke-width="8"></circle>
+        <span class="font-label-sm text-label-sm text-outline tracking-wider">REFRESH: REAL-TIME</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+        <!-- Arc Reactor -->
+        <div class="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/50 rounded p-space-sm relative">
+          <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div>
+          <div class="flex items-center justify-between text-[10px] font-label-sm text-outline mb-2">
+            <span>ARC REACTOR OUTPUT</span>
+            <span class="text-primary-container" id="reactor-pct">—%</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-orbitron text-2xl font-bold text-on-surface tracking-tight"><span id="reactor-gj">—</span> <span class="text-xs font-label-sm text-primary">GJ/s</span></div>
+              <div class="text-[9px] font-label-sm text-tertiary mt-1">Stability: <span id="reactor-stability">—</span>%</div>
+            </div>
+            <div class="relative w-12 h-12">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#262a37" stroke-width="3"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#00d4ff" id="reactor-arc" stroke-dasharray="82, 100" stroke-linecap="round" stroke-width="3" style="filter:drop-shadow(0 0 4px #00d4ff)"/>
+              </svg>
+              <span class="absolute inset-0 flex items-center justify-center text-[9px] font-label-sm text-primary" id="reactor-arc-label">—%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suit Integrity -->
+        <div class="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/50 rounded p-space-sm relative">
+          <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div>
+          <div class="flex items-center justify-between text-[10px] font-label-sm text-outline mb-2">
+            <span>ARMOR INTEGRITY</span>
+            <span class="text-tertiary">MAX</span>
+          </div>
+          <div>
+            <div class="font-orbitron text-2xl font-bold text-tertiary tracking-tight" id="suit-integrity-val">—%</div>
+            <div class="w-full h-1.5 bg-surface-container-high rounded-full my-2 overflow-hidden">
+              <div class="h-full bg-tertiary shadow-[0_0_8px_#3dfcad] transition-all duration-1000" id="suit-integrity-bar" style="width:100%"></div>
+            </div>
+            <div class="text-[9px] font-label-sm text-outline">Nanite Matrix Intact</div>
+          </div>
+        </div>
+
+        <!-- Neural Link -->
+        <div class="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/50 rounded p-space-sm relative">
+          <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div>
+          <div class="flex items-center justify-between text-[10px] font-label-sm text-outline mb-2">
+            <span>NEURAL LINK LATENCY</span>
+            <span class="text-primary-container">OPTIMAL</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-orbitron text-2xl font-bold text-on-surface tracking-tight"><span id="neural-ms">—</span> <span class="text-xs font-label-sm text-primary">ms</span></div>
+              <div class="text-[9px] font-label-sm text-outline mt-1">Uptime: <span id="uptime-val">—</span>s</div>
+            </div>
+            <svg class="w-16 h-8 text-primary-container" fill="none" viewBox="0 0 64 32">
+              <path d="M0 16 L14 16 L18 4 L24 28 L30 12 L36 20 L42 16 L64 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="filter:drop-shadow(0 0 4px #00d4ff)"/>
             </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-headline-sm font-headline-sm font-bold text-primary drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]">99.8%</span>
-              <span class="text-[9px] font-mono text-outline">CAPACITY</span>
-            </div>
           </div>
-          <div class="space-y-2 text-label-sm font-label-sm">
+        </div>
+
+        <!-- Threat Status -->
+        <div class="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/50 rounded p-space-sm relative transition-all duration-300" id="threat-status-card">
+          <div class="reticle-corner reticle-tl"></div><div class="reticle-corner reticle-tr"></div>
+          <div class="flex items-center justify-between text-[10px] font-label-sm text-outline mb-2">
+            <span>DEFENSE SECTOR</span>
+            <span class="text-tertiary" id="threat-indicator-label">SECTOR SECURE</span>
+          </div>
+          <div class="flex items-center justify-between pt-1">
             <div>
-              <span class="text-outline block">FLOW RATE</span>
-              <span class="text-primary font-bold text-body-md font-body-md drop-shadow-[0_0_4px_rgba(0,240,255,0.3)]">3.2 GJ/s</span>
+              <div class="font-orbitron text-2xl font-black text-tertiary tracking-widest drop-shadow-[0_0_10px_#10b981]" id="threat-badge-text">SECURE</div>
+              <div class="text-[9px] font-label-sm text-outline mt-1" id="threat-subtext">Zero Signatures Detected</div>
             </div>
-            <div>
-              <span class="text-outline block">CORE TEMP</span>
-              <span class="text-primary font-bold text-body-md font-body-md">240°C // OPTIMAL</span>
-            </div>
-          </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-outline-variant/60">
-          <div class="flex justify-between text-[9px] font-mono text-outline mb-1">
-            <span>OUTPUT HARMONICS</span>
-            <span class="text-primary font-bold">BALANCED</span>
-          </div>
-          <div class="grid grid-cols-12 gap-1 h-2">
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-primary shadow-[0_0_4px_#00f0ff]"></div>
-            <div class="bg-outline-variant/50"></div>
+            <button class="px-2 py-1 rounded bg-surface-container-high hover:bg-surface-container border border-outline-variant text-[9px] font-label-sm text-primary tracking-wider transition-colors" onclick="toggleDefenseMode()">TOGGLE</button>
           </div>
         </div>
       </div>
 
-      <!-- WIDGET 2: REPULSOR CORE GRID -->
-      <div class="border border-outline-variant/60 bg-surface-container-lowest/85 p-5 relative hud-chamfer hover:border-primary transition-colors group shadow-[0_0_15px_rgba(0,240,255,0.05)]">
-        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60 mb-4">
-          <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-3 bg-primary shadow-[0_0_6px_#00f0ff]"></span>
-            <span class="text-label-sm font-label-sm text-primary tracking-widest uppercase">REPULSOR CORE GRID</span>
-          </div>
-          <span class="material-symbols-outlined text-outline text-base group-hover:text-primary transition-colors">shield</span>
-        </div>
-        <div class="space-y-3 font-label-sm text-label-sm">
-          <div>
-            <div class="flex justify-between text-outline mb-1">
-              <span>MANUS_L // LEFT HAND</span>
-              <span class="text-primary font-bold">100%</span>
-            </div>
-            <div class="w-full bg-surface-container h-1.5">
-              <div class="bg-gradient-to-r from-secondary to-primary h-1.5 w-full shadow-[0_0_6px_#00f0ff]"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-outline mb-1">
-              <span>MANUS_R // RIGHT HAND</span>
-              <span class="text-primary font-bold">98.4%</span>
-            </div>
-            <div class="w-full bg-surface-container h-1.5">
-              <div class="bg-gradient-to-r from-secondary to-primary h-1.5 w-[98.4%] shadow-[0_0_6px_#00f0ff]"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-outline mb-1">
-              <span>PEDIS_L // LEFT BOOT</span>
-              <span class="text-primary font-bold">100%</span>
-            </div>
-            <div class="w-full bg-surface-container h-1.5">
-              <div class="bg-gradient-to-r from-secondary to-primary h-1.5 w-full shadow-[0_0_6px_#00f0ff]"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-outline mb-1">
-              <span>PEDIS_R // RIGHT BOOT</span>
-              <span class="text-primary font-bold">99.1%</span>
-            </div>
-            <div class="w-full bg-surface-container h-1.5">
-              <div class="bg-gradient-to-r from-secondary to-primary h-1.5 w-[99.1%] shadow-[0_0_6px_#00f0ff]"></div>
-            </div>
-          </div>
-        </div>
-        <div class="mt-3.5 pt-2 border-t border-outline-variant/60 flex justify-between items-center text-[10px] font-mono text-outline">
-          <span>FLIGHT CALIBRATION:</span>
-          <span class="text-primary font-bold">SUB-MILLIMETER LOCK</span>
-        </div>
-      </div>
+      <!-- Deployed Widgets Area -->
+      <div id="widgets-container" class="flex flex-col gap-space-sm"></div>
 
-      <!-- WIDGET 3: THREAT RADAR ARRAY -->
-      <div class="border border-outline-variant/60 bg-surface-container-lowest/85 p-5 relative hud-chamfer hover:border-primary transition-colors group shadow-[0_0_15px_rgba(0,240,255,0.05)]" id="radar-widget">
-        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60 mb-3">
-          <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-3 bg-primary shadow-[0_0_6px_#00f0ff]"></span>
-            <span class="text-label-sm font-label-sm text-primary tracking-widest uppercase">THREAT RADAR ARRAY</span>
-          </div>
-          <span class="material-symbols-outlined text-outline text-base group-hover:text-primary transition-colors">track_changes</span>
+      <!-- Uplink bar -->
+      <div class="bg-surface-container-lowest/70 backdrop-blur-md border border-outline-variant/40 rounded p-space-sm font-label-sm text-[10px] text-outline flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-container text-sm">wifi_tethering</span>
+          <span>UPLINK: STARK SATELLITE NETWORK #402</span>
         </div>
-        <div class="relative w-full h-36 border border-outline-variant/70 bg-surface-container-low flex items-center justify-center overflow-hidden">
-          <div class="absolute w-28 h-28 rounded-full border border-primary/20"></div>
-          <div class="absolute w-16 h-16 rounded-full border border-primary/30"></div>
-          <div class="absolute w-full h-px bg-primary/20"></div>
-          <div class="absolute h-full w-px bg-primary/20"></div>
-          <div class="absolute inset-0 origin-center anim-radar pointer-events-none" style="background: conic-gradient(from 0deg, rgba(0, 240, 255, 0.3) 0deg, transparent 65deg);"></div>
-          <div class="absolute top-8 right-12 w-2 h-2 bg-primary rounded-none shadow-[0_0_8px_#00f0ff]" title="STARK SATELLITE 1"></div>
-          <div class="absolute bottom-10 left-10 w-1.5 h-1.5 bg-secondary rounded-none shadow-[0_0_6px_#38bdf8]" title="FRIENDLY RELAY"></div>
-          <div class="w-1.5 h-1.5 bg-primary shadow-[0_0_6px_#00f0ff]"></div>
-          <span class="absolute right-2 top-1 text-[8px] font-mono text-outline">100KM</span>
-          <span class="absolute right-12 top-11 text-[8px] font-mono text-outline">50KM</span>
-        </div>
-        <div class="mt-3 pt-2 border-t border-outline-variant/60 flex items-center justify-between text-label-sm font-label-sm">
-          <span class="text-outline">CLASSIFICATION:</span>
-          <span class="text-primary font-bold" id="threatStatus">0 HOSTILES DETECTED</span>
-        </div>
+        <span class="text-tertiary font-semibold" id="ai-mode-label">INITIALIZING</span>
       </div>
-    </section>
+    </div>
+  </section>
+</main>
 
-    <!-- SECTION 3: LOWER TELEMETRY & COMMUNICATIONS GRID -->
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- HOLOGRAPHIC COMMS STREAM -->
-      <div class="border border-outline-variant/60 bg-surface-container-lowest/85 p-5 relative hud-chamfer shadow-[0_0_15px_rgba(0,240,255,0.05)]" id="comms">
-        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60 mb-4">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-lg">graphic_eq</span>
-            <span class="text-label-md font-label-md text-primary font-bold tracking-wider uppercase">HOLOGRAPHIC COMMS STREAM</span>
-          </div>
-          <span class="text-[10px] font-mono text-outline" id="commsCountBadge">SECURE ENCRYPTION // 4096-BIT</span>
-        </div>
-        <div class="space-y-3 h-64 overflow-y-auto pr-2" id="commsLog">
-          <div class="border-l-2 border-primary pl-3 py-1 bg-surface-container/60">
-            <div class="flex items-center justify-between text-[10px] font-mono text-outline mb-1">
-              <span class="text-primary font-bold flex items-center gap-1 drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]">
-                <span class="material-symbols-outlined text-xs">memory</span>
-                J.A.R.V.I.S. AI
-              </span>
-              <span>LIVE</span>
-            </div>
-            <p class="text-body-sm font-body-sm text-primary drop-shadow-[0_0_3px_rgba(0,240,255,0.25)]">
-              "Good evening, Sir. All holographic systems are operating at peak efficiency. Standing by for voice or tactical inputs."
-            </p>
-          </div>
-        </div>
-        <div class="mt-3 pt-2 border-t border-outline-variant/60 flex items-center justify-between text-label-sm font-label-sm text-outline">
-          <span>PACKET LOSS: 0.00%</span>
-          <span class="text-primary font-bold">LATENCY: 1.2MS</span>
-        </div>
-      </div>
+<!-- FOOTER -->
+<footer class="w-full py-4 px-margin border-t border-outline-variant/30 flex flex-col md:flex-row items-center justify-between gap-space-sm bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-4px_16px_rgba(0,212,255,0.05)] text-outline relative z-20">
+  <div class="flex items-center gap-space-sm text-left">
+    <span class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_#00d4ff]"></span>
+    <span class="font-label-sm text-label-sm tracking-wider text-on-surface-variant">STARK INDUSTRIES TACTICAL AVIONICS // SEC-04 CLASSIFIED</span>
+  </div>
+  <div class="flex items-center gap-space-md text-[10px] font-label-sm tracking-wider">
+    <span class="text-primary-container">BACKEND: <span id="backend-version">—</span></span>
+    <span class="text-outline-variant">•</span>
+    <span class="text-tertiary font-medium">AI REQUESTS: <span id="footer-req-count">0</span></span>
+    <span class="text-outline-variant">•</span>
+    <span class="text-primary-container">ENCRYPTION: 4096-BIT</span>
+  </div>
+  <div class="flex items-center gap-3 font-label-sm text-label-sm text-outline">
+    <span id="footer-live-time">00:00:00 UTC</span>
+    <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+    <span class="text-tertiary font-medium">PING: <span id="footer-ping">—</span>ms</span>
+  </div>
+</footer>
 
-      <!-- MATRIX DIAGNOSTICS TERMINAL -->
-      <div class="border border-outline-variant/60 bg-surface-container-lowest/85 p-5 relative hud-chamfer shadow-[0_0_15px_rgba(0,240,255,0.05)]" id="matrix-diagnostics">
-        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60 mb-4">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-lg">terminal</span>
-            <span class="text-label-md font-label-md text-primary font-bold tracking-wider uppercase">MATRIX DIAGNOSTICS CLI</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 bg-primary rounded-none animate-ping"></span>
-            <span class="text-[10px] font-mono text-outline">LIVE FEED</span>
-          </div>
-        </div>
-        <div class="font-mono text-[11px] leading-5 text-on-surface-variant h-64 overflow-y-auto bg-surface-container-low p-3 border border-outline-variant/60 space-y-1 flex flex-col" id="terminalBody">
-          <div class="text-outline">[0.0001] BOOT_SEQ // STARK OS KERNEL MK-85 LOADED</div>
-          <div class="text-outline">[0.0014] NEURAL_SYNC // GEMMA 4 INFERENCE CLIENT SYNCHRONIZED</div>
-          <div class="text-primary font-bold drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]">[0.0028] ARC_REACTOR // 3.20 GW BUS STABILIZED ON ALL VECTORS</div>
-          <div class="text-outline">[0.0102] NANOTECH_MESH // SURFACE TENSION CALIBRATED TO 100%</div>
-          <div class="text-secondary">[0.0245] OPTICAL_HUD // OPTRONIC SENSORS ALIGNED 60 FPS</div>
-          <div class="text-primary font-bold drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]">[0.0520] J.A.R.V.I.S. // COGNITIVE AGENT READY FOR INPUT_</div>
-        </div>
-        <div class="mt-3 pt-2 border-t border-outline-variant/60 flex items-center justify-between text-label-sm font-label-sm">
-          <span class="text-outline">PACKET THROUGHPUT: 18.4 TB/s</span>
-          <button class="text-primary hover:underline uppercase font-bold" onclick="triggerLaserScan()">
-            FORCE SYNC
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION 4: MISSION TELEMETRY STRIP -->
-    <footer class="w-full border border-outline-variant/60 bg-surface-container-lowest p-4 flex flex-wrap items-center justify-between gap-4 text-label-sm font-label-sm">
-      <div class="flex items-center gap-4">
-        <span class="text-primary font-bold uppercase drop-shadow-[0_0_4px_rgba(0,240,255,0.3)]">STARK INDUSTRIES MK-85 HUD</span>
-        <span class="text-outline">|</span>
-        <span class="text-on-surface-variant">SERIAL: SI-884-HUD-REV9</span>
-        <span class="text-outline hidden sm:inline">|</span>
-        <span class="text-on-surface-variant hidden sm:inline">BATTERY: ARC CORE CONTINUOUS</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-outline">STATUS:</span>
-        <span class="px-2 py-0.5 bg-surface-container border border-primary text-primary font-bold shadow-[0_0_6px_rgba(0,240,255,0.2)]" id="globalModeStatus">NOMINAL // SURVEILLANCE</span>
-      </div>
-    </footer>
-  </main>
-</div>
-
-<!-- CONNECTED JAVASCRIPT: WEB SPEECH API, BACKEND INTEGRATION & HUD LOGIC -->
+<!-- ===================================================================== -->
+<!-- JAVASCRIPT: Full backend integration                                    -->
+<!-- ===================================================================== -->
 <script>
-  let isDefenseMode = false;
-  let isListening = false;
+  // ── CONFIG ──────────────────────────────────────────────────────────────
+  const API_BASE = 'http://localhost:8000';
+  let defenseActive = false;
+  let micListening = false;
+  let widgetCount = 0;
   let recognition = null;
-  let synth = window.speechSynthesis;
-  let britishVoice = null;
-  let deployedWidgetCount = 3;
+  let isProcessing = false;
 
-  // Initialize British Voice for authentic J.A.R.V.I.S. delivery
-  function initBritishVoice() {
-    if (!synth) return;
-    const voices = synth.getVoices();
-    britishVoice = voices.find(v => v.lang.includes("en-GB") || v.name.includes("Daniel") || v.name.includes("Oliver") || v.name.includes("British"))
-                || voices.find(v => v.lang.startsWith("en"))
-                || voices[0];
-  }
-  if (synth) {
-    synth.onvoiceschanged = initBritishVoice;
-    initBritishVoice();
-  }
-
-  function speakReply(text) {
-    if (!synth) return;
+  // ── BOOT: check backend status, then start telemetry polling ────────────
+  async function bootSystem() {
     try {
-      synth.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      if (britishVoice) utterance.voice = britishVoice;
-      utterance.rate = 1.02;
-      utterance.pitch = 0.92;
-      synth.speak(utterance);
+      const t0 = performance.now();
+      const res = await fetch(`${API_BASE}/status`);
+      const ping = Math.round(performance.now() - t0);
+      const data = await res.json();
+
+      // Update connection badge
+      document.getElementById('conn-status-dot').className =
+        'w-2 h-2 rounded-full bg-tertiary shadow-[0_0_6px_#3dfcad] animate-ping';
+      document.getElementById('conn-status-text').textContent = 'AI ONLINE ●';
+      document.getElementById('ai-mode-label').textContent =
+        data.ai_connected ? 'GEMINI CONNECTED' : 'FALLBACK ENGINE';
+      document.getElementById('backend-version').textContent = 'v' + (data.version || '2.0');
+      document.getElementById('footer-ping').textContent = ping;
+
+      appendJarvisLog(
+        data.ai_connected
+          ? "All holographic systems initialized, Sir. Google Gemini neural core is online and responding."
+          : "Systems online, Sir. Running on local J.A.R.V.I.S. fallback engine — no API key detected."
+      );
     } catch (e) {
-      console.warn("Speech synthesis error:", e);
+      document.getElementById('conn-status-dot').className =
+        'w-2 h-2 rounded-full bg-[#ff3b3b] shadow-[0_0_6px_#ff3b3b]';
+      document.getElementById('conn-status-text').textContent = 'BACKEND OFFLINE';
+      document.getElementById('conn-status-text').style.color = '#ff3b3b';
+      document.getElementById('ai-mode-label').textContent = 'DISCONNECTED';
+      appendJarvisLog(
+        "Warning, Sir. Backend connection failed. Ensure the server is running on port 8000. Type or speak a command and I will try again."
+      );
     }
   }
 
-  // Web Speech Recognition
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SpeechRec) {
-    recognition = new SpeechRec();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
+  // ── SEND MESSAGE TO BACKEND ──────────────────────────────────────────────
+  async function sendToJarvis(text) {
+    if (isProcessing || !text.trim()) return;
+    isProcessing = true;
 
-    recognition.onstart = () => {
-      isListening = true;
-      updateMicUI(true);
-      injectLogMessage('VOICE', 'Audio stream open. Listening for tactical command...');
-    };
+    const sendBtn = document.getElementById('send-btn');
+    sendBtn.classList.add('btn-loading');
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      injectLogMessage('VOICE', `Transcript captured: "${transcript}"`);
-      sendToJarvis(transcript);
-    };
+    appendUserLog(text);
+    showThinkingIndicator();
 
-    recognition.onerror = (event) => {
-      console.warn("SpeechRec error:", event.error);
-      injectLogMessage('VOICE', `Voice link standby (${event.error}).`);
-      updateMicUI(false);
-    };
-
-    recognition.onend = () => {
-      updateMicUI(false);
-    };
-  }
-
-  function updateMicUI(listening) {
-    isListening = listening;
-    const micLabel = document.getElementById('micLabel');
-    const micIcon = document.getElementById('micIcon');
-    const micOrb = document.getElementById('micOrb');
-    const micPing = document.getElementById('micPing');
-
-    if (listening) {
-      micLabel.textContent = "LISTENING";
-      micLabel.classList.add('text-error');
-      micLabel.classList.remove('text-primary');
-      micIcon.classList.add('text-error');
-      micIcon.classList.remove('text-primary');
-      micOrb.classList.add('border-error');
-      micOrb.classList.remove('border-primary');
-      if (micPing) micPing.classList.add('border-error');
-    } else {
-      micLabel.textContent = "VOICE LINK";
-      micLabel.classList.add('text-primary');
-      micLabel.classList.remove('text-error');
-      micIcon.classList.add('text-primary');
-      micIcon.classList.remove('text-error');
-      micOrb.classList.add('border-primary');
-      micOrb.classList.remove('border-error');
-      if (micPing) micPing.classList.remove('border-error');
-    }
-  }
-
-  function toggleMicActivation() {
-    if (!recognition) {
-      alert("SpeechRecognition is not supported in this browser. Please use Chrome or type below.");
-      return;
-    }
-    if (isListening) {
-      recognition.stop();
-      updateMicUI(false);
-    } else {
-      try {
-        recognition.start();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
-
-  // Canvas Audio Oscilloscope Visualizer
-  const canvas = document.getElementById('waveformCanvas');
-  const ctx = canvas.getContext('2d');
-  let phase = 0;
-
-  function drawWaveform() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const width = canvas.width;
-    const height = canvas.height;
-    const midY = height / 2;
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = isDefenseMode || isListening ? '#ef4444' : '#00f0ff';
-    ctx.beginPath();
-
-    const numBars = 48;
-    const barSpacing = width / numBars;
-
-    for (let i = 0; i < numBars; i++) {
-      const x = i * barSpacing;
-      const amplitude = isListening 
-        ? Math.sin(i * 0.35 + phase) * Math.cos(i * 0.18 - phase) * (height * 0.42)
-        : Math.sin(i * 0.12 + phase) * 5;
-      
-      const yTop = midY - Math.abs(amplitude);
-      const yBottom = midY + Math.abs(amplitude);
-
-      ctx.moveTo(x, yTop);
-      ctx.lineTo(x, yBottom);
-    }
-    ctx.stroke();
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = isDefenseMode || isListening ? 'rgba(239, 68, 68, 0.4)' : 'rgba(0, 240, 255, 0.35)';
-    ctx.beginPath();
-    ctx.moveTo(0, midY);
-    ctx.lineTo(width, midY);
-    ctx.stroke();
-
-    phase += isListening ? 0.22 : 0.06;
-    requestAnimationFrame(drawWaveform);
-  }
-  drawWaveform();
-
-  // Backend Integration: sendToJarvis
-  async function sendToJarvis(queryText) {
-    const trimmed = queryText.trim();
-    if (!trimmed) return;
-
-    // 1. Update UI Transcripts
-    document.getElementById('transcriptUser').textContent = `"${trimmed}"`;
-    document.getElementById('transcriptJarvis').textContent = '"Processing tactical command... Stand by, Sir."';
-
-    // 2. Append User Message to Comms Stream
-    appendCommsMessage('COMMANDER STARK // T.S.', trimmed, false);
-    injectLogMessage('EXEC', `Query transmitted: "${trimmed}"`);
-
-    // 3. POST /chat to backend
     try {
-      const response = await fetch('/chat', {
+      const t0 = performance.now();
+      const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: trimmed })
+        body: JSON.stringify({ text })
       });
 
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-      const data = await response.json();
+      const ping = Math.round(performance.now() - t0);
+      document.getElementById('footer-ping').textContent = ping;
 
-      const reply = data.reply || "All systems online and calibrated, Sir.";
-      document.getElementById('transcriptJarvis').textContent = `"${reply}"`;
-      appendCommsMessage('J.A.R.V.I.S. AI', reply, true);
-      speakReply(reply);
-
-      // Handle Action Commands
-      if (data.action && data.action.command) {
-        const cmd = data.action.command;
-        if (cmd === 'SYSTEM_SCAN') {
-          triggerLaserScan();
-        } else if (cmd === 'ACTIVATE_DEFENSE') {
-          if (data.action.status === 'standby') {
-            setDefenseMode(false);
-          } else {
-            setDefenseMode(true);
-          }
-        } else if (cmd === 'DEPLOY_WIDGET') {
-          deployNewWidget(data.action.widget_name || 'Telemetry Core');
-        }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
       }
-    } catch (err) {
-      console.error(err);
-      const fallback = "Communication bus interrupted, Sir. Running on localized fallback telemetry.";
-      document.getElementById('transcriptJarvis').textContent = `"${fallback}"`;
-      appendCommsMessage('J.A.R.V.I.S. AI', fallback, true);
-      speakReply(fallback);
-      injectLogMessage('ALERT', `Bus error: ${err.message}`);
-    }
-  }
 
-  function appendCommsMessage(sender, text, isJarvis) {
-    const commsLog = document.getElementById('commsLog');
-    const msg = document.createElement('div');
-    const time = new Date().toLocaleTimeString();
+      const data = await res.json();
+      removeThinkingIndicator();
+      appendJarvisLog(data.reply);
 
-    if (isJarvis) {
-      msg.className = 'border-l-2 border-primary pl-3 py-1 bg-surface-container/60';
-      msg.innerHTML = `
-        <div class="flex items-center justify-between text-[10px] font-mono text-outline mb-1">
-          <span class="text-primary font-bold flex items-center gap-1 drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]">
-            <span class="material-symbols-outlined text-xs">memory</span>
-            ${sender}
-          </span>
-          <span>${time}</span>
-        </div>
-        <p class="text-body-sm font-body-sm text-primary drop-shadow-[0_0_3px_rgba(0,240,255,0.25)]">"${escapeHTML(text)}"</p>
-      `;
-    } else {
-      msg.className = 'border-l-2 border-secondary pl-3 py-1 bg-surface-container-low/60';
-      msg.innerHTML = `
-        <div class="flex items-center justify-between text-[10px] font-mono text-outline mb-1">
-          <span class="text-secondary font-bold">${sender}</span>
-          <span>${time}</span>
-        </div>
-        <p class="text-body-sm font-body-sm text-on-surface">"${escapeHTML(text)}"</p>
-      `;
-    }
+      // Update session counter
+      const reqCount = data.session_requests || 0;
+      document.getElementById('session-req-count').textContent = `REQUESTS: ${reqCount}`;
+      document.getElementById('footer-req-count').textContent = reqCount;
 
-    commsLog.appendChild(msg);
-    commsLog.scrollTop = commsLog.scrollHeight;
-  }
+      // Handle action commands from backend
+      handleAction(data.action, data.reply);
 
-  function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, tag => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    }[tag] || tag));
-  }
+      // Speak the reply
+      speakReply(data.reply);
 
-  // Laser Scanner Animation Trigger
-  function triggerLaserScan() {
-    const beam = document.getElementById('scannerBeam');
-    document.body.classList.remove('scanning');
-    void beam.offsetWidth;
-    document.body.classList.add('scanning');
-    injectLogMessage('SCAN', 'Full optical and lidar surface telemetry sweep executing...');
-    setTimeout(() => {
-      injectLogMessage('SCAN', 'Repulsor conduits: 100% operational.');
-      injectLogMessage('SCAN', 'Shield harmonics aligned to 440 Hz.');
-      injectLogMessage('SCAN', 'Quantum telemetry synchronized.');
-      document.body.classList.remove('scanning');
-    }, 2300);
-  }
-
-  // Toggle & Set Defense Mode
-  function setDefenseMode(enable) {
-    isDefenseMode = enable;
-    const banner = document.getElementById('defenseBanner');
-    const defBtn = document.getElementById('defenseModeBtn');
-    const threatStatus = document.getElementById('threatStatus');
-    const globalStatus = document.getElementById('globalModeStatus');
-
-    if (enable) {
-      document.body.classList.add('defense-active');
-      banner.classList.remove('hidden');
-      defBtn.classList.remove('bg-secondary-container/80', 'border-primary/50');
-      defBtn.classList.add('bg-error-container', 'text-on-error-container', 'border-error');
-      defBtn.innerHTML = `<span class="material-symbols-outlined text-sm">emergency_home</span><span>ARMED DEFCON 1</span>`;
-      threatStatus.textContent = "DEFCON 1 // HOSTILES PROBABLE";
-      threatStatus.classList.remove('text-primary');
-      threatStatus.classList.add('text-error');
-      globalStatus.textContent = "CRITICAL // COMBAT MODE";
-      globalStatus.classList.remove('text-primary', 'border-primary');
-      globalStatus.classList.add('text-error', 'border-error');
-      injectLogMessage('ALERT', 'CRITICAL DEFCON 1 ENGAGED: Tactical armor energized.');
-    } else {
-      document.body.classList.remove('defense-active');
-      banner.classList.add('hidden');
-      defBtn.classList.remove('bg-error-container', 'text-on-error-container', 'border-error');
-      defBtn.classList.add('bg-secondary-container/80', 'border-primary/50');
-      defBtn.innerHTML = `<span class="material-symbols-outlined text-sm">shield</span><span>DEFCON 5 // STANDBY</span>`;
-      threatStatus.textContent = "0 HOSTILES DETECTED";
-      threatStatus.classList.add('text-primary');
-      threatStatus.classList.remove('text-error');
-      globalStatus.textContent = "NOMINAL // SURVEILLANCE";
-      globalStatus.classList.add('text-primary', 'border-primary');
-      globalStatus.classList.remove('text-error', 'border-error');
-      injectLogMessage('STAND_DOWN', 'Defense perimeter restored to baseline DEFCON 5.');
-    }
-  }
-
-  function toggleDefenseMode() {
-    setDefenseMode(!isDefenseMode);
-  }
-
-  function standDownProcedure() {
-    if (isDefenseMode) setDefenseMode(false);
-    injectLogMessage('CMD', 'Stand down order acknowledged. Weapons locked to safe.');
-    sendToJarvis("Stand down defense protocols");
-  }
-
-  // Deploy New Holographic Widget
-  function deployNewWidget(widgetName) {
-    deployedWidgetCount++;
-    const widgetsGrid = document.getElementById('widgets');
-    const card = document.createElement('div');
-    const randValue = (Math.random() * 30 + 70).toFixed(1);
-    const randUnits = (Math.random() * 500 + 200).toFixed(0);
-
-    card.className = 'border border-outline-variant/60 bg-surface-container-lowest/85 p-5 relative hud-chamfer hover:border-primary transition-colors group shadow-[0_0_15px_rgba(0,240,255,0.05)]';
-    card.innerHTML = `
-      <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60 mb-4">
-        <div class="flex items-center gap-1.5">
-          <span class="w-1.5 h-3 bg-primary shadow-[0_0_6px_#00f0ff]"></span>
-          <span class="text-label-sm font-label-sm text-primary tracking-widest uppercase">${escapeHTML(widgetName)}</span>
-        </div>
-        <span class="material-symbols-outlined text-outline text-base group-hover:text-primary transition-colors">data_exploration</span>
-      </div>
-      <div class="my-2 space-y-2">
-        <div class="flex justify-between items-baseline">
-          <span class="text-2xl font-bold font-mono text-white">${randUnits} <span class="text-xs text-primary">UNITS</span></span>
-          <span class="text-xs font-mono text-primary font-bold">ONLINE</span>
-        </div>
-        <div class="w-full bg-surface-container h-2 rounded-none overflow-hidden border border-outline-variant/40">
-          <div class="bg-gradient-to-r from-secondary to-primary h-full shadow-[0_0_6px_#00f0ff]" style="width: ${randValue}%;"></div>
-        </div>
-        <div class="flex justify-between text-[10px] font-mono text-outline">
-          <span>EFFICIENCY</span>
-          <span class="text-primary font-bold">${randValue}%</span>
-        </div>
-      </div>
-      <div class="mt-3.5 pt-2 border-t border-outline-variant/60 flex justify-between items-center text-[10px] font-mono text-outline">
-        <span>STATUS:</span>
-        <span class="text-primary font-bold">SYNCHRONIZED // ACTIVE</span>
-      </div>
-    `;
-
-    widgetsGrid.prepend(card);
-    injectLogMessage('WIDGET', `Deployed '${widgetName}' to holographic array.`);
-  }
-
-  // Clear Memory Buffer
-  async function clearMemoryBuffer() {
-    try {
-      await fetch('/clear', { method: 'POST' });
-      document.getElementById('terminalBody').innerHTML = '<div class="text-outline">[0.0000] MEMORY_CLEARED // SYSTEM BUFFER PURGED</div>';
-      injectLogMessage('SYSTEM', 'Volatile command memory purged.');
-      speakReply("Neural context memory purged, Sir. Systems reset to default standby.");
     } catch (e) {
-      console.error(e);
+      removeThinkingIndicator();
+      appendJarvisLog(`Connection error, Sir: ${e.message}. Please verify the backend is running.`);
+    } finally {
+      isProcessing = false;
+      sendBtn.classList.remove('btn-loading');
     }
   }
 
-  // CLI Log Message Injection
-  function injectLogMessage(channel, text) {
-    const terminal = document.getElementById('terminalBody');
-    const time = (Math.random() * 2).toFixed(4);
-    const row = document.createElement('div');
-    row.className = channel === 'ALERT' ? 'text-error font-bold' : 'text-primary font-bold';
-    row.textContent = `[+${time}] ${channel}_BUS // ${text}`;
-    terminal.appendChild(row);
-    terminal.scrollTop = terminal.scrollHeight;
+  // ── HANDLE BACKEND ACTIONS ───────────────────────────────────────────────
+  function handleAction(action, reply) {
+    if (!action || !action.command) return;
+    const cmd = action.command;
+
+    if (cmd === 'SYSTEM_SCAN') {
+      triggerCorePulse();
+      flashSystemScan();
+    } else if (cmd === 'ACTIVATE_DEFENSE' && !defenseActive) {
+      setDefenseMode(true);
+    } else if (cmd === 'STAND_DOWN' && defenseActive) {
+      setDefenseMode(false);
+    } else if (cmd === 'DEPLOY_WIDGET') {
+      const name = action.widget_name || 'Telemetry Sensor';
+      addWidget(name);
+    }
   }
 
-  function handleQuickCommand(cmd) {
-    sendToJarvis(cmd);
-  }
-
+  // ── FORM SUBMIT ──────────────────────────────────────────────────────────
   function handleCommandSubmit(e) {
     e.preventDefault();
-    const input = document.getElementById('commandInput');
-    const val = input.value.trim();
-    if (!val) return;
+    const input = document.getElementById('command-input');
+    const text = input.value.trim();
+    if (!text) return;
     input.value = '';
-    sendToJarvis(val);
+    sendToJarvis(text);
   }
 
-  function overrideSecurity() {
-    injectLogMessage('SECURITY', 'SECURITY OVERRIDE AUTHORIZED: STARK-ALPHA-KEY-994.');
-    speakReply("Security override confirmed, Sir. Stark Alpha Key accepted.");
+  // ── QUICK ACTIONS ────────────────────────────────────────────────────────
+  function executeQuickDiagnostic() {
+    sendToJarvis("Run full system diagnostics and scan all avionics.");
   }
+
+  function deployDataWidget() {
+    sendToJarvis("Deploy a new telemetry data widget to the holographic HUD.");
+  }
+
+  // ── DEFENSE MODE ─────────────────────────────────────────────────────────
+  function toggleDefenseMode() {
+    const msg = defenseActive
+      ? "Stand down. Disengage defense protocols and return to standby."
+      : "Activate defense protocols. Switch to tactical alert mode.";
+    sendToJarvis(msg);
+  }
+
+  function setDefenseMode(active) {
+    defenseActive = active;
+
+    const headerBar   = document.getElementById('top-nav-bar');
+    const defLabel    = document.getElementById('defense-label');
+    const defDot      = document.getElementById('defense-dot');
+    const quickTitle  = document.getElementById('quick-defense-title');
+    const quickDesc   = document.getElementById('quick-defense-desc');
+    const quickStatus = document.getElementById('quick-defense-status');
+    const quickIcon   = document.getElementById('quick-defense-icon');
+    const threatBadge = document.getElementById('threat-badge-text');
+    const threatSub   = document.getElementById('threat-subtext');
+    const threatLabel = document.getElementById('threat-indicator-label');
+    const threatCard  = document.getElementById('threat-status-card');
+
+    if (active) {
+      headerBar.classList.add('border-b-[#ff3b3b]', 'shadow-[0_0_24px_rgba(255,59,59,0.25)]');
+      defLabel.textContent = 'DEFENSE ACTIVE';
+      defLabel.style.color = '#ff3b3b';
+      defDot.style.background = '#ff3b3b';
+      defDot.style.boxShadow = '0 0 10px #ff3b3b';
+      quickTitle.textContent = 'Disengage Defense';
+      quickDesc.textContent = 'Matrix primed // Weapons online';
+      quickStatus.textContent = 'ACTIVE PROTOCOL';
+      quickStatus.style.color = '#ff3b3b';
+      quickIcon.style.color = '#ff3b3b';
+      threatBadge.textContent = 'ALERT';
+      threatBadge.style.color = '#ff3b3b';
+      threatBadge.style.textShadow = '0 0 15px #ff3b3b';
+      threatSub.textContent = 'Hostile Scan Engaged // Shield 100%';
+      threatLabel.textContent = 'TARGET LOCK ACTIVE';
+      threatLabel.style.color = '#ff3b3b';
+      threatCard.style.border = '1px solid rgba(255,59,59,0.8)';
+      threatCard.style.boxShadow = '0 0 20px rgba(255,59,59,0.3)';
+    } else {
+      headerBar.classList.remove('border-b-[#ff3b3b]', 'shadow-[0_0_24px_rgba(255,59,59,0.25)]');
+      defLabel.textContent = 'DEFENSE STANDBY';
+      defLabel.style.color = '';
+      defDot.style.background = '';
+      defDot.style.boxShadow = '';
+      quickTitle.textContent = 'Activate Defense';
+      quickDesc.textContent = 'Switch to tactical alert mode';
+      quickStatus.textContent = 'STANDBY';
+      quickStatus.style.color = '';
+      quickIcon.style.color = '';
+      threatBadge.textContent = 'SECURE';
+      threatBadge.style.color = '';
+      threatBadge.style.textShadow = '';
+      threatSub.textContent = 'Zero Signatures Detected';
+      threatLabel.textContent = 'SECTOR SECURE';
+      threatLabel.style.color = '';
+      threatCard.style.border = '';
+      threatCard.style.boxShadow = '';
+    }
+  }
+
+  // ── REACTOR PULSE ─────────────────────────────────────────────────────────
+  function triggerCorePulse() {
+    const core = document.getElementById('arc-reactor-core');
+    core.style.boxShadow = '0 0 70px #00d4ff';
+    core.style.transform = 'scale(1.12)';
+    setTimeout(() => {
+      core.style.boxShadow = '';
+      core.style.transform = '';
+    }, 500);
+  }
+
+  function flashSystemScan() {
+    const icon = document.getElementById('reactor-icon');
+    icon.textContent = 'radar';
+    setTimeout(() => { icon.textContent = 'bolt'; }, 2000);
+  }
+
+  // ── WIDGETS ───────────────────────────────────────────────────────────────
+  function addWidget(name) {
+    widgetCount++;
+    document.getElementById('widget-count-label').textContent = `${widgetCount} DEPLOYED`;
+    const container = document.getElementById('widgets-container');
+    const value = (Math.random() * 50 + 50).toFixed(1);
+    const colors = ['#00d4ff', '#3dfcad', '#ffb700', '#a8e8ff'];
+    const color = colors[widgetCount % colors.length];
+
+    const html = `
+      <div class="bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/50 rounded p-space-sm relative">
+        <div class="flex items-center justify-between text-[10px] font-label-sm text-outline mb-2">
+          <span>${escapeHtml(name.toUpperCase())}</span>
+          <button onclick="this.closest('.relative').remove(); widgetCount--;" class="text-[9px] text-outline hover:text-[#ff3b3b] transition-colors">✕ CLOSE</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="font-orbitron text-xl font-bold tracking-tight" style="color:${color}">${value}<span class="text-xs font-label-sm text-outline ml-1">%</span></div>
+          <div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full rounded-full shadow-[0_0_6px_currentColor]" style="width:${value}%;background:${color}"></div>
+          </div>
+        </div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+  }
+
+  // ── CHAT BUBBLES ──────────────────────────────────────────────────────────
+  function appendUserLog(message) {
+    const container = document.getElementById('chat-stream-container');
+    const timeStr = new Date().toTimeString().split(' ')[0];
+    container.insertAdjacentHTML('beforeend', `
+      <div class="flex items-start gap-space-sm flex-row-reverse text-right">
+        <div class="w-7 h-7 rounded bg-surface-container-high border border-outline flex items-center justify-center text-outline shrink-0 font-label-sm text-[10px]">YOU</div>
+        <div class="max-w-[80%] bg-surface-container-low/90 border border-outline-variant/40 rounded p-space-sm text-left">
+          <div class="text-[9px] font-label-sm text-outline mb-1">COMMAND // ${timeStr}</div>
+          <p class="font-body-md text-on-surface">${escapeHtml(message)}</p>
+        </div>
+      </div>`);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function appendJarvisLog(message) {
+    const container = document.getElementById('chat-stream-container');
+    container.insertAdjacentHTML('beforeend', `
+      <div class="flex items-start gap-space-sm">
+        <div class="w-7 h-7 rounded bg-primary-container/15 border border-primary-container flex items-center justify-center text-primary-container shrink-0 shadow-[0_0_8px_rgba(0,212,255,0.4)]">
+          <span class="material-symbols-outlined text-[16px]">all_inclusive</span>
+        </div>
+        <div class="max-w-[85%] bg-surface-container-low/90 border border-primary-container/20 rounded p-space-sm">
+          <div class="flex items-center justify-between text-[9px] font-label-sm text-primary mb-1">
+            <span>J.A.R.V.I.S.</span><span class="text-tertiary">CONFIRMED</span>
+          </div>
+          <p class="font-body-md text-on-surface leading-relaxed">${escapeHtml(message)}</p>
+        </div>
+      </div>`);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function showThinkingIndicator() {
+    const container = document.getElementById('chat-stream-container');
+    container.insertAdjacentHTML('beforeend', `
+      <div class="flex items-start gap-space-sm" id="thinking-bubble">
+        <div class="w-7 h-7 rounded bg-primary-container/15 border border-primary-container flex items-center justify-center text-primary-container shrink-0">
+          <span class="material-symbols-outlined text-[16px]">all_inclusive</span>
+        </div>
+        <div class="bg-surface-container-low/90 border border-primary-container/20 rounded p-space-sm flex items-center gap-1.5 h-9">
+          <span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-dot"></span>
+        </div>
+      </div>`);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function removeThinkingIndicator() {
+    const bubble = document.getElementById('thinking-bubble');
+    if (bubble) bubble.remove();
+  }
+
+  // ── VOICE INPUT ───────────────────────────────────────────────────────────
+  function toggleVoice() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      appendJarvisLog("Voice recognition not supported in this browser, Sir. Please use Chrome.");
+      return;
+    }
+
+    if (micListening) {
+      recognition && recognition.stop();
+      setMicState(false);
+      return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRec();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setMicState(true);
+    recognition.onend = () => setMicState(false);
+    recognition.onerror = (e) => {
+      setMicState(false);
+      if (e.error !== 'aborted') appendJarvisLog(`Voice recognition error, Sir: ${e.error}`);
+    };
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript.trim();
+      if (transcript) {
+        document.getElementById('command-input').value = transcript;
+        sendToJarvis(transcript);
+      }
+    };
+    recognition.start();
+  }
+
+  function setMicState(active) {
+    micListening = active;
+    const micBtn   = document.getElementById('mic-actuator-btn');
+    const pulse    = document.getElementById('mic-pulse-ring');
+    const label    = document.getElementById('mic-status-label');
+    const subLabel = document.getElementById('mic-status-sub');
+
+    if (active) {
+      micBtn.classList.add('border-primary-container', 'text-primary-container', 'bg-primary-container/20');
+      pulse.classList.remove('hidden');
+      label.textContent = 'LISTENING, SIR...';
+      subLabel.textContent = 'Speak your command now';
+    } else {
+      micBtn.classList.remove('border-primary-container', 'text-primary-container', 'bg-primary-container/20');
+      pulse.classList.add('hidden');
+      label.textContent = 'TAP THE MIC TO SPEAK';
+      subLabel.textContent = 'or type your command below // Jarvis Neural Transceiver Ready';
+    }
+  }
+
+  // ── BROWSER TTS ───────────────────────────────────────────────────────────
+  function speakReply(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'en-GB';
+    utt.rate = 0.92;
+    utt.pitch = 0.85;
+    // Prefer a British/Daniel voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const brit = voices.find(v => v.name.includes('Daniel') || v.name.includes('British') || (v.lang === 'en-GB'));
+    if (brit) utt.voice = brit;
+    window.speechSynthesis.speak(utt);
+  }
+
+  // ── CLEAR SESSION ─────────────────────────────────────────────────────────
+  async function clearSessionConsole() {
+    try {
+      await fetch(`${API_BASE}/clear`, { method: 'POST' });
+    } catch (_) {}
+    document.getElementById('chat-stream-container').innerHTML = `
+      <div class="p-space-sm rounded border border-outline-variant/30 text-center text-outline font-label-sm text-label-sm">
+        // CONSOLE LOG FLUSHED // SESSION INITIALIZED
+      </div>`;
+    document.getElementById('session-req-count').textContent = 'REQUESTS: 0';
+    document.getElementById('footer-req-count').textContent = '0';
+    appendJarvisLog("Session memory purged. Neural core standing by for your directives, Sir.");
+  }
+
+  // ── LIVE TELEMETRY POLLING ────────────────────────────────────────────────
+  async function pollTelemetry() {
+    try {
+      const res = await fetch(`${API_BASE}/telemetry`);
+      if (!res.ok) return;
+      const d = await res.json();
+
+      // Arc Reactor
+      const pct = Math.round(d.arc_reactor_pct);
+      document.getElementById('reactor-pct').textContent = pct + '%';
+      document.getElementById('reactor-gj').textContent = d.arc_reactor_gj;
+      document.getElementById('reactor-stability').textContent = pct;
+      document.getElementById('reactor-arc').setAttribute('stroke-dasharray', `${pct}, 100`);
+      document.getElementById('reactor-arc-label').textContent = pct + '%';
+      document.getElementById('core-bar').style.width = pct + '%';
+      document.getElementById('core-pct-label').textContent = `CORE ${pct}%`;
+
+      // Suit
+      const suit = d.suit_integrity;
+      document.getElementById('suit-integrity-val').textContent = suit + '%';
+      document.getElementById('suit-integrity-bar').style.width = suit + '%';
+
+      // Neural
+      document.getElementById('neural-ms').textContent = d.neural_link_ms;
+      document.getElementById('neural-latency-val').textContent = d.neural_link_ms;
+      document.getElementById('uptime-val').textContent = Math.round(d.uptime_seconds);
+
+    } catch (_) { /* silent fail — backend may be restarting */ }
+  }
+
+  // ── FOOTER CLOCK ──────────────────────────────────────────────────────────
+  function updateClock() {
+    const el = document.getElementById('footer-live-time');
+    if (el) el.textContent = new Date().toISOString().substring(11, 19) + ' UTC';
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    bootSystem();
+    setInterval(pollTelemetry, 2000);   // Refresh telemetry every 2s
+    setInterval(updateClock, 1000);     // Live UTC clock
+
+    // Pre-load TTS voices
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.addEventListener('voiceschanged', () => window.speechSynthesis.getVoices());
+    }
+  });
 </script>
 </body></html>
