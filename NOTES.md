@@ -9,5 +9,6 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Note: Running `uvicorn` in a bare shell fails with `command not found: uvicorn` if `.venv` is not activated. Added `run.sh`, `run.py`, and direct `.venv/bin/uvicorn` instructions to provide single-command execution.
 - Fixed CSS lint warning: added standard `background-clip: text` alongside `-webkit-background-clip: text`.
 - Note: Opening `index.html` via `file://` causes browser security blocks: Chrome/Safari disable Web Speech API recognition on `file://` origins and `window.location.origin` becomes "null". Added dynamic fallback to `http://127.0.0.1:8000`, explicit in-app warning banner with clickable URL, and `SpeechSynthesis.resume()` for Chrome audio engine.
+- Note: Web Speech API with `continuous = false` shuts off after 4-5s of silence with benign `no-speech` error. Fixed by setting `continuous = true`, auto-reconnecting on `onend`, adding configurable language/accent (`en-IN`, `en-US`), pause detection timer (1.4s), and manual 'Send Speech Now' button.
 
 

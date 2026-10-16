@@ -719,6 +719,13 @@
           <span id="micBtnLabel">Start Listening</span>
         </button>
 
+        <button class="btn btn-secondary" id="sendVoiceNowBtn" style="display: none; background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); color: #38bdf8;" title="Send transcribed speech immediately">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          Send Speech Now
+        </button>
+
         <button class="btn btn-danger" id="stopSpeechBtn" title="Immediately cut off AI speech output">
           <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
             <path d="M6 6h12v12H6z"/>
@@ -733,8 +740,20 @@
       </div>
     </main>
 
-    <!-- Voice Synthesis Settings -->
+    <!-- Voice Synthesis & Recognition Settings -->
     <section class="settings-panel">
+      <div class="setting-item">
+        <div class="setting-label">
+          <span>Speech Input Language / Accent</span>
+        </div>
+        <select id="langSelect">
+          <option value="en-IN">English (India) - en-IN</option>
+          <option value="en-US">English (US) - en-US</option>
+          <option value="en-GB">English (UK) - en-GB</option>
+          <option value="auto">Auto (Browser Default)</option>
+        </select>
+      </div>
+
       <div class="setting-item">
         <div class="setting-label">
           <span>Voice Synthesis Persona</span>
@@ -813,7 +832,9 @@
     const micToggleBtn = document.getElementById("micToggleBtn");
     const micBtnLabel = document.getElementById("micBtnLabel");
     const stopSpeechBtn = document.getElementById("stopSpeechBtn");
+    const sendVoiceNowBtn = document.getElementById("sendVoiceNowBtn");
     const continuousToggle = document.getElementById("continuousToggle");
+    const langSelect = document.getElementById("langSelect");
     const voiceSelect = document.getElementById("voiceSelect");
     const rateSlider = document.getElementById("rateSlider");
     const rateVal = document.getElementById("rateVal");
@@ -832,6 +853,10 @@
     let isThinking = false;
     let isSpeaking = false;
     let continuousMode = false;
+    let userWantsListening = false;
+    let speechSilenceTimer = null;
+    let accumulatedSpeech = "";
+    let latestTranscript = "";
     let recognition = null;
     let systemVoices = [];
     let selectedVoice = null;
@@ -850,51 +875,86 @@
     // Initialize Speech Recognition
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
-      recognition.continuous = false; // Turn-based for clean punctuation
+      recognition.continuous = true; // Never kill listener on short pause!
       recognition.interimResults = true;
-      recognition.lang = "en-US";
+      recognition.maxAlternatives = 1;
+      
+      const initialLang = langSelect ? langSelect.value : "en-IN";
+      recognition.lang = initialLang === "auto" ? (navigator.language || "en-US") : initialLang;
+
+      if (langSelect) {
+        langSelect.addEventListener("change", (e) => {
+          const val = e.target.value;
+          recognition.lang = val === "auto" ? (navigator.language || "en-US") : val;
+          if (isListening) {
+            recognition.stop();
+            setTimeout(() => { if (userWantsListening) recognition.start(); }, 120);
+          }
+        });
+      }
 
       recognition.onstart = () => {
         isListening = true;
         setUIState("listening");
+        if (!latestTranscript) {
+          interimPreview.textContent = "Listening... Speak naturally (no rush)";
+          interimPreview.classList.remove("active");
+        }
       };
 
       recognition.onresult = (event) => {
-        let interimTranscript = "";
-        let finalTranscript = "";
-
+        let interim = "";
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const item = event.results[i];
           if (item.isFinal) {
-            finalTranscript += item[0].transcript;
+            accumulatedSpeech += " " + item[0].transcript;
           } else {
-            interimTranscript += item[0].transcript;
+            interim += item[0].transcript;
           }
         }
 
-        if (interimTranscript) {
-          interimPreview.textContent = `"${interimTranscript}..."`;
-          interimPreview.classList.add("active");
-        }
+        latestTranscript = (accumulatedSpeech + " " + interim).trim();
 
-        if (finalTranscript) {
-          interimPreview.textContent = `"${finalTranscript}"`;
-          interimPreview.classList.remove("active");
-          stopListening();
-          sendVoiceMessage(finalTranscript.trim());
+        if (latestTranscript) {
+          interimPreview.textContent = `"${latestTranscript}"`;
+          interimPreview.classList.add("active");
+          sendVoiceNowBtn.style.display = "inline-flex";
+
+          // Natural conversation pause detector: 1.4s of silence sends the message
+          clearTimeout(speechSilenceTimer);
+          speechSilenceTimer = setTimeout(() => {
+            commitAndSendSpeech();
+          }, 1400);
         }
       };
 
       recognition.onerror = (event) => {
-        console.warn("Speech recognition error:", event.error);
-        if (event.error !== "no-speech") {
-          interimPreview.textContent = `Recognition note: ${event.error}`;
+        console.warn("Speech recognition status:", event.error);
+        if (event.error === "no-speech") {
+          // Benign silence event: DO NOT stop listening! Keep microphone open.
+          return;
         }
-        stopListeningState();
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+          interimPreview.textContent = "⚠️ Mic permission denied. Click the lock/camera icon in your address bar to allow mic access.";
+          userWantsListening = false;
+          stopListeningState();
+          return;
+        }
+        if (event.error === "network") {
+          interimPreview.textContent = "⚠️ Web Speech network issue. Check internet or use the text box below.";
+          userWantsListening = false;
+          stopListeningState();
+          return;
+        }
       };
 
       recognition.onend = () => {
-        if (isListening) {
+        // Keep listening alive if user wants it and we're not currently processing or speaking
+        if (userWantsListening && !isThinking && !isSpeaking) {
+          try {
+            recognition.start();
+          } catch (e) {}
+        } else {
           stopListeningState();
         }
       };
@@ -965,11 +1025,16 @@
     // Start / Stop Listening Controls
     function startListening() {
       if (!recognition) return;
-      // If currently speaking, stop speech first
       if (SpeechSynthesis && SpeechSynthesis.speaking) {
         SpeechSynthesis.cancel();
         isSpeaking = false;
       }
+      userWantsListening = true;
+      accumulatedSpeech = "";
+      latestTranscript = "";
+      clearTimeout(speechSilenceTimer);
+      sendVoiceNowBtn.style.display = "none";
+
       try {
         recognition.start();
       } catch (err) {
@@ -978,6 +1043,9 @@
     }
 
     function stopListening() {
+      userWantsListening = false;
+      clearTimeout(speechSilenceTimer);
+      sendVoiceNowBtn.style.display = "none";
       if (recognition) {
         try {
           recognition.stop();
@@ -985,6 +1053,21 @@
       }
       stopListeningState();
     }
+
+    function commitAndSendSpeech() {
+      clearTimeout(speechSilenceTimer);
+      const toSend = latestTranscript.trim();
+      if (!toSend || isThinking) return;
+
+      accumulatedSpeech = "";
+      latestTranscript = "";
+      sendVoiceNowBtn.style.display = "none";
+      userWantsListening = false;
+      stopListening();
+      sendVoiceMessage(toSend);
+    }
+
+    sendVoiceNowBtn.addEventListener("click", commitAndSendSpeech);
 
     function stopListeningState() {
       isListening = false;
