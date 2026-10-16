@@ -1,5 +1,26 @@
+# Virtual Environment & Python Caches
 .venv/
+venv/
+env/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Sensitive Environment & Secrets (NEVER COMMIT)
 .env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+secrets.json
+
+# System & OS Files
 .DS_Store
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
