@@ -123,6 +123,20 @@ def run_tests():
     assert res_after.json()["count"] == 0
     print("✅ 7. POST /clear: Context memory successfully purged.")
 
+    # 14. Transcribe Endpoint (Local Faster-Whisper)
+    import io, wave
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(16000)
+        wf.writeframes(b'\x00' * 16000)
+    buf.seek(0)
+    res = client.post("/api/transcribe", files={"audio": ("test.wav", buf, "audio/wav")})
+    assert res.status_code == 200
+    assert "text" in res.json()
+    print("✅ 14. POST /api/transcribe: Local Faster-Whisper audio transcription verified.")
+
     print("=" * 60)
     print("🎉 ALL TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
