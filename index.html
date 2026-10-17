@@ -327,23 +327,23 @@
       <span class="material-symbols-outlined text-[13px] text-tertiary">keyboard_command_key</span>
       <span>Siri Tasks:</span>
     </span>
-    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('open Spotify')">
+    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('open Spotify', { lockInput: false })">
       <span class="material-symbols-outlined text-[12px] text-[#1DB954]">music_note</span>
       <span>Open Spotify</span>
     </button>
-    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('open Notes')">
+    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('open Notes', { lockInput: false })">
       <span class="material-symbols-outlined text-[12px] text-[#E5A93B]">edit_note</span>
       <span>Open Notes</span>
     </button>
-    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('send a WhatsApp message to Alex saying I will arrive at 7 PM')">
+    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('send a WhatsApp message to Alex saying I will arrive at 7 PM', { lockInput: false })">
       <span class="material-symbols-outlined text-[12px] text-[#25D366]">chat</span>
       <span>WhatsApp Alex</span>
     </button>
-    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('send email to boss@stark.com with subject Status and body All systems nominal')">
+    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('send email to boss@stark.com with subject Status and body All systems nominal', { lockInput: false })">
       <span class="material-symbols-outlined text-[12px] text-[#EA4335]">mail</span>
       <span>Email Boss</span>
     </button>
-    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('set system volume to 50')">
+    <button type="button" class="px-2.5 py-1 rounded bg-surface-container/60 hover:bg-surface-container border border-outline-variant/40 hover:border-primary-container text-on-surface-variant hover:text-primary transition shrink-0 flex items-center gap-1" onclick="sendToJarvis('set system volume to 50', { lockInput: false })">
       <span class="material-symbols-outlined text-[12px] text-tertiary">volume_up</span>
       <span>Volume 50%</span>
     </button>
@@ -533,10 +533,22 @@
 <!-- ===================================================================== -->
 <script>
   // ── CONFIG ──────────────────────────────────────────────────────────────
-  // Auto-detect backend URL: same host, port 8000
-  const API_BASE = window.location.port === '8000'
-    ? window.location.origin
-    : `${window.location.protocol}//${window.location.hostname}:8000`;
+  // Auto-detect backend URL: if on http/https on port 8000 use origin, otherwise default to http://localhost:8000
+  const isHttp = window.location.protocol.startsWith('http');
+  const API_BASE = (isHttp && window.location.hostname)
+    ? (window.location.port === '8000' ? window.location.origin : `${window.location.protocol}//${window.location.hostname}:8000`)
+    : 'http://localhost:8000';
+
+  // If opened via file://, add helpful guidance banner
+  if (window.location.protocol === 'file:') {
+    window.addEventListener('DOMContentLoaded', () => {
+      const banner = document.createElement('div');
+      banner.className = 'w-full bg-[#ffb700]/20 border-b border-[#ffb700]/50 p-2 text-center text-xs font-mono text-[#ffb700] z-50 flex items-center justify-center gap-2';
+      banner.innerHTML = `<span>⚠️ You opened index.html directly via file://. Browser security restricts microphone audio on file:// URLs.</span> <a href="http://localhost:8000" class="px-2 py-0.5 rounded bg-[#ffb700] text-black font-bold uppercase text-[10px] hover:bg-white transition">Open via http://localhost:8000</a>`;
+      document.body.prepend(banner);
+    });
+  }
+
   let defenseActive = false;
   let micListening = false;
   let widgetCount = 0;
