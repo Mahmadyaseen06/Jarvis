@@ -419,10 +419,16 @@
       loadPreferredVoice();
     }
 
+    let isSpeaking = false;
+
     function speakReply(text) {
       if (!('speechSynthesis' in window) || !text) return;
       try {
         window.speechSynthesis.cancel();
+        // Mute mic recognition while Jarvis speaks to prevent self-hearing acoustic loop
+        stopVoiceRecognition();
+        isSpeaking = true;
+
         const utt = new SpeechSynthesisUtterance(text);
         utt.lang = 'en-GB';
         utt.pitch = 0.88;
@@ -432,13 +438,18 @@
         if (cachedVoice) utt.voice = cachedVoice;
 
         utt.onstart = () => startWaveformAnimation();
-        utt.onend = () => stopWaveformAnimation();
-        utt.onerror = () => stopWaveformAnimation();
+        const finishSpeech = () => {
+          stopWaveformAnimation();
+          setTimeout(() => { isSpeaking = false; }, 400);
+        };
+        utt.onend = finishSpeech;
+        utt.onerror = finishSpeech;
 
         window.speechSynthesis.resume();
         window.speechSynthesis.speak(utt);
       } catch (e) {
         console.warn("TTS Notice:", e);
+        isSpeaking = false;
       }
     }
 
@@ -530,6 +541,11 @@
     async function startVoiceRecognition(retryWithDefaultLang = false) {
       stopVoiceRecognition();
 
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        isSpeaking = false;
+      }
+
       if (window.location.protocol === 'file:') {
         const banner = document.getElementById('file-protocol-warning');
         if (banner) banner.classList.remove('hidden');
@@ -553,37 +569,13 @@
         return;
       }
 
-      // Step 1: Pre-flight physical mic permission via getUserMedia
-      const micGranted = await initAudioAnalyser();
-      if (!micGranted && !micStream) {
-        statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
-        transcribePreview.textContent = "Click 🔒 / ⚙️ in browser URL bar to allow microphone";
-        appendJarvisMessage(`
-          <div class="p-space-sm rounded-xl bg-error/20 border border-error/50 space-y-2">
-            <div class="flex items-center gap-2 text-error font-headline-sm text-sm font-bold">
-              <span class="material-symbols-outlined text-base">mic_off</span> MICROPHONE PERMISSION BLOCKED
-            </div>
-            <p class="font-body-sm text-body-sm text-on-surface">The browser or macOS blocked microphone access. To fix this:</p>
-            <ol class="list-decimal list-inside font-code-stream text-xs text-on-surface-variant space-y-1">
-              <li>Click the <strong>tune/lock icon</strong> on the left side of your browser URL bar.</li>
-              <li>Toggle <strong>Microphone</strong> from 'Block' to <strong>Allow</strong>.</li>
-              <li>On macOS, open <strong>System Settings &gt; Privacy &amp; Security &gt; Microphone</strong> and enable Chrome.</li>
-            </ol>
-          </div>
-        `, "Microphone access was blocked by your browser or macOS, Sir.");
-        return;
-      }
-
       try {
         recognition = new SpeechRec();
-        // Priority: user's system language, fallback to en-US
         recognition.lang = retryWithDefaultLang ? 'en-US' : (navigator.language || 'en-US');
         recognition.continuous = !isSafari;
         recognition.interimResults = true;
         recognition.maxAlternatives = 1;
 
-        finalTranscript = '';
-        interimTranscript = '';
         voiceSent = false;
         commandInput.value = '';
         transcribePreview.textContent = 'Listening... Speak now.';
@@ -591,54 +583,56 @@
         recognition.onstart = () => {
           setVoiceListeningState(true);
           voiceSent = false;
+          // Launch audio visualizer in parallel so it doesn't block recognition start
+          initAudioAnalyser().then(() => {
+            if (isListening) startLiveMicVisualizer();
+          });
         };
 
         recognition.onresult = (e) => {
+          if (voiceSent || isSpeaking) return;
           clearTimeout(pauseTimer);
-          let interim = '';
-          let final = '';
-          for (let i = e.resultIndex; i < e.results.length; i++) {
+
+          let fullText = '';
+          let interimText = '';
+          for (let i = 0; i < e.results.length; i++) {
             const txt = e.results[i][0].transcript;
             if (e.results[i].isFinal) {
-              final += txt;
+              fullText += txt + ' ';
             } else {
-              interim += txt;
+              interimText += txt;
             }
           }
-          if (final) {
-            finalTranscript += final;
-          }
-          interimTranscript = interim;
 
-          const currentSpoken = (finalTranscript + ' ' + interimTranscript).trim();
+          const currentSpoken = (fullText + interimText).trim();
           if (currentSpoken) {
             commandInput.value = currentSpoken;
             transcribePreview.textContent = `"${currentSpoken}"`;
-          }
 
-          // Auto-send after 1000ms pause if speech was detected
-          if (currentSpoken) {
+            // Auto-send after 1200ms natural pause
             pauseTimer = setTimeout(() => {
-              const toSend = (finalTranscript + ' ' + interimTranscript).trim() || commandInput.value.trim();
-              if (toSend && !voiceSent) {
-                stopVoiceRecognition();
-                sendVoiceResult(toSend);
+              if (!voiceSent && currentSpoken) {
+                sendVoiceResult(currentSpoken);
               }
-            }, 1000);
+            }, 1200);
           }
         };
 
         recognition.onend = () => {
-          setVoiceListeningState(false);
           clearTimeout(pauseTimer);
-          const remaining = (finalTranscript + ' ' + interimTranscript).trim() || commandInput.value.trim();
+          const remaining = commandInput.value.trim();
           if (!voiceSent && remaining) {
             sendVoiceResult(remaining);
           }
+          setVoiceListeningState(false);
           recognition = null;
         };
 
         recognition.onerror = (e) => {
+          if (e.error === 'no-speech') {
+            statusCaption.textContent = "LISTENING // STANDBY";
+            return;
+          }
           clearTimeout(pauseTimer);
           setVoiceListeningState(false);
           recognition = null;
@@ -665,9 +659,6 @@
               statusCaption.textContent = "NETWORK TIMEOUT // SPEECH SERVER";
               transcribePreview.textContent = "Google speech recognition server unreachable.";
             }
-          } else if (e.error === 'no-speech') {
-            statusCaption.textContent = "NO SPEECH DETECTED // TAP TO RETRY";
-            transcribePreview.textContent = "No voice heard. Please tap the Arc Reactor and speak clearly.";
           } else if (e.error !== 'aborted') {
             statusCaption.textContent = `VOICE NOTICE // ${e.error.toUpperCase()}`;
             transcribePreview.textContent = `Error status: ${e.error}`;
@@ -683,18 +674,19 @@
     }
 
     function sendVoiceResult(text) {
-      if (!text || voiceSent) return;
+      const clean = (text || '').trim();
+      if (!clean || voiceSent) return;
       voiceSent = true;
+      clearTimeout(pauseTimer);
       stopVoiceRecognition();
       commandInput.value = '';
       transcribePreview.textContent = '';
-      sendToJarvis(text);
+      sendToJarvis(clean);
     }
 
     function toggleVoiceInput() {
       if (isListening) {
-        // Tapped while listening -> instantly dispatch current words!
-        const currentSpoken = (finalTranscript + ' ' + interimTranscript).trim() || commandInput.value.trim();
+        const currentSpoken = commandInput.value.trim();
         stopVoiceRecognition();
         if (currentSpoken && !voiceSent) {
           sendVoiceResult(currentSpoken);
@@ -703,6 +695,14 @@
         startVoiceRecognition();
       }
     }
+
+    // Spacebar shortcut to activate/toggle voice listening
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && document.activeElement !== commandInput && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        toggleVoiceInput();
+      }
+    });
 
     function setVoiceListeningState(active) {
       isListening = active;
