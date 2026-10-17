@@ -553,8 +553,7 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
         "contents": contents,
         "generationConfig": {
             "temperature": 0.3,
-            "maxOutputTokens": 350,
-            "responseMimeType": "application/json",
+            "maxOutputTokens": 400,
             "candidateCount": 1,
         }
     }
@@ -563,11 +562,26 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
     for model in GOOGLE_MODELS:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         try:
-            with httpx.Client(timeout=httpx.Timeout(connect=3.0, read=4.0, write=2.0, pool=2.0)) as client:
+            with httpx.Client(timeout=httpx.Timeout(connect=3.0, read=5.0, write=2.0, pool=2.0)) as client:
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
-                raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+
+                # Guard: handle empty / blocked candidates gracefully
+                candidates = data.get("candidates") or []
+                if not candidates:
+                    finish = data.get("promptFeedback", {}).get("blockReason", "EMPTY_RESPONSE")
+                    raise ValueError(f"Gemini returned no candidates: {finish}")
+
+                content = candidates[0].get("content") or {}
+                parts = content.get("parts") or []
+                if not parts:
+                    raise ValueError("Gemini candidate has no content parts")
+
+                raw_text = parts[0].get("text", "")
+                if not raw_text.strip():
+                    raise ValueError("Gemini returned empty text")
+
                 result = extract_json(raw_text)
                 ai_success_count += 1
                 return result
@@ -578,7 +592,7 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
         except Exception as e:
             last_error = e
             print(f"[JARVIS] Model {model} error: {type(e).__name__}: {e}")
-            break
+            continue  # Try next model
 
     raise RuntimeError(f"All Google AI models failed. Last error: {last_error}")
 
