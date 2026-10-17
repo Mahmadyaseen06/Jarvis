@@ -19,10 +19,5 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Reverted to 074c9bd and applied minimal patch: Eliminated DOM parent-child hierarchy race condition by replacing asynchronous setTimeout with synchronous atomic moves (`destContainer.appendChild`), added safe `card.parentElement.removeChild` checks, updated counters dynamically, and preserved interim+final speech in `spokenText` so button release never drops transcribed voice.
 - Advanced Upgrade: Implemented dual-mode voice activation (Tap-to-Toggle + Hold-to-Speak) to prevent trackpad timing errors; added real-time HTML5 audio waveform canvas; procedural Web Audio API SFX synthesizer; HTML5 native drag-and-drop between columns; real-time task title and priority filtering; and localStorage persistence with realistic sample tasks.
 - Fixed: Resolved button click failure caused by an invalid regex syntax `(?i)` in JavaScript (which broke script parsing at load time). Replaced with standard `/.../gi` flags. Transformed full UI into Stark Industries Arc Reactor HUD and backend into authentic British-mannered Iron Man J.A.R.V.I.S. persona.
-- Major Refactor: Transformed system into J.A.R.V.I.S. Holographic AI System Dashboard with SYSTEM_SCAN (CSS laser sweep + matrix diagnostics), ACTIVATE_DEFENSE (emergency red theme switch + flashing alert banner), and DEPLOY_WIDGET (dynamic glassmorphism telemetry cards). Verified with 100% passing test suite.
-
-
-
-
-
-
+- Fixed: Quick-action HUD buttons (Diagnostics, Defense, Deploy Widget) previously felt unresponsive because they waited for a multi-second LLM API roundtrip. Resolved by decoupling: UI transitions execute immediately upon user trigger while AI generation proceeds concurrently.
+- Fixed: Integration test in test_app.py used "what is your status?" which correctly triggered the SYSTEM_SCAN rule instead of conversational NONE. Refined test input to a conversational prompt without scan/diagnostic keywords.
