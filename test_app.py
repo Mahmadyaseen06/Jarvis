@@ -45,7 +45,7 @@ def run_tests():
     assert "widget_name" in data["action"] and len(data["action"]["widget_name"]) > 0
 
     # 5. NONE (Conversational chat)
-    res = client.post("/chat", json={"text": "Hello Jarvis, what is your status?"})
+    res = client.post("/chat", json={"text": "Hello Jarvis, tell me a quick witty remark"})
     assert res.status_code == 200
     data = res.json()
     print("✅ 5. POST /chat (NONE / Chatting):", data)
