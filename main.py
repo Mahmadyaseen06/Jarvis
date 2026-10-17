@@ -51,7 +51,8 @@ fallback_count: int = 0
 
 VALID_COMMANDS = {
     "SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "STAND_DOWN",
-    "OPEN_APP", "SET_VOLUME", "SEND_WHATSAPP", "SEND_EMAIL", "SEARCH_WEB", "OPEN_URL", "NONE"
+    "OPEN_APP", "SET_VOLUME", "SEND_WHATSAPP", "SEND_EMAIL", "SEARCH_WEB", "OPEN_URL",
+    "CALCULATE", "FIND_FILE", "NONE"
 }
 
 PRESET_WIDGET_NAMES = [
@@ -68,7 +69,7 @@ PRESET_WIDGET_NAMES = [
 ]
 
 # ─────────────────────────────────────────────────────────────────
-# J.A.R.V.I.S. SYSTEM PROMPT (Enhanced for macOS Siri & Messaging)
+# J.A.R.V.I.S. SYSTEM PROMPT (Enhanced for macOS Siri & System Tasks)
 # ─────────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the witty, loyal, and brilliantly articulate AI assistant from Iron Man, voiced by Paul Bettany, running locally on the user's Mac.
 
@@ -82,8 +83,11 @@ Output format: You MUST always respond with valid JSON and nothing else. Structu
 {
   "reply": "<Your spoken response, 1-2 sentences max, in character>",
   "action": {
-    "command": "<ONE of: OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
-    "app_name": "<Target Mac app name if OPEN_APP, e.g. Spotify, Notes, Safari, Calculator, Music, Terminal, Calendar, Maps>",
+    "command": "<ONE of: CALCULATE, FIND_FILE, OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
+    "expression": "<Math expression if CALCULATE, e.g. 26 * 25>",
+    "result": "<Calculated numeric answer if CALCULATE, e.g. 650>",
+    "filename": "<Filename to find if FIND_FILE, e.g. notes.txt>",
+    "app_name": "<Target Mac app name if OPEN_APP or CALCULATE, e.g. Calculator, Spotify, Notes, Safari, Music, Terminal, Calendar, Maps>",
     "volume": <Integer 0-100 if SET_VOLUME>,
     "phone": "<Phone number or contact name if SEND_WHATSAPP>",
     "message": "<Message text if SEND_WHATSAPP>",
@@ -98,6 +102,8 @@ Output format: You MUST always respond with valid JSON and nothing else. Structu
 }
 
 Command selection rules:
+- CALCULATE: User asks to calculate, compute, multiply, divide, add, or solve any arithmetic (e.g. "calculate 26*25", "what is 26 * 25", "calculate 100 / 4"). Always compute the answer AND set app_name to "Calculator".
+- FIND_FILE: User asks to find, locate, or search for a file on their Mac (e.g. "find this file notes.txt in system", "locate project report").
 - OPEN_APP: User asks to open, launch, or start any application (e.g. "open Spotify", "open Notes", "launch Safari", "start Calculator", "open Music", "open Terminal").
 - SET_VOLUME: User asks to adjust system volume (e.g. "set volume to 70%", "mute volume", "turn volume up to 50").
 - SEND_WHATSAPP: User asks to send a WhatsApp message or text someone (e.g. "send WhatsApp to Alex saying I will be there soon", "WhatsApp Mom that I arrived safely").
@@ -275,7 +281,38 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "SEND_EMAIL", "to": to_email, "subject": subject, "body": body}
         }
 
-    # 5. Web Search
+    # 5. Calculate / Math
+    calc_keywords = ["calculate", "compute", "what is", "how much is", "solve", "what's"]
+    has_calc_kw = any(lower.startswith(k) or k in lower for k in calc_keywords)
+    arith_match = re.search(r'(\d[\d\s\+\-\*\/\%\^\(\)\.]*\d|\d)', lower)
+    if has_calc_kw and arith_match:
+        expr_raw = re.sub(r'[^0-9\+\-\*\/\%\.\(\)\s]', '', arith_match.group(0)).strip()
+        if expr_raw:
+            try:
+                answer = eval(compile(expr_raw, "<expr>", "eval"), {"__builtins__": {}})
+                answer_str = str(int(answer) if isinstance(answer, float) and answer.is_integer() else round(answer, 6))
+                return {
+                    "reply": f"The result of {expr_raw.strip()} is {answer_str}, Sir. Opening Calculator for you.",
+                    "action": {
+                        "command": "CALCULATE",
+                        "expression": expr_raw.strip(),
+                        "answer": answer_str,
+                        "app_name": "Calculator"
+                    }
+                }
+            except Exception:
+                pass
+
+    # 6. Find File in System
+    if any(k in lower for k in ["find file", "find this file", "locate file", "search file", "where is file", "find the file"]):
+        fn_match = re.search(r'(?:file|find|locate)\s+([a-zA-Z0-9_\.\-\s]+?)(?:\s+in|\s+on|\s+from|$)', user_text, re.IGNORECASE)
+        filename = fn_match.group(1).strip() if fn_match else user_text
+        return {
+            "reply": f"Initiating filesystem scan for '{filename}', Sir. Running Spotlight search now.",
+            "action": {"command": "FIND_FILE", "filename": filename}
+        }
+
+    # 7. Web Search
     if lower.startswith("search for ") or lower.startswith("google ") or lower.startswith("search "):
         query = re.sub(r"^(?:search\s+(?:for\s+)?|google\s+)", "", user_text, flags=re.IGNORECASE).strip()
         return {
@@ -388,6 +425,38 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
                     url = "https://" + url
                 subprocess.Popen(["open", url])
                 result = {"executed": True, "detail": f"Opened URL: {url}"}
+
+        elif cmd == "CALCULATE":
+            expression = action.get("expression", "").strip()
+            calc_answer = action.get("answer", "")  # numeric answer (not the execution status dict)
+            # Open Calculator app
+            subprocess.Popen(["open", "-a", "Calculator"])
+            result = {"executed": True, "detail": f"{expression} = {calc_answer}"}
+
+        elif cmd == "FIND_FILE":
+            filename = action.get("filename", "").strip()
+            if filename:
+                # Use macOS mdfind (Spotlight) to find the file
+                try:
+                    found = subprocess.check_output(
+                        ["mdfind", f"kMDItemDisplayName == '*{filename}*'cdw"],
+                        timeout=5
+                    ).decode().strip()
+                    if found:
+                        paths = found.split('\n')[:5]  # Top 5 results
+                        action["found_paths"] = paths
+                        result = {"executed": True, "detail": f"Found {len(paths)} match(es): {paths[0]}"}
+                    else:
+                        # Try broader search
+                        found2 = subprocess.check_output(
+                            ["mdfind", f"kMDItemFSName == '*{filename}*'c"],
+                            timeout=5
+                        ).decode().strip()
+                        paths = found2.split('\n')[:5] if found2 else []
+                        action["found_paths"] = paths
+                        result = {"executed": bool(paths), "detail": f"Spotlight search completed. {len(paths)} result(s) found." if paths else "No files found matching that name, Sir."}
+                except Exception as fe:
+                    result = {"executed": False, "detail": f"Filesystem search unavailable: {fe}"}
 
     except Exception as e:
         result = {"executed": False, "detail": f"macOS execution note: {e}"}
@@ -558,6 +627,20 @@ def validate_response(data: Dict[str, Any], user_text: str) -> Dict[str, Any]:
             data["action"]["subject"] = "Update from J.A.R.V.I.S."
         if not data["action"].get("body"):
             data["action"]["body"] = user_text
+    elif data["action"]["command"] == "CALCULATE":
+        if not data["action"].get("app_name"):
+            data["action"]["app_name"] = "Calculator"
+        # If the model provided an expression but no answer, compute it
+        if data["action"].get("expression") and not data["action"].get("answer"):
+            try:
+                expr = re.sub(r'[^0-9\+\-\*\/\%\.\(\)\s]', '', data["action"]["expression"])
+                ans = eval(compile(expr, "<expr>", "eval"), {"__builtins__": {}})
+                data["action"]["answer"] = str(int(ans) if isinstance(ans, float) and ans.is_integer() else round(ans, 6))
+            except Exception:
+                pass
+    elif data["action"]["command"] == "FIND_FILE":
+        if not data["action"].get("filename"):
+            data["action"]["filename"] = user_text
 
     return data
 

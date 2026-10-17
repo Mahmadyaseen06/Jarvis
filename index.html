@@ -688,6 +688,18 @@
       appendActionBanner('search', 'WEB SEARCH EXECUTED', `"${action.query}"`, 'DISPATCHED', action.search_url, 'VIEW RESULTS');
     } else if (cmd === 'OPEN_URL') {
       appendActionBanner('link', 'BROWSER URL OPENED', action.url || '', 'NAVIGATED', action.url, 'VIEW');
+    } else if (cmd === 'CALCULATE') {
+      const expr = action.expression || '';
+      const res = action.answer || '';
+      appendActionBanner('calculate', 'STARK MATH CORE', `${expr} = ${res}`, 'SOLVED');
+    } else if (cmd === 'FIND_FILE') {
+      const fname = action.filename || '';
+      const paths = action.found_paths;
+      if (paths && paths.length) {
+        appendActionBanner('folder_search', 'FILESYSTEM SCAN', `Found: ${paths[0]}`, 'LOCATED');
+      } else {
+        appendActionBanner('folder_search', 'SPOTLIGHT SEARCH', fname, 'SEARCHING');
+      }
     }
   }
 
