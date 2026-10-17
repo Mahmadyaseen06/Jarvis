@@ -44,19 +44,50 @@ def run_tests():
     assert data["action"]["command"] == "DEPLOY_WIDGET"
     assert "widget_name" in data["action"] and len(data["action"]["widget_name"]) > 0
 
-    # 5. NONE (Conversational chat)
+    # 5. OPEN_APP Command
+    res = client.post("/chat", json={"text": "Jarvis, open Notes app"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 5. POST /chat (OPEN_APP):", data)
+    assert data["action"]["command"] == "OPEN_APP"
+
+    # 6. SET_VOLUME Command
+    res = client.post("/chat", json={"text": "Jarvis, set volume to 50"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 6. POST /chat (SET_VOLUME):", data)
+    assert data["action"]["command"] == "SET_VOLUME"
+    assert data["action"]["volume"] == 50
+
+    # 7. SEND_WHATSAPP Command
+    res = client.post("/chat", json={"text": "Jarvis, send a WhatsApp message to Alex saying I will arrive at 7 PM"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 7. POST /chat (SEND_WHATSAPP):", data)
+    assert data["action"]["command"] == "SEND_WHATSAPP"
+    assert "web_url" in data["action"]
+
+    # 8. SEND_EMAIL Command
+    res = client.post("/chat", json={"text": "Jarvis, send email to boss@stark.com with subject Status and body All systems nominal"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 8. POST /chat (SEND_EMAIL):", data)
+    assert data["action"]["command"] == "SEND_EMAIL"
+    assert "gmail_url" in data["action"]
+
+    # 9. NONE (Conversational chat)
     res = client.post("/chat", json={"text": "Hello Jarvis, tell me a quick witty remark"})
     assert res.status_code == 200
     data = res.json()
-    print("✅ 5. POST /chat (NONE / Chatting):", data)
+    print("✅ 9. POST /chat (NONE / Chatting):", data)
     assert data["action"]["command"] == "NONE"
 
-    # 6. Check History
+    # 10. Check History
     res = client.get("/history")
     assert res.status_code == 200
     hist = res.json()
-    print(f"✅ 6. GET /history: {hist['count']} messages preserved in context.")
-    assert hist["count"] == 8  # 4 user + 4 assistant
+    print(f"✅ 10. GET /history: {hist['count']} messages preserved in context.")
+    assert hist["count"] == 16  # 8 user + 8 assistant
 
     # 7. Clear History
     res = client.post("/clear")

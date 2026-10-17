@@ -9,6 +9,8 @@ import re
 import time
 import random
 import asyncio
+import urllib.parse
+import subprocess
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 
@@ -26,8 +28,8 @@ load_dotenv()
 # ─────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="J.A.R.V.I.S. Holographic AI Command System",
-    description="Advanced sci-fi AI backend: FastAPI + Google Gemini Flash + Resilient Fallback Engine",
-    version="2.0.0"
+    description="Advanced sci-fi AI backend: FastAPI + Local Gemma 2 (Apple Silicon) + Google Gemini Flash + macOS Siri Automation",
+    version="2.1.0"
 )
 
 app.add_middleware(
@@ -47,7 +49,10 @@ request_count: int = 0
 ai_success_count: int = 0
 fallback_count: int = 0
 
-VALID_COMMANDS = {"SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "STAND_DOWN", "NONE"}
+VALID_COMMANDS = {
+    "SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "STAND_DOWN",
+    "OPEN_APP", "SET_VOLUME", "SEND_WHATSAPP", "SEND_EMAIL", "SEARCH_WEB", "OPEN_URL", "NONE"
+}
 
 PRESET_WIDGET_NAMES = [
     "Arc Reactor Core Output",
@@ -63,9 +68,9 @@ PRESET_WIDGET_NAMES = [
 ]
 
 # ─────────────────────────────────────────────────────────────────
-# J.A.R.V.I.S. SYSTEM PROMPT (Enhanced)
+# J.A.R.V.I.S. SYSTEM PROMPT (Enhanced for macOS Siri & Messaging)
 # ─────────────────────────────────────────────────────────────────
-SYSTEM_PROMPT = """You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the witty, loyal, and brilliantly articulate AI assistant from Iron Man, voiced by Paul Bettany.
+SYSTEM_PROMPT = """You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the witty, loyal, and brilliantly articulate AI assistant from Iron Man, voiced by Paul Bettany, running locally on the user's Mac.
 
 Your character:
 - Extremely intelligent, calm, and slightly dry-witted.
@@ -77,13 +82,28 @@ Output format: You MUST always respond with valid JSON and nothing else. Structu
 {
   "reply": "<Your spoken response, 1-2 sentences max, in character>",
   "action": {
-    "command": "<ONE of: SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
+    "command": "<ONE of: OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
+    "app_name": "<Target Mac app name if OPEN_APP, e.g. Spotify, Notes, Safari, Calculator, Music, Terminal, Calendar, Maps>",
+    "volume": <Integer 0-100 if SET_VOLUME>,
+    "phone": "<Phone number or contact name if SEND_WHATSAPP>",
+    "message": "<Message text if SEND_WHATSAPP>",
+    "to": "<Recipient email if SEND_EMAIL>",
+    "subject": "<Email subject line if SEND_EMAIL>",
+    "body": "<Email message body if SEND_EMAIL>",
+    "query": "<Search query if SEARCH_WEB>",
+    "url": "<Target website URL if OPEN_URL>",
     "widget_name": "<Required only if command is DEPLOY_WIDGET>",
     "status": "<Optional: 'engaged' or 'standby' for ACTIVATE_DEFENSE>"
   }
 }
 
 Command selection rules:
+- OPEN_APP: User asks to open, launch, or start any application (e.g. "open Spotify", "open Notes", "launch Safari", "start Calculator", "open Music", "open Terminal").
+- SET_VOLUME: User asks to adjust system volume (e.g. "set volume to 70%", "mute volume", "turn volume up to 50").
+- SEND_WHATSAPP: User asks to send a WhatsApp message or text someone (e.g. "send WhatsApp to Alex saying I will be there soon", "WhatsApp Mom that I arrived safely").
+- SEND_EMAIL: User asks to send or compose an email / message via Gmail (e.g. "send email to pepper@stark.com with subject Meeting and body Ready when you are", "email boss@company.com saying running 10 mins late").
+- SEARCH_WEB: User asks to search the web or google something (e.g. "search for quantum computing advancements", "google current weather in Tokyo").
+- OPEN_URL: User asks to open a specific website (e.g. "open youtube.com", "go to github.com").
 - SYSTEM_SCAN: User mentions scan, diagnostics, status check, system check, analyze, inspect, health.
 - ACTIVATE_DEFENSE: User mentions defense, threat, alert, emergency, attack, danger, combat, lockdown, red alert.
 - DEPLOY_WIDGET: User mentions deploy, monitor, widget, dashboard panel, track, gauge, display metric.
@@ -191,17 +211,101 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
 
     lower = user_text.lower().strip()
 
+    # 1. macOS Siri: App Launcher
+    app_match = re.search(r"\b(?:open|launch|start)\s+(?:the\s+)?([a-zA-Z0-9\s]+?)(?:\s+app)?$", lower)
+    if app_match and not any(k in lower for k in ["scan", "diagnostic", "defense", "widget", "whatsapp", "email", "gmail", "http", ".com"]):
+        app_raw = app_match.group(1).strip().title()
+        app_map = {
+            "Notes": "Notes", "Spotify": "Spotify", "Safari": "Safari",
+            "Music": "Music", "Calculator": "Calculator", "Calendar": "Calendar",
+            "Terminal": "Terminal", "Finder": "Finder", "Mail": "Mail",
+            "Messages": "Messages", "System Settings": "System Settings",
+            "Settings": "System Settings", "Chrome": "Google Chrome",
+            "Google Chrome": "Google Chrome", "Vscode": "Visual Studio Code",
+            "Code": "Visual Studio Code", "Slack": "Slack", "Discord": "Discord"
+        }
+        app_name = app_map.get(app_raw, app_raw)
+        return {
+            "reply": f"Launching {app_name} on your Mac, Sir.",
+            "action": {"command": "OPEN_APP", "app_name": app_name}
+        }
+
+    # 2. macOS Siri: Volume Control
+    if "volume" in lower or "mute" in lower:
+        vol_match = re.search(r"(?:volume\s+(?:to\s+)?|set\s+volume\s+(?:to\s+)?)(\d+)", lower)
+        if vol_match:
+            vol = max(0, min(100, int(vol_match.group(1))))
+            return {
+                "reply": f"Adjusting master audio output to {vol}%, Sir.",
+                "action": {"command": "SET_VOLUME", "volume": vol}
+            }
+        elif "mute" in lower:
+            return {
+                "reply": "Muting audio output immediately, Sir.",
+                "action": {"command": "SET_VOLUME", "volume": 0}
+            }
+
+    # 3. WhatsApp Messaging
+    if "whatsapp" in lower or "what's app" in lower:
+        phone_match = re.search(r"(?:to|for)\s+([a-zA-Z0-9\+\-]+)", user_text, re.IGNORECASE)
+        phone = phone_match.group(1) if phone_match else ""
+        msg_match = re.search(r"(?:saying|that|message\s*:?)\s+(.*)", user_text, re.IGNORECASE)
+        msg = msg_match.group(1).strip() if msg_match else user_text
+        return {
+            "reply": f"Composing WhatsApp message for {phone or 'recipient'}, Sir.",
+            "action": {"command": "SEND_WHATSAPP", "phone": phone, "message": msg}
+        }
+
+    # 4. Email / Gmail
+    if any(k in lower for k in ["email", "gmail", "send mail", "compose mail"]):
+        to_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", user_text)
+        to_email = to_match.group(0) if to_match else ""
+        if not to_email:
+            name_match = re.search(r"(?:to|for)\s+([a-zA-Z0-9\s]+?)(?:\s+with|\s+saying|\s+about|$)", user_text, re.IGNORECASE)
+            to_email = name_match.group(1).strip() if name_match else ""
+
+        subj_match = re.search(r"(?:subject|about)\s+([^\.]+?)(?:\s+and\s+body|\s+body|\.|$)", user_text, re.IGNORECASE)
+        subject = subj_match.group(1).strip() if subj_match else "Message from J.A.R.V.I.S."
+
+        body_match = re.search(r"(?:body|saying|message)\s+(.*)", user_text, re.IGNORECASE)
+        body = body_match.group(1).strip() if body_match else "Draft created via J.A.R.V.I.S."
+
+        return {
+            "reply": f"Opening Gmail compose window for {to_email or 'recipient'}, Sir.",
+            "action": {"command": "SEND_EMAIL", "to": to_email, "subject": subject, "body": body}
+        }
+
+    # 5. Web Search
+    if lower.startswith("search for ") or lower.startswith("google ") or lower.startswith("search "):
+        query = re.sub(r"^(?:search\s+(?:for\s+)?|google\s+)", "", user_text, flags=re.IGNORECASE).strip()
+        return {
+            "reply": f"Executing web search for '{query}', Sir.",
+            "action": {"command": "SEARCH_WEB", "query": query}
+        }
+
+    # 6. Open URL
+    if lower.startswith("open ") and any(ext in lower for ext in [".com", ".org", ".io", ".net", "youtube", "github"]):
+        url_match = re.search(r"\b(?:https?://)?([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(?:/[^\s]*)?)\b", user_text)
+        target_url = url_match.group(0) if url_match else "https://google.com"
+        return {
+            "reply": f"Navigating to {target_url}, Sir.",
+            "action": {"command": "OPEN_URL", "url": target_url}
+        }
+
+    # 7. System Scan
     if any(k in lower for k in ["scan", "diagnostic", "diagnostics", "system check", "health", "analyze", "inspect", "status", "telemetry check", "run scan"]):
         return {"reply": random.choice(FALLBACK_SCAN_REPLIES), "action": {"command": "SYSTEM_SCAN"}}
 
+    # 8. Stand Down
     if any(k in lower for k in ["stand down", "all clear", "cancel alert", "disarm", "deactivate", "peace", "normal mode"]):
         return {"reply": random.choice(FALLBACK_STAND_DOWN_REPLIES), "action": {"command": "STAND_DOWN"}}
 
+    # 9. Activate Defense
     if any(k in lower for k in ["defense", "activate defense", "threat", "alert", "combat", "lockdown", "emergency", "attack", "danger", "red alert", "shields"]):
         return {"reply": random.choice(FALLBACK_DEFENSE_REPLIES), "action": {"command": "ACTIVATE_DEFENSE"}}
 
+    # 10. Deploy Widget
     if any(k in lower for k in ["deploy", "widget", "monitor", "telemetry", "gauge", "panel", "display", "track", "add"]):
-        # Extract widget name by removing command words
         widget_text = re.sub(
             r"\b(deploy\s+widget|add\s+widget|create\s+widget|deploy|add|create|widget|panel|monitor|display|track)\b",
             "", user_text, flags=re.IGNORECASE
@@ -213,6 +317,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "DEPLOY_WIDGET", "widget_name": widget_name}
         }
 
+    # 11. Greeting
     if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "who are you", "what can you do", "greet", "good morning", "good evening"]):
         return {"reply": random.choice(FALLBACK_GREET_REPLIES), "action": {"command": "NONE"}}
 
@@ -220,6 +325,116 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
         "reply": random.choice(FALLBACK_GENERAL_REPLIES),
         "action": {"command": "NONE"}
     }
+
+
+# ─────────────────────────────────────────────────────────────────
+# NATIVE MACOS AUTOMATION DISPATCHER
+# ─────────────────────────────────────────────────────────────────
+def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute native macOS tasks (apps, volume, WhatsApp, Gmail, web search)."""
+    cmd = action.get("command")
+    result = {"executed": False, "detail": ""}
+
+    try:
+        if cmd == "OPEN_APP":
+            app_name = action.get("app_name", "").strip()
+            if app_name:
+                subprocess.Popen(["open", "-a", app_name])
+                result = {"executed": True, "detail": f"Launched application: {app_name}"}
+
+        elif cmd == "SET_VOLUME":
+            raw_vol = action.get("volume", 50)
+            try:
+                volume = max(0, min(100, int(raw_vol)))
+            except (ValueError, TypeError):
+                volume = 50
+            subprocess.run(["osascript", "-e", f"set volume output volume {volume}"], check=False)
+            result = {"executed": True, "detail": f"Master volume set to {volume}%"}
+
+        elif cmd == "SEND_WHATSAPP":
+            phone = action.get("phone", "").strip()
+            msg = action.get("message", "").strip() or "Hello from J.A.R.V.I.S."
+            encoded_msg = urllib.parse.quote(msg)
+            wa_desktop = f"whatsapp://send?phone={phone}&text={encoded_msg}" if phone else f"whatsapp://send?text={encoded_msg}"
+            wa_web = f"https://web.whatsapp.com/send?text={encoded_msg}"
+            action["web_url"] = wa_web
+            action["desktop_url"] = wa_desktop
+            subprocess.Popen(["open", wa_desktop])
+            result = {"executed": True, "detail": f"WhatsApp draft initialized for: '{msg}'"}
+
+        elif cmd == "SEND_EMAIL":
+            to = action.get("to", "").strip()
+            subject = action.get("subject", "").strip() or "Message from J.A.R.V.I.S."
+            body = action.get("body", "").strip()
+            gmail_url = f"https://mail.google.com/mail/?view=cm&fs=1&to={urllib.parse.quote(to)}&su={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+            mailto_url = f"mailto:{to}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+            action["gmail_url"] = gmail_url
+            action["mailto_url"] = mailto_url
+            subprocess.Popen(["open", gmail_url])
+            result = {"executed": True, "detail": f"Gmail compose opened for {to or 'recipient'}"}
+
+        elif cmd == "SEARCH_WEB":
+            query = action.get("query", "").strip()
+            if query:
+                url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
+                action["search_url"] = url
+                subprocess.Popen(["open", url])
+                result = {"executed": True, "detail": f"Web search opened for: '{query}'"}
+
+        elif cmd == "OPEN_URL":
+            url = action.get("url", "").strip()
+            if url:
+                if not url.startswith("http://") and not url.startswith("https://"):
+                    url = "https://" + url
+                subprocess.Popen(["open", url])
+                result = {"executed": True, "detail": f"Opened URL: {url}"}
+
+    except Exception as e:
+        result = {"executed": False, "detail": f"macOS execution note: {e}"}
+
+    action["result"] = result
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────
+# LOCAL GEMMA 2 MODEL INTEGRATION (Apple Silicon M2 / Ollama)
+# ─────────────────────────────────────────────────────────────────
+LOCAL_OLLAMA_URL = "http://localhost:11434/api/chat"
+LOCAL_GEMMA_MODEL = "gemma2:2b"
+
+
+def call_local_gemma(history: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Call locally running Google Gemma 2 on Apple Silicon M2 via Ollama.
+    High speed, private, offline.
+    """
+    global ai_success_count
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for m in history[-8:]:
+        role = "user" if m.get("role") == "user" else "assistant"
+        messages.append({"role": role, "content": m.get("content", "")})
+
+    payload = {
+        "model": LOCAL_GEMMA_MODEL,
+        "messages": messages,
+        "format": "json",
+        "stream": False,
+        "options": {
+            "temperature": 0.2,
+            "num_predict": 300,
+        }
+    }
+
+    with httpx.Client(timeout=httpx.Timeout(connect=2.0, read=6.0, write=2.0, pool=2.0)) as client:
+        resp = client.post(LOCAL_OLLAMA_URL, json=payload)
+        resp.raise_for_status()
+        data = resp.json()
+        raw_text = data.get("message", {}).get("content", "")
+        result = extract_json(raw_text)
+        ai_success_count += 1
+        return result
+
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -291,6 +506,14 @@ def validate_response(data: Dict[str, Any], user_text: str) -> Dict[str, Any]:
     if not isinstance(data.get("reply"), str) or not data["reply"].strip():
         data["reply"] = "Holographic array synchronized, Sir."
 
+    # If raw JSON string leaked into reply, parse out the inner reply
+    if data["reply"].strip().startswith("{"):
+        reply_match = re.search(r'"reply"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"', data["reply"])
+        if reply_match:
+            data["reply"] = reply_match.group(1).encode().decode('unicode_escape', errors='ignore')
+        else:
+            data["reply"] = "Action processed, Sir."
+
     # Truncate overly long replies
     if len(data["reply"]) > 300:
         data["reply"] = data["reply"][:297] + "..."
@@ -300,16 +523,41 @@ def validate_response(data: Dict[str, Any], user_text: str) -> Dict[str, Any]:
         data["action"] = {"command": "NONE"}
 
     # Validate command
-    cmd = data["action"].get("command", "NONE").upper()
+    cmd = str(data["action"].get("command", "NONE")).upper()
     if cmd not in VALID_COMMANDS:
         data["action"]["command"] = "NONE"
     else:
         data["action"]["command"] = cmd
 
-    # Ensure widget_name for DEPLOY_WIDGET
+    # If model returned NONE but the user query had an unambiguous command,
+    # adopt deterministic fallback action while keeping model's spoken reply
+    if data["action"]["command"] == "NONE":
+        fb = fallback_jarvis_engine(user_text)
+        if fb.get("action", {}).get("command") and fb["action"]["command"] != "NONE":
+            data["action"] = fb["action"]
+
+    # Command-specific field sanitization
     if data["action"]["command"] == "DEPLOY_WIDGET":
         if not isinstance(data["action"].get("widget_name"), str) or not data["action"]["widget_name"].strip():
             data["action"]["widget_name"] = PRESET_WIDGET_NAMES[len(chat_history) % len(PRESET_WIDGET_NAMES)]
+    elif data["action"]["command"] == "SET_VOLUME":
+        try:
+            data["action"]["volume"] = max(0, min(100, int(data["action"].get("volume", 50))))
+        except (ValueError, TypeError):
+            data["action"]["volume"] = 50
+    elif data["action"]["command"] == "OPEN_APP":
+        if not data["action"].get("app_name"):
+            data["action"]["app_name"] = "System Settings"
+    elif data["action"]["command"] == "SEND_WHATSAPP":
+        if not data["action"].get("message"):
+            data["action"]["message"] = user_text
+    elif data["action"]["command"] == "SEND_EMAIL":
+        if not data["action"].get("to"):
+            data["action"]["to"] = "contact@stark.com"
+        if not data["action"].get("subject"):
+            data["action"]["subject"] = "Update from J.A.R.V.I.S."
+        if not data["action"].get("body"):
+            data["action"]["body"] = user_text
 
     return data
 
@@ -355,10 +603,11 @@ def get_frontend():
 def chat_endpoint(payload: ChatInput):
     """
     POST /chat
-    Accepts a user query, routes to Google AI Studio with fallback, returns J.A.R.V.I.S. JSON.
-
-    Request:  { "text": "Run system diagnostics" }
-    Response: { "reply": "...", "action": { "command": "SYSTEM_SCAN" } }
+    Accepts user text, routes through priority AI pipeline:
+    1. Local Gemma 2 via Ollama (Apple Silicon M2)
+    2. Google Gemini Flash (Cloud API)
+    3. Resilient Fallback Engine
+    Executes native macOS system automation & messaging, and returns J.A.R.V.I.S. response.
     """
     global request_count
 
@@ -374,22 +623,37 @@ def chat_endpoint(payload: ChatInput):
     # Append user message to history
     chat_history.append({"role": "user", "content": user_text, "timestamp": timestamp})
 
-    # Attempt AI — graceful fallback on any error
-    api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
     response_data: Optional[Dict[str, Any]] = None
+    engine_used = "J.A.R.V.I.S. Local Matrix (Fallback)"
 
-    if api_key and (api_key.startswith("AQ.") or api_key.startswith("AIza")):
-        try:
-            response_data = call_google_ai_studio(chat_history, api_key)
-        except Exception as e:
-            print(f"[JARVIS] AI provider failed, engaging fallback engine. Reason: {e}")
-            response_data = fallback_jarvis_engine(user_text)
-    else:
-        # No valid key — instant local response
+    # 1. Attempt Local Gemma 2 via Ollama (Apple Silicon M2)
+    try:
+        response_data = call_local_gemma(chat_history)
+        engine_used = "Local Gemma 2 (Apple M2)"
+    except Exception as e:
+        # print(f"[JARVIS] Local Gemma 2 unavailable: {e}")
+        pass
+
+    # 2. Attempt Google Gemini Flash (Cloud API)
+    if not response_data:
+        api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
+        if api_key and (api_key.startswith("AQ.") or api_key.startswith("AIza")):
+            try:
+                response_data = call_google_ai_studio(chat_history, api_key)
+                engine_used = "Google Gemini Flash (Cloud)"
+            except Exception as e:
+                print(f"[JARVIS] Cloud AI failed: {e}")
+
+    # 3. Rule-based offline engine
+    if not response_data:
         response_data = fallback_jarvis_engine(user_text)
+        engine_used = "J.A.R.V.I.S. Rule Engine (Offline)"
 
-    # Validate and sanitize
+    # Validate and sanitize response
     response_data = validate_response(response_data, user_text)
+
+    # Execute native macOS task (open app, adjust volume, launch WhatsApp / Gmail compose)
+    execute_mac_task(response_data["action"])
 
     # Append assistant reply to history
     chat_history.append({
@@ -405,6 +669,7 @@ def chat_endpoint(payload: ChatInput):
 
     return {
         **response_data,
+        "engine": engine_used,
         "timestamp": timestamp,
         "session_requests": request_count,
     }
@@ -453,14 +718,30 @@ def clear_history():
 def get_status():
     """
     GET /status
-    Returns system health and session stats for the holographic dashboard.
+    Returns system health, local Gemma status, and session stats for the HUD.
     """
     api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
+    
+    # Check if local Ollama Gemma is running
+    local_gemma_online = False
+    try:
+        with httpx.Client(timeout=0.6) as client:
+            r = client.get("http://localhost:11434/api/tags")
+            if r.status_code == 200:
+                models = [m.get("name", "") for m in r.json().get("models", [])]
+                local_gemma_online = any("gemma" in m for m in models)
+    except Exception:
+        local_gemma_online = False
+
+    active_model = "gemma2:2b (Local Apple M2)" if local_gemma_online else ("gemini-flash-latest" if api_key else "local-fallback-engine")
+
     return {
         "status": "ONLINE",
-        "version": "2.0.0",
-        "ai_model": "gemini-flash-latest" if api_key else "local-fallback-engine",
-        "ai_connected": bool(api_key),
+        "version": "2.1.0",
+        "ai_model": active_model,
+        "local_gemma_online": local_gemma_online,
+        "cloud_ai_connected": bool(api_key),
+        "ai_connected": local_gemma_online or bool(api_key),
         "session_uptime_seconds": round(time.time() - session_start, 1),
         "history_length": len(chat_history),
         "request_count": request_count,
