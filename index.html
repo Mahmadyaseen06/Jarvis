@@ -252,8 +252,8 @@
         <polygon fill="none" points="110,40 170,145 50,145" stroke="#ffb700" stroke-opacity="0.5" stroke-width="1.5"/>
         <polygon fill="none" points="110,180 50,75 170,75" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="1.5"/>
       </svg>
-      <div class="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-surface-container-lowest via-surface-container to-surface-container-low border-2 border-primary-container/80 flex items-center justify-center animate-reactor-pulse shadow-[0_0_30px_rgba(0,212,255,0.7)] group-hover:shadow-[0_0_55px_rgba(0,212,255,0.95)] transition-all" id="arc-reactor-core">
-        <div class="w-16 h-16 rounded-full bg-primary-container/20 border border-primary flex items-center justify-center shadow-[inset_0_0_15px_#00d4ff]">
+      <div class="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-surface-container-lowest via-surface-container to-surface-container-low border-2 border-primary-container/80 flex items-center justify-center animate-reactor-pulse shadow-[0_0_30px_rgba(0,212,255,0.7)] hover:shadow-[0_0_60px_rgba(0,212,255,0.95)] transition-all cursor-pointer select-none active:scale-95" id="arc-reactor-core" onclick="toggleVoice()" role="button" tabindex="0" title="Tap Arc Reactor to Speak (Siri Voice)">
+        <div class="w-16 h-16 rounded-full bg-primary-container/20 border border-primary flex items-center justify-center shadow-[inset_0_0_15px_#00d4ff] pointer-events-none">
           <span class="material-symbols-outlined text-primary-container text-3xl group-hover:scale-110 transition-transform" id="reactor-icon">bolt</span>
         </div>
         <span class="absolute -top-1 w-2 h-2 bg-primary-container rounded-full shadow-[0_0_8px_#00d4ff]"></span>
@@ -733,6 +733,7 @@
   // ── FORM SUBMIT ──────────────────────────────────────────────────────────
   function handleCommandSubmit(e) {
     e.preventDefault();
+    stopVoiceRecognition();
     const input = document.getElementById('command-input');
     const text = input.value.trim();
     if (!text) return;
@@ -916,139 +917,136 @@
     if (bubble) bubble.remove();
   }
 
-  // ── VOICE INPUT (High-Performance Rewrite) ─────────────────────────────────
-  // Strategy: Reuse recognition instance, show interim results live,
-  // auto-send on 1.2s pause, pre-cache male voice for instant TTS.
+  // ── VOICE INPUT (Siri-Fast Web Speech Architecture) ─────────────────────────
+  // Features:
+  // 1. Fresh SpeechRecognition per session: eliminates Chrome "already-started" stale-state bugs.
+  // 2. Continuous real-time stream: captures interim + final speech instantly with zero lag.
+  // 3. Fast natural pause auto-dispatch: 1.0s silence sends command automatically.
+  // 4. Click-to-Send: tapping the Arc Reactor or Mic while listening immediately sends captured words.
+  // 5. Rich holographic feedback: Arc Reactor glows vibrant cyan and status updates live.
 
   let pauseTimer = null;
   let finalTranscript = '';
   let interimTranscript = '';
-  let voiceSent = false; // Guard against double-send
-  const PAUSE_MS = 1200; // Send after 1.2s of silence
+  let voiceSent = false;
+  const PAUSE_MS = 1000;
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-  function initRecognition() {
-    if (recognition) return; // already initialized
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) return null;
-    recognition = new SpeechRec();
-    recognition.lang = 'en-US';
-    // Safari doesn't support continuous mode (crashes with network error)
-    recognition.continuous = !isSafari;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+  function stopVoiceRecognition() {
+    clearTimeout(pauseTimer);
+    if (recognition) {
+      try { recognition.abort(); } catch(_) {}
+      recognition = null;
+    }
+    setMicState(false);
+  }
 
-    recognition.onstart = () => {
-      setMicState(true);
+  function startVoiceRecognition() {
+    stopVoiceRecognition();
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      appendJarvisLog("Voice recognition not supported in this browser, Sir. Please open this dashboard in Google Chrome on macOS.");
+      return;
+    }
+
+    try {
+      recognition = new SpeechRec();
+      recognition.lang = 'en-US';
+      recognition.continuous = !isSafari;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
       finalTranscript = '';
       interimTranscript = '';
       voiceSent = false;
-    };
+      document.getElementById('command-input').value = '';
 
-    recognition.onend = () => {
-      // If we still have unsent text and haven't dispatched yet, send it now
-      if (!voiceSent && finalTranscript.trim()) {
-        sendVoiceResult(finalTranscript.trim());
-      }
-      setMicState(false);
-      clearTimeout(pauseTimer);
-    };
+      recognition.onstart = () => {
+        setMicState(true);
+        voiceSent = false;
+      };
 
-    recognition.onerror = (e) => {
-      if (e.error === 'no-speech' || e.error === 'aborted') {
-        // Benign — user was silent or manually stopped
-        setMicState(false);
-        return;
-      }
-      setMicState(false);
-      appendJarvisLog(`Voice error: ${e.error}. Try Chrome for best results, Sir.`);
-    };
-
-    recognition.onresult = (e) => {
-      clearTimeout(pauseTimer);
-      let interim = '';
-      let final = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const txt = e.results[i][0].transcript;
-        if (e.results[i].isFinal) {
-          final += txt;
-        } else {
-          interim += txt;
-        }
-      }
-      if (final) {
-        finalTranscript += final;
-      }
-      interimTranscript = interim;
-
-      // Show live transcription in input field
-      const display = (finalTranscript + ' ' + interimTranscript).trim();
-      document.getElementById('command-input').value = display;
-      document.getElementById('mic-status-sub').textContent = display || 'Listening...';
-
-      // Auto-send after 1.2s pause (user stopped speaking)
-      if (finalTranscript.trim()) {
-        pauseTimer = setTimeout(() => {
-          const text = finalTranscript.trim();
-          finalTranscript = '';
-          interimTranscript = '';
-          if (text) {
-            // Stop recognition, then send
-            if (recognition && micListening) {
-              try { recognition.stop(); } catch(_) {}
-            }
-            sendVoiceResult(text);
+      recognition.onresult = (e) => {
+        clearTimeout(pauseTimer);
+        let interim = '';
+        let final = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const txt = e.results[i][0].transcript;
+          if (e.results[i].isFinal) {
+            final += txt;
+          } else {
+            interim += txt;
           }
-        }, PAUSE_MS);
-      }
-    };
+        }
+        if (final) {
+          finalTranscript += final;
+        }
+        interimTranscript = interim;
+
+        const currentSpoken = (finalTranscript + ' ' + interimTranscript).trim();
+        if (currentSpoken) {
+          document.getElementById('command-input').value = currentSpoken;
+          document.getElementById('mic-status-sub').textContent = `"${currentSpoken}"`;
+        }
+
+        // Auto-send after 1000ms pause if speech was detected
+        if (currentSpoken) {
+          pauseTimer = setTimeout(() => {
+            const toSend = (finalTranscript + ' ' + interimTranscript).trim() || document.getElementById('command-input').value.trim();
+            if (toSend && !voiceSent) {
+              stopVoiceRecognition();
+              sendVoiceResult(toSend);
+            }
+          }, PAUSE_MS);
+        }
+      };
+
+      recognition.onend = () => {
+        setMicState(false);
+        clearTimeout(pauseTimer);
+        const remaining = (finalTranscript + ' ' + interimTranscript).trim() || document.getElementById('command-input').value.trim();
+        if (!voiceSent && remaining) {
+          sendVoiceResult(remaining);
+        }
+        recognition = null;
+      };
+
+      recognition.onerror = (e) => {
+        clearTimeout(pauseTimer);
+        setMicState(false);
+        recognition = null;
+        if (e.error !== 'no-speech' && e.error !== 'aborted') {
+          appendJarvisLog(`Microphone audio signal interrupted (${e.error}), Sir.`);
+        }
+      };
+
+      recognition.start();
+    } catch(err) {
+      recognition = null;
+      setMicState(false);
+      appendJarvisLog("Microphone access unavailable or blocked, Sir. Please check macOS microphone permissions.");
+    }
   }
 
   function sendVoiceResult(text) {
     if (!text || voiceSent) return;
     voiceSent = true;
+    stopVoiceRecognition();
     document.getElementById('command-input').value = '';
     sendToJarvis(text);
   }
 
   function toggleVoice() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      appendJarvisLog("Voice recognition not supported in this browser, Sir. Please use Google Chrome.");
-      return;
-    }
-
-    // If currently listening, stop
     if (micListening) {
-      clearTimeout(pauseTimer);
-      if (recognition) {
-        try { recognition.stop(); } catch(_) {}
+      // User tapped while listening -> finish and send immediately!
+      const currentSpoken = (finalTranscript + ' ' + interimTranscript).trim() || document.getElementById('command-input').value.trim();
+      stopVoiceRecognition();
+      if (currentSpoken && !voiceSent) {
+        sendVoiceResult(currentSpoken);
       }
-      return;
-    }
-
-    // Initialize or reuse recognition
-    initRecognition();
-    if (!recognition) {
-      appendJarvisLog("Voice recognition unavailable, Sir.");
-      return;
-    }
-
-    // Reset state
-    finalTranscript = '';
-    interimTranscript = '';
-    voiceSent = false;
-    document.getElementById('command-input').value = '';
-
-    try {
-      recognition.start();
-    } catch (e) {
-      // If already running, abort and restart
-      try { recognition.abort(); } catch(_) {}
-      recognition = null;
-      initRecognition();
-      try { recognition.start(); } catch(_) {
-        appendJarvisLog("Microphone access denied or unavailable, Sir.");
-      }
+    } else {
+      startVoiceRecognition();
     }
   }
 
@@ -1059,6 +1057,8 @@
     const pulse    = document.getElementById('mic-pulse-ring');
     const label    = document.getElementById('mic-status-label');
     const subLabel = document.getElementById('mic-status-sub');
+    const core     = document.getElementById('arc-reactor-core');
+    const coreIcon = document.getElementById('reactor-icon');
 
     if (active) {
       micBtn.classList.add('border-primary-container', 'text-primary-container', 'bg-primary-container/20');
@@ -1066,8 +1066,13 @@
       micIcon.textContent = 'mic';
       micIcon.style.color = '#00d4ff';
       pulse.classList.remove('hidden');
-      label.textContent = 'LISTENING, SIR...';
-      subLabel.textContent = 'Speak your command now';
+      label.textContent = 'SIRI // LISTENING...';
+      subLabel.textContent = 'Speak your command now (tap to send immediately)';
+      if (core) {
+        core.classList.add('scale-105', 'border-primary-container');
+        core.style.boxShadow = '0 0 70px rgba(0, 212, 255, 0.95)';
+      }
+      if (coreIcon) coreIcon.textContent = 'graphic_eq';
     } else {
       micBtn.classList.remove('border-primary-container', 'text-primary-container', 'bg-primary-container/20');
       micBtn.style.boxShadow = '';
@@ -1076,6 +1081,11 @@
       pulse.classList.add('hidden');
       label.textContent = 'TAP THE MIC TO SPEAK';
       subLabel.textContent = 'or type your command below // Jarvis Neural Transceiver Ready';
+      if (core) {
+        core.classList.remove('scale-105', 'border-primary-container');
+        core.style.boxShadow = '';
+      }
+      if (coreIcon) coreIcon.textContent = 'bolt';
     }
   }
 

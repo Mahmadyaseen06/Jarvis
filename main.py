@@ -252,11 +252,17 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             }
 
     # 3. WhatsApp Messaging
-    if "whatsapp" in lower or "what's app" in lower:
-        phone_match = re.search(r"(?:to|for)\s+([a-zA-Z0-9\+\-]+)", user_text, re.IGNORECASE)
-        phone = phone_match.group(1) if phone_match else ""
+    if "whatsapp" in lower or "what's app" in lower or "send message" in lower:
+        phone_match = re.search(r"(?:to|for|whatsapp(?:\s+message)?\s+to|whatsapp\s+)\s*([a-zA-Z0-9\+\-]+)", user_text, re.IGNORECASE)
+        phone = phone_match.group(1).strip() if phone_match else ""
+        if phone.lower() in ["message", "a", "someone", "whatsapp"]:
+            phone = ""
         msg_match = re.search(r"(?:saying|that|message\s*:?)\s+(.*)", user_text, re.IGNORECASE)
-        msg = msg_match.group(1).strip() if msg_match else user_text
+        if msg_match:
+            msg = msg_match.group(1).strip()
+        else:
+            cleaned = re.sub(r"^(?:please\s+)?(?:send\s+(?:a\s+)?(?:whatsapp\s+)?message(?:\s+on\s+whatsapp)?(?:\s+to\s+[\w\+\-]+)?|whatsapp(?:\s+[\w\+\-]+)?)\s*", "", user_text, flags=re.IGNORECASE).strip()
+            msg = cleaned if cleaned and len(cleaned) > 2 else "Hello from J.A.R.V.I.S."
         return {
             "reply": f"Composing WhatsApp message for {phone or 'recipient'}, Sir.",
             "action": {"command": "SEND_WHATSAPP", "phone": phone, "message": msg}
@@ -267,14 +273,20 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
         to_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", user_text)
         to_email = to_match.group(0) if to_match else ""
         if not to_email:
-            name_match = re.search(r"(?:to|for)\s+([a-zA-Z0-9\s]+?)(?:\s+with|\s+saying|\s+about|$)", user_text, re.IGNORECASE)
-            to_email = name_match.group(1).strip() if name_match else ""
+            name_match = re.search(r"(?:to|for|email\s+)\s*([a-zA-Z0-9\.\-_]+)(?:\s+with|\s+saying|\s+about|\s+that|$)", user_text, re.IGNORECASE)
+            candidate = name_match.group(1).strip() if name_match else ""
+            if candidate.lower() not in ["gmail", "email", "someone", "me", "a", "the"]:
+                to_email = candidate
 
         subj_match = re.search(r"(?:subject|about)\s+([^\.]+?)(?:\s+and\s+body|\s+body|\.|$)", user_text, re.IGNORECASE)
-        subject = subj_match.group(1).strip() if subj_match else "Message from J.A.R.V.I.S."
+        subject = subj_match.group(1).strip() if subj_match else "Status Update via J.A.R.V.I.S."
 
         body_match = re.search(r"(?:body|saying|message)\s+(.*)", user_text, re.IGNORECASE)
-        body = body_match.group(1).strip() if body_match else "Draft created via J.A.R.V.I.S."
+        if body_match:
+            body = body_match.group(1).strip()
+        else:
+            cleaned = re.sub(r"^(?:please\s+)?(?:send\s+(?:an?\s+)?(?:email|gmail)(?:\s+to\s+[\w\.\-@]+)?|email(?:\s+[\w\.\-@]+)?)\s*", "", user_text, flags=re.IGNORECASE).strip()
+            body = cleaned if cleaned and len(cleaned) > 3 else "All systems operational. Sent via J.A.R.V.I.S. neural console."
 
         return {
             "reply": f"Opening Gmail compose window for {to_email or 'recipient'}, Sir.",
@@ -428,7 +440,8 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
 
         elif cmd == "CALCULATE":
             expression = action.get("expression", "").strip()
-            calc_answer = action.get("answer", "")  # numeric answer (not the execution status dict)
+            calc_answer = action.get("answer") or action.get("result") or ""
+            action["answer"] = str(calc_answer)
             # Open Calculator app
             subprocess.Popen(["open", "-a", "Calculator"])
             result = {"executed": True, "detail": f"{expression} = {calc_answer}"}
@@ -495,12 +508,16 @@ def call_local_gemma(history: List[Dict[str, Any]]) -> Dict[str, Any]:
         }
     }
 
-    with httpx.Client(timeout=httpx.Timeout(connect=2.0, read=6.0, write=2.0, pool=2.0)) as client:
+    with httpx.Client(timeout=httpx.Timeout(connect=2.0, read=15.0, write=2.0, pool=2.0)) as client:
         resp = client.post(LOCAL_OLLAMA_URL, json=payload)
         resp.raise_for_status()
         data = resp.json()
         raw_text = data.get("message", {}).get("content", "")
         result = extract_json(raw_text)
+        if isinstance(result, dict) and "action" in result and isinstance(result["action"], dict):
+            act = result["action"]
+            if act.get("command") == "CALCULATE" and "result" in act and not act.get("answer"):
+                act["answer"] = str(act["result"])
         ai_success_count += 1
         return result
 
@@ -630,14 +647,17 @@ def validate_response(data: Dict[str, Any], user_text: str) -> Dict[str, Any]:
     elif data["action"]["command"] == "CALCULATE":
         if not data["action"].get("app_name"):
             data["action"]["app_name"] = "Calculator"
-        # If the model provided an expression but no answer, compute it
-        if data["action"].get("expression") and not data["action"].get("answer"):
-            try:
-                expr = re.sub(r'[^0-9\+\-\*\/\%\.\(\)\s]', '', data["action"]["expression"])
-                ans = eval(compile(expr, "<expr>", "eval"), {"__builtins__": {}})
-                data["action"]["answer"] = str(int(ans) if isinstance(ans, float) and ans.is_integer() else round(ans, 6))
-            except Exception:
-                pass
+        # If the model provided an expression or result, ensure answer is set
+        if not data["action"].get("answer"):
+            if data["action"].get("result") and isinstance(data["action"]["result"], (int, float, str)):
+                data["action"]["answer"] = str(data["action"]["result"])
+            elif data["action"].get("expression"):
+                try:
+                    expr = re.sub(r'[^0-9\+\-\*\/\%\.\(\)\s]', '', str(data["action"]["expression"]))
+                    ans = eval(compile(expr, "<expr>", "eval"), {"__builtins__": {}})
+                    data["action"]["answer"] = str(int(ans) if isinstance(ans, float) and ans.is_integer() else round(ans, 6))
+                except Exception:
+                    pass
     elif data["action"]["command"] == "FIND_FILE":
         if not data["action"].get("filename"):
             data["action"]["filename"] = user_text
@@ -808,7 +828,7 @@ def get_status():
     # Check if local Ollama Gemma is running
     local_gemma_online = False
     try:
-        with httpx.Client(timeout=0.6) as client:
+        with httpx.Client(timeout=1.5) as client:
             r = client.get("http://localhost:11434/api/tags")
             if r.status_code == 200:
                 models = [m.get("name", "") for m in r.json().get("models", [])]

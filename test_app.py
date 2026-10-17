@@ -75,19 +75,44 @@ def run_tests():
     assert data["action"]["command"] == "SEND_EMAIL"
     assert "gmail_url" in data["action"]
 
-    # 9. NONE (Conversational chat)
+    # 9. CALCULATE Command
+    res = client.post("/chat", json={"text": "calculate 26 * 25"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 9. POST /chat (CALCULATE):", data)
+    assert data["action"]["command"] == "CALCULATE"
+    assert data["action"]["answer"] == "650"
+    assert "Calculator" in data["action"].get("app_name", "")
+
+    # 10. FIND_FILE Command
+    res = client.post("/chat", json={"text": "Jarvis, find file main.py in system"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 10. POST /chat (FIND_FILE):", data)
+    assert data["action"]["command"] == "FIND_FILE"
+
+    # 11. Flexible WhatsApp & Gmail variations
+    res = client.post("/chat", json={"text": "send message on whatsapp to Pepper saying meeting rescheduled"})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["action"]["command"] == "SEND_WHATSAPP"
+    assert data["action"]["phone"] == "Pepper"
+    assert "meeting rescheduled" in data["action"]["message"]
+    print("✅ 11. POST /chat (Flexible WhatsApp):", data)
+
+    # 12. NONE (Conversational chat)
     res = client.post("/chat", json={"text": "Hello Jarvis, tell me a quick witty remark"})
     assert res.status_code == 200
     data = res.json()
-    print("✅ 9. POST /chat (NONE / Chatting):", data)
+    print("✅ 12. POST /chat (NONE / Chatting):", data)
     assert data["action"]["command"] == "NONE"
 
-    # 10. Check History
+    # 13. Check History
     res = client.get("/history")
     assert res.status_code == 200
     hist = res.json()
-    print(f"✅ 10. GET /history: {hist['count']} messages preserved in context.")
-    assert hist["count"] == 16  # 8 user + 8 assistant
+    print(f"✅ 13. GET /history: {hist['count']} messages preserved in context.")
+    assert hist["count"] == 22  # 11 user + 11 assistant
 
     # 7. Clear History
     res = client.post("/clear")
