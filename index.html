@@ -904,73 +904,206 @@
     if (bubble) bubble.remove();
   }
 
-  // ── VOICE INPUT ───────────────────────────────────────────────────────────
-  function toggleVoice() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      appendJarvisLog("Voice recognition not supported in this browser, Sir. Please use Chrome.");
-      return;
-    }
+  // ── VOICE INPUT (High-Performance Rewrite) ─────────────────────────────────
+  // Strategy: Reuse recognition instance, show interim results live,
+  // auto-send on 1.2s pause, pre-cache male voice for instant TTS.
 
-    if (micListening) {
-      recognition && recognition.stop();
-      setMicState(false);
-      return;
-    }
+  let pauseTimer = null;
+  let finalTranscript = '';
+  let interimTranscript = '';
+  let voiceSent = false; // Guard against double-send
+  const PAUSE_MS = 1200; // Send after 1.2s of silence
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+  function initRecognition() {
+    if (recognition) return; // already initialized
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) return null;
     recognition = new SpeechRec();
     recognition.lang = 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    // Safari doesn't support continuous mode (crashes with network error)
+    recognition.continuous = !isSafari;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => setMicState(true);
-    recognition.onend = () => setMicState(false);
-    recognition.onerror = (e) => {
-      setMicState(false);
-      if (e.error !== 'aborted') appendJarvisLog(`Voice recognition error, Sir: ${e.error}`);
+    recognition.onstart = () => {
+      setMicState(true);
+      finalTranscript = '';
+      interimTranscript = '';
+      voiceSent = false;
     };
+
+    recognition.onend = () => {
+      // If we still have unsent text and haven't dispatched yet, send it now
+      if (!voiceSent && finalTranscript.trim()) {
+        sendVoiceResult(finalTranscript.trim());
+      }
+      setMicState(false);
+      clearTimeout(pauseTimer);
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error === 'no-speech' || e.error === 'aborted') {
+        // Benign — user was silent or manually stopped
+        setMicState(false);
+        return;
+      }
+      setMicState(false);
+      appendJarvisLog(`Voice error: ${e.error}. Try Chrome for best results, Sir.`);
+    };
+
     recognition.onresult = (e) => {
-      const transcript = e.results[0][0].transcript.trim();
-      if (transcript) {
-        document.getElementById('command-input').value = transcript;
-        sendToJarvis(transcript);
+      clearTimeout(pauseTimer);
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const txt = e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          final += txt;
+        } else {
+          interim += txt;
+        }
+      }
+      if (final) {
+        finalTranscript += final;
+      }
+      interimTranscript = interim;
+
+      // Show live transcription in input field
+      const display = (finalTranscript + ' ' + interimTranscript).trim();
+      document.getElementById('command-input').value = display;
+      document.getElementById('mic-status-sub').textContent = display || 'Listening...';
+
+      // Auto-send after 1.2s pause (user stopped speaking)
+      if (finalTranscript.trim()) {
+        pauseTimer = setTimeout(() => {
+          const text = finalTranscript.trim();
+          finalTranscript = '';
+          interimTranscript = '';
+          if (text) {
+            // Stop recognition, then send
+            if (recognition && micListening) {
+              try { recognition.stop(); } catch(_) {}
+            }
+            sendVoiceResult(text);
+          }
+        }, PAUSE_MS);
       }
     };
-    recognition.start();
+  }
+
+  function sendVoiceResult(text) {
+    if (!text || voiceSent) return;
+    voiceSent = true;
+    document.getElementById('command-input').value = '';
+    sendToJarvis(text);
+  }
+
+  function toggleVoice() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      appendJarvisLog("Voice recognition not supported in this browser, Sir. Please use Google Chrome.");
+      return;
+    }
+
+    // If currently listening, stop
+    if (micListening) {
+      clearTimeout(pauseTimer);
+      if (recognition) {
+        try { recognition.stop(); } catch(_) {}
+      }
+      return;
+    }
+
+    // Initialize or reuse recognition
+    initRecognition();
+    if (!recognition) {
+      appendJarvisLog("Voice recognition unavailable, Sir.");
+      return;
+    }
+
+    // Reset state
+    finalTranscript = '';
+    interimTranscript = '';
+    voiceSent = false;
+    document.getElementById('command-input').value = '';
+
+    try {
+      recognition.start();
+    } catch (e) {
+      // If already running, abort and restart
+      try { recognition.abort(); } catch(_) {}
+      recognition = null;
+      initRecognition();
+      try { recognition.start(); } catch(_) {
+        appendJarvisLog("Microphone access denied or unavailable, Sir.");
+      }
+    }
   }
 
   function setMicState(active) {
     micListening = active;
     const micBtn   = document.getElementById('mic-actuator-btn');
+    const micIcon  = document.getElementById('mic-icon');
     const pulse    = document.getElementById('mic-pulse-ring');
     const label    = document.getElementById('mic-status-label');
     const subLabel = document.getElementById('mic-status-sub');
 
     if (active) {
       micBtn.classList.add('border-primary-container', 'text-primary-container', 'bg-primary-container/20');
+      micBtn.style.boxShadow = '0 0 18px rgba(0, 212, 255, 0.6)';
+      micIcon.textContent = 'mic';
+      micIcon.style.color = '#00d4ff';
       pulse.classList.remove('hidden');
       label.textContent = 'LISTENING, SIR...';
       subLabel.textContent = 'Speak your command now';
     } else {
       micBtn.classList.remove('border-primary-container', 'text-primary-container', 'bg-primary-container/20');
+      micBtn.style.boxShadow = '';
+      micIcon.textContent = 'mic';
+      micIcon.style.color = '';
       pulse.classList.add('hidden');
       label.textContent = 'TAP THE MIC TO SPEAK';
       subLabel.textContent = 'or type your command below // Jarvis Neural Transceiver Ready';
     }
   }
 
-  // ── BROWSER TTS ───────────────────────────────────────────────────────────
-  function speakReply(text) {
+  // ── BROWSER TTS (Pre-cached Male Voice) ───────────────────────────────────
+  let cachedVoice = null;
+
+  function loadPreferredVoice() {
     if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return;
+    // Priority: Daniel (British), any en-GB male, then any en-GB, then first English
+    cachedVoice =
+      voices.find(v => v.name.includes('Daniel')) ||
+      voices.find(v => v.lang === 'en-GB' && /male/i.test(v.name)) ||
+      voices.find(v => v.lang === 'en-GB') ||
+      voices.find(v => v.lang.startsWith('en')) ||
+      voices[0];
+  }
+
+  function speakReply(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    // Cancel any ongoing speech immediately
     window.speechSynthesis.cancel();
+
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = 'en-GB';
-    utt.rate = 0.92;
-    utt.pitch = 0.85;
-    // Prefer a British/Daniel voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const brit = voices.find(v => v.name.includes('Daniel') || v.name.includes('British') || (v.lang === 'en-GB'));
-    if (brit) utt.voice = brit;
+    utt.rate = 1.0;   // Natural speed — not slowed down
+    utt.pitch = 0.85;  // Slightly deeper for J.A.R.V.I.S. character
+    utt.volume = 1.0;
+
+    if (cachedVoice) {
+      utt.voice = cachedVoice;
+    } else {
+      // Fallback: try loading now
+      loadPreferredVoice();
+      if (cachedVoice) utt.voice = cachedVoice;
+    }
+
+    // Chrome requires a resume() call if synthesis was paused
+    window.speechSynthesis.resume();
     window.speechSynthesis.speak(utt);
   }
 
@@ -1036,10 +1169,15 @@
     setInterval(pollTelemetry, 2000);   // Refresh telemetry every 2s
     setInterval(updateClock, 1000);     // Live UTC clock
 
-    // Pre-load TTS voices
+    // Pre-load TTS voices eagerly for instant response
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.addEventListener('voiceschanged', () => window.speechSynthesis.getVoices());
+      loadPreferredVoice();
+      window.speechSynthesis.addEventListener('voiceschanged', loadPreferredVoice);
+    }
+
+    // Pre-initialize speech recognition (no startup delay on first click)
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      initRecognition();
     }
   });
 </script>
