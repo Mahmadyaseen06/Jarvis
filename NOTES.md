@@ -103,4 +103,8 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - OpenJarvis Executive Briefing Engine: Added `DIGEST_BRIEFING` command responding to "give me my morning digest", "brief me", "status report", "executive summary", etc. Pulls real-time battery vitals, SSD storage, active todos, and defense posture into both speech and an interactive HUD briefing card. Added endpoints `GET /api/openjarvis/briefing` and `GET /api/openjarvis/status`.
   - Bug & Fix (Todos Data Type Guard): When `GET /api/todos` response `{"todos": [...]}` was saved back without unwrapping, `todos.json` stored keys resulting in strings in list comprehensions (`AttributeError: 'str' object has no attribute 'get'`). Fixed by hardening `load_todos` and `save_todos` to unwrap `data["todos"]` if dict, validate dict items with `"task"`, and make all comprehensions defensive with `isinstance(t, dict)`.
   - CLI & UI: Added `DIGEST_BRIEFING` formatting to `./bro` CLI and built a holographic Executive Briefing status card in `index.html`.
-  - Integration Tests: Expanded test suite to 44/44 end-to-end tests (44/44 passing).
+- 2026-10-18 — Dynamic Friend Contact Registration & WhatsApp Multi-Recipient Dispatch:
+  - Natural Contact Directory Management: Added `MANAGE_CONTACTS` engine to `fallback_jarvis_engine` responding to directives like "save contact Rahul 9876543210", "add contact Aman with phone 9123456789", and "show contacts". Contacts are dynamically persisted to `contacts.json`.
+  - Seamless Contact Resolution: Added instant name resolution in `resolve_contact()` and `auto_send_whatsapp()` so users can send messages to friends either directly by phone number or by their registered first name (e.g. "send whatsapp to Rahul let's meet").
+  - CLI: Added `MANAGE_CONTACTS` formatting to `./bro` CLI showing registered contact cards and directory listings.
+  - Integration Tests: Expanded test suite to 45/45 end-to-end tests (45/45 passing).

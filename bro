@@ -116,6 +116,17 @@ def main():
         print(f"  • WhatsApp: {wa} (Armed)")
         print(f"  • Tasks:    {len(todos)} Active Directives")
         print(f"  • Defense:  Nominal\n")
+    elif cmd == "MANAGE_CONTACTS":
+        op = action.get("operation", "add")
+        if op == "add":
+            print(f"{GREEN}{BOLD}[CONTACT REGISTERED]{RESET} {action.get('name')} ➔ {action.get('phone')}\n")
+        else:
+            contacts = action.get("contacts", {}).get("phone", {})
+            print(f"{CYAN}{BOLD}[STARK CONTACTS DIRECTORY]{RESET}")
+            for k, v in contacts.items():
+                if k not in ["me", "myself", "commander"]:
+                    print(f"  • {k.title():<12}: {v}")
+            print()
 
 if __name__ == "__main__":
     main()

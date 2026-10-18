@@ -1000,6 +1000,29 @@ if __name__ == "__main__":
             "action": {"command": "MANAGE_TODOS", "operation": "list", "todos": todos}
         }
 
+    # 18e. thevickypedia/Jarvis Contacts Management
+    if any(lower.startswith(k) for k in ["add contact", "new contact", "save contact", "register contact"]):
+        m = re.search(r'(?:add\s+contact|new\s+contact|save\s+contact|register\s+contact)\s+([a-zA-Z\s]+?)(?:\s+with\s+phone|\s+with\s+number|\s*:\s*|\s+phone\s+|\s+number\s+|\s+)([0-9\+\-\s]{7,15})', user_text, re.IGNORECASE)
+        if m:
+            c_name = m.group(1).strip()
+            c_phone = re.sub(r'[^0-9\+]', '', m.group(2).strip())
+            contacts = load_contacts()
+            contacts.setdefault("phone", {})[c_name.lower()] = c_phone
+            save_contacts(contacts)
+            return {
+                "reply": f"Contact '{c_name}' successfully registered with phone {c_phone} in your Stark contact directory, Sir.",
+                "action": {"command": "MANAGE_CONTACTS", "operation": "add", "name": c_name, "phone": c_phone}
+            }
+
+    if any(k in lower for k in ["show contacts", "list contacts", "who are my contacts", "show my contacts", "view contacts"]):
+        contacts = load_contacts()
+        names = list(contacts.get("phone", {}).keys())
+        names_str = ", ".join([n.title() for n in names if n not in ["me", "myself", "commander"]])
+        return {
+            "reply": f"Your Stark contact directory contains: {names_str}, Sir.",
+            "action": {"command": "MANAGE_CONTACTS", "operation": "list", "contacts": contacts}
+        }
+
     # 18d. OpenJarvis Executive Briefing & Morning Digest Engine
     if any(k in lower for k in ["morning digest", "daily digest", "briefing", "brief me", "executive summary", "status report", "executive briefing", "daily briefing"]):
         vitals = get_system_hardware_vitals()
@@ -1542,6 +1565,8 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
 
             resolved_phone = action.get("resolved_phone") or resolve_contact(phone, key="phone") or phone
             clean_digits = re.sub(r"[^0-9]", "", resolved_phone)
+            if len(clean_digits) == 10 and clean_digits[0] in "6789":
+                clean_digits = f"91{clean_digits}"
             encoded_msg = urllib.parse.quote(msg)
 
             wa_desktop = f"whatsapp://send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"whatsapp://send?text={encoded_msg}"
@@ -1574,6 +1599,10 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
         elif cmd == "MANAGE_TODOS":
             task = action.get("task", "")
             result = {"executed": True, "detail": f"Todo task updated: '{task}'"}
+
+        elif cmd == "MANAGE_CONTACTS":
+            name = action.get("name", "Contact")
+            result = {"executed": True, "detail": f"Contact registry updated: '{name}'"}
 
         elif cmd == "DIGEST_BRIEFING":
             result = {"executed": True, "detail": "OpenJarvis Executive Briefing synthesized and telemetry projected to HUD array"}

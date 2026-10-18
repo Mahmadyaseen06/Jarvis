@@ -430,10 +430,19 @@ def run_tests():
     res_briefing_api = client.get("/api/openjarvis/briefing")
     assert res_briefing_api.status_code == 200
     assert res_briefing_api.json()["commander"] == "Yaseen"
-    print("✅ 44. POST /chat & GET /api/openjarvis/briefing: OpenJarvis Executive Briefing verified")
+    # 45. Natural Contact Registration & Friend WhatsApp Dispatch
+    res_add_c = client.post("/chat", json={"text": "save contact Aman 9123456789"})
+    assert res_add_c.status_code == 200
+    assert res_add_c.json()["action"]["command"] == "MANAGE_CONTACTS"
+    res_friend_wa = client.post("/chat", json={"text": "send whatsapp to Aman let's study tonight"})
+    assert res_friend_wa.status_code == 200
+    data_f_wa = res_friend_wa.json()
+    assert data_f_wa["action"]["command"] == "SEND_WHATSAPP"
+    assert "919123456789" in data_f_wa["action"]["desktop_url"]
+    print("✅ 45. POST /chat (Friend Contact Registration & WhatsApp): 'save contact Aman' & dispatch to friend verified")
 
     print("=" * 60)
-    print("🎉 ALL 44 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 45 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":
