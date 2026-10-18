@@ -73,4 +73,10 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Added: Comprehensive `full_system` hardware telemetry query covering battery % with charging time remaining, SSD storage breakdown, Apple Silicon M2 CPU load, Unified RAM, macOS build, system uptime, and multi-channel DM gateway status.
   - Added: Executable CLI tool `./bro` (and `jarvis` symlink) allowing direct terminal commands (`./bro what is my battery percentage`, `./bro give a full access to my system`, `./bro dm Alex on imessage`) so commands run from the terminal succeed without `zsh: command not found: bro`.
   - Test Suite: Expanded to 30 end-to-end integration tests (30/30 passing).
+- 2026-10-18 — Advanced Neural Document & Formal Letter Composer:
+  - Issue: General writing directives like "write a letter to principal requestings used to illness" and "write a letter to the boss that I was sick" were falling through to generic standby conversational responses ("Monitoring all vectors", "Shall I run diagnostics") because the fallback engine lacked document synthesis capabilities.
+  - Solution: Implemented `COMPOSE_DOCUMENT` in `fallback_jarvis_engine` with intelligent recipient extraction (Principal, Boss, Manager, Teacher, HR), dynamic reason formulation (Medical Illness, Urgent Absences, Emergency, etc.), and full formal 4-paragraph letter structuring with official dates and sign-offs.
+  - Frontend: Built the Stark Industries Holographic Document Composer on the HUD with paper-like glassmorphic text sheet, 1-click `COPY LETTER` to clipboard with visual feedback, pre-filled `DISPATCH VIA GMAIL`, and `DOWNLOAD .TXT`.
+  - CLI: Added `COMPOSE_DOCUMENT` preview rendering to `./bro` and `./jarvis`.
+  - Test Suite: Expanded to 32 integration tests (32/32 passing, 100%).
 

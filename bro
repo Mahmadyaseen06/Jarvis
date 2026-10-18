@@ -78,6 +78,16 @@ def main():
         print(f"  • To:      {recipient}")
         print(f"  • Content: '{msg}'")
         print(f"  • Status:  Transmitted via Apple Messages / WhatsApp\n")
+    elif cmd == "COMPOSE_DOCUMENT":
+        recipient = action.get("recipient", "Recipient")
+        subject = action.get("subject", "Formal Letter")
+        content = action.get("content", "")
+        print(f"{YELLOW}[DRAFTED FORMAL DOCUMENT]{RESET}")
+        print(f"  • To:      {recipient}")
+        print(f"  • Subject: {subject}\n")
+        print(f"{CYAN}--- DOCUMENT PREVIEW ---{RESET}")
+        print(content)
+        print(f"{CYAN}------------------------{RESET}\n")
 
 if __name__ == "__main__":
     main()

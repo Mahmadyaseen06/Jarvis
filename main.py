@@ -68,7 +68,8 @@ current_working_task: Dict[str, Any] = {
 VALID_COMMANDS = {
     "SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "STAND_DOWN",
     "OPEN_APP", "SET_VOLUME", "SEND_WHATSAPP", "SEND_EMAIL", "SEARCH_WEB", "OPEN_URL",
-    "CALCULATE", "FIND_FILE", "NONE"
+    "CALCULATE", "FIND_FILE", "PLAY_MEDIA", "ACTIVATE_CAMERA", "SHOW_TELEMETRY",
+    "AUTOMATE_DM", "COMPOSE_DOCUMENT", "NONE"
 }
 
 PRESET_WIDGET_NAMES = [
@@ -531,6 +532,100 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             }
         }
 
+    # 8b. Advanced Neural Document & Formal Letter Composer
+    letter_keywords = [
+        "write a letter", "draft a letter", "compose a letter", "write letter",
+        "leave letter", "sick leave", "application for leave", "leave application",
+        "sick note", "write an application", "letter to principal", "letter to the principal",
+        "letter to boss", "letter to the boss", "letter to manager", "letter to teacher",
+        "draft letter", "write a formal letter", "formal letter", "write an excuse",
+        "write a note to", "draft a note to", "write an email to principal", "write an email to boss",
+        "write an email to teacher", "write an email to manager", "resignation letter"
+    ]
+    is_letter_intent = any(k in lower for k in letter_keywords) or (
+        any(lower.startswith(k) or f" {k} " in f" {lower} " for k in ["write a ", "write an ", "draft a ", "compose a "])
+        and any(k in lower for k in ["letter", "application", "excuse", "note", "leave", "resignation", "apology"])
+    )
+    if is_letter_intent and not any(k in lower for k in ["calculate", "scan", "volume"]):
+        # 1. Recipient extraction
+        if "principal" in lower:
+            recipient = "The Principal"
+            org_line = "School / College Administration"
+        elif "boss" in lower or "manager" in lower or "employer" in lower:
+            recipient = "The Reporting Manager / Boss"
+            org_line = "Corporate Executive Office"
+        elif "teacher" in lower or "professor" in lower:
+            recipient = "The Professor / Class Instructor"
+            org_line = "Academic Department"
+        elif "hr" in lower or "human resources" in lower:
+            recipient = "The Human Resources Department"
+            org_line = "People Operations & Personnel"
+        else:
+            rec_match = re.search(r"\b(?:to|for)\s+(?:the\s+)?([a-zA-Z\s]+?)(?:\s+regarding|\s+about|\s+requesting|\s+due|\s+that|\s+for|\s+because|$)", user_text, re.IGNORECASE)
+            recipient = rec_match.group(1).strip().title() if rec_match else "The Respected Authority"
+            org_line = "Administrative Office"
+
+        # 2. Reason extraction
+        if any(k in lower for k in ["illness", "sick", "fever", "unwell", "hospital", "doctor", "health", "medical"]):
+            reason = "Sudden Medical Illness and Recovery"
+            desc_detail = "unforeseen acute medical illness and physical exhaustion. My consulting physician has strictly advised complete bed rest and medication to facilitate recovery and prevent complications."
+        elif any(k in lower for k in ["urgent", "emergency", "personal", "cant attend", "can't attend", "cannot attend", "so i can't attend", "so i cant attend"]):
+            reason = "Urgent Circumstances Preventing In-Person Attendance"
+            desc_detail = "critical and unforeseen personal contingencies that require my immediate physical presence and attention, preventing me from attending scheduled obligations today."
+        elif any(k in lower for k in ["wedding", "family", "function", "trip", "vacation"]):
+            reason = "Important Family Commitments"
+            desc_detail = "mandatory family obligations and pre-scheduled personal commitments that necessitate my presence."
+        else:
+            reason_match = re.search(r"\b(?:regarding|about|requesting|due to|because of|that|for)\s+(.*)", user_text, re.IGNORECASE)
+            raw_reason = reason_match.group(1).strip() if reason_match else "Unavoidable Leave of Absence"
+            reason = raw_reason.title()
+            desc_detail = f"circumstances regarding {raw_reason}, requiring my immediate absence from scheduled duties."
+
+        today_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
+        subject = f"Formal Application for Leave of Absence - {reason}"
+
+        # 3. Formulate Complete Formal Letter
+        letter_content = f"""Date: {today_str}
+
+To:
+{recipient}
+{org_line}
+
+Subject: {subject}
+
+Respected Sir/Madam,
+
+I am writing this formal correspondence to respectfully request an approved leave of absence, effective immediately, due to {desc_detail}
+
+Due to these prevailing conditions, I am regrettably unable to attend scheduled sessions, duties, or classes. I assure you that I will take full responsibility for reviewing all missed curriculum, briefings, or operational tasks promptly upon my return. Should any urgent coordination be required during my absence, I will remain periodically accessible via email.
+
+I kindly request that you grant me permission and approve my absence for this duration. Enclosed/attached is all relevant supporting documentation for your official records.
+
+Thank you very much for your understanding, support, and consideration in this matter.
+
+Yours respectfully,
+
+Tony Stark
+[Authorized J.A.R.V.I.S. Neural Console]"""
+
+        encoded_sub = urllib.parse.quote(subject)
+        encoded_body = urllib.parse.quote(letter_content)
+        gmail_compose = f"https://mail.google.com/mail/?view=cm&fs=1&su={encoded_sub}&body={encoded_body}"
+
+        return {
+            "reply": f"I have composed a formal letter for {recipient} regarding {reason}, Sir. The complete document is displayed on your HUD console ready for review, 1-click clipboard copy, or email dispatch.",
+            "action": {
+                "command": "COMPOSE_DOCUMENT",
+                "document_type": "Formal Leave Application",
+                "recipient": recipient,
+                "subject": subject,
+                "reason": reason,
+                "content": letter_content,
+                "word_count": len(letter_content.split()),
+                "gmail_url": gmail_compose
+            }
+        }
+
     # 9. Email / Gmail
     if any(k in lower for k in ["email", "gmail", "send mail", "compose mail"]):
         to_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", user_text)
@@ -960,6 +1055,12 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
         elif cmd == "SHOW_TELEMETRY":
             telemetry_type = action.get("telemetry_type", "all")
             result = {"executed": True, "detail": f"Hardware telemetry ({telemetry_type}) projected to HUD array"}
+
+        elif cmd == "COMPOSE_DOCUMENT":
+            subject = action.get("subject", "Formal Letter")
+            recipient = action.get("recipient", "Recipient")
+            word_count = action.get("word_count", 0)
+            result = {"executed": True, "detail": f"Formal document '{subject}' ({word_count} words) synthesized for {recipient} and displayed on HUD console"}
 
         elif cmd == "SEND_EMAIL":
             to = action.get("to", "").strip()

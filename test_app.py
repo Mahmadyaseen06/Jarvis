@@ -305,8 +305,27 @@ def run_tests():
     assert dm_hub_data["action"]["mode"] == "hub"
     print("✅ 30. POST /chat (Direct DM Access): Autonomous DM gateway hub routing verified.")
 
+    # 31. Formal Letter to Principal (Medical Leave)
+    res_letter_p = client.post("/chat", json={"text": "write a letter to principal requestings used to illness"})
+    assert res_letter_p.status_code == 200
+    letter_p_data = res_letter_p.json()
+    assert letter_p_data["action"]["command"] == "COMPOSE_DOCUMENT"
+    assert "Principal" in letter_p_data["action"]["recipient"]
+    assert "content" in letter_p_data["action"]
+    assert "Leave of Absence" in letter_p_data["action"]["subject"]
+    print(f"✅ 31. POST /chat (Letter to Principal): {letter_p_data['action']['subject']} ({letter_p_data['action']['word_count']} words)")
+
+    # 32. Formal Letter to Boss (Inability to Attend)
+    res_letter_b = client.post("/chat", json={"text": "write a letter to the boss that I was just so I can't attend to this"})
+    assert res_letter_b.status_code == 200
+    letter_b_data = res_letter_b.json()
+    assert letter_b_data["action"]["command"] == "COMPOSE_DOCUMENT"
+    assert "Boss" in letter_b_data["action"]["recipient"] or "Manager" in letter_b_data["action"]["recipient"]
+    assert "content" in letter_b_data["action"]
+    print(f"✅ 32. POST /chat (Letter to Boss): {letter_b_data['action']['subject']} ({letter_b_data['action']['word_count']} words)")
+
     print("=" * 60)
-    print("🎉 ALL 30 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 32 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":
