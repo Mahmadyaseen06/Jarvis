@@ -37,22 +37,26 @@ def main():
     req = urllib.request.Request(api_url, data=req_data, headers={"Content-Type": "application/json"})
 
     try:
-        with urllib.request.urlopen(req, timeout=4.0) as resp:
+        with urllib.request.urlopen(req, timeout=12.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception:
-        # Fallback to local in-process engine if daemon is not reached
+        # Fallback to local in-process chat_endpoint (with Cloud Gemini) if daemon is not reached
         try:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            from main import fallback_jarvis_engine, execute_mac_task
-            data = fallback_jarvis_engine(user_text)
-            action = data.get("action", {})
-            if action and action.get("command") != "NONE":
-                execute_mac_task(action)
-        except Exception as e:
-            data = {
-                "reply": f"Console routing error: {e}",
-                "action": {"command": "NONE"}
-            }
+            from main import chat_endpoint, ChatInput
+            data = chat_endpoint(ChatInput(text=user_text))
+        except Exception:
+            try:
+                from main import fallback_jarvis_engine, execute_mac_task
+                data = fallback_jarvis_engine(user_text)
+                action = data.get("action", {})
+                if action and action.get("command") != "NONE":
+                    execute_mac_task(action)
+            except Exception as e:
+                data = {
+                    "reply": f"Console routing error: {e}",
+                    "action": {"command": "NONE"}
+                }
 
     reply = data.get("reply", "All holographic systems nominal, Sir.")
     action = data.get("action", {})

@@ -150,7 +150,9 @@ Command selection rules:
 - ACTIVATE_DEFENSE: User mentions defense, threat, alert, emergency, attack, danger, combat, lockdown, red alert.
 - DEPLOY_WIDGET: User mentions deploy, monitor, widget, dashboard panel, track, gauge, display metric.
 - STAND_DOWN: User mentions stand down, all clear, cancel alert, deactivate, peace, disarm.
-- NONE: Casual conversation, questions, or anything else.
+- NONE: Casual conversation, questions, knowledge inquiries, or general discussions.
+  * For general conversation and questions, provide a full, natural, intelligent, and articulate response in the "reply" field. Do NOT give terse 1-sentence dismissals. Act as an advanced conversational AI chatbot while maintaining the loyal J.A.R.V.I.S. persona.
+  * When asked about who you are or your model/architecture: explain that you are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created for Commander Yaseen, powered by advanced Google Gemini multimodal intelligence and neural core orchestration, operating with direct macOS system automation capabilities.
 
 Always stay in character. Be brilliant, be dry, be loyal."""
 
@@ -207,7 +209,7 @@ def extract_json(raw_text: str) -> Dict[str, Any]:
             pass
 
     return {
-        "reply": (cleaned[:200] if cleaned else "All holographic systems online, Sir."),
+        "reply": (cleaned[:2000] if cleaned else "All holographic systems online, Sir."),
         "action": {"command": "NONE"}
     }
 
@@ -1827,12 +1829,13 @@ def call_local_gemma(history: List[Dict[str, Any]]) -> Dict[str, Any]:
 # GOOGLE AI STUDIO INTEGRATION
 # ─────────────────────────────────────────────────────────────────
 GOOGLE_MODELS = [
-    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-flash-lite-latest",
     "gemini-3.1-flash-lite",
-    "gemini-3-flash-preview",
+    "gemini-3.1-flash-lite-preview",
+    "gemini-3.5-flash",
     "gemini-3.8-flash",
+    "gemma-4-26b-a4b-it",
+    "gemini-3-flash-preview",
     "gemini-flash-latest",
 ]
 
@@ -1840,9 +1843,9 @@ GOOGLE_MODELS = [
 def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[str, Any]:
     """
     Call Google AI Studio with multi-model fallback:
-    1. Tries gemini-3.5-flash (fast, state-of-the-art conversational chatbot)
-    2. Falls back to gemini-3.5-flash-lite, gemini-flash-lite-latest, etc.
-    Timeout: 4s per attempt.
+    1. Tries gemini-3.5-flash-lite & gemini-3.1-flash-lite (fast, smart, active quota)
+    2. Falls back to gemini-3.5-flash, gemini-3.8-flash, etc.
+    Timeout: 7.0s per attempt.
     """
     global ai_success_count
 
@@ -1853,24 +1856,26 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
         role = "user" if m.get("role") == "user" else "model"
         contents.append({"role": role, "parts": [{"text": m.get("content", "")}]})
 
-    payload = {
-        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-        "contents": contents,
-        "generationConfig": {
-            "temperature": 0.5,
-            "maxOutputTokens": 1500,
-            "candidateCount": 1,
-            "thinkingConfig": {
-                "thinkingBudget": 0
-            }
-        }
+    gen_config: Dict[str, Any] = {
+        "temperature": 0.5,
+        "maxOutputTokens": 1500,
+        "candidateCount": 1,
     }
 
     last_error = None
     for model in GOOGLE_MODELS:
+        payload = {
+            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": contents,
+            "generationConfig": dict(gen_config)
+        }
+        # Only models requiring thinkingBudget=0 get thinkingConfig; flash-lite models reject it with 400
+        if model in ("gemini-3.5-flash", "gemini-3.8-flash"):
+            payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         try:
-            with httpx.Client(timeout=httpx.Timeout(connect=2.5, read=4.5, write=2.0, pool=2.0)) as client:
+            with httpx.Client(timeout=httpx.Timeout(connect=3.0, read=7.0, write=3.0, pool=3.0)) as client:
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
@@ -1930,9 +1935,9 @@ def validate_response(data: Dict[str, Any], user_text: str) -> Dict[str, Any]:
         else:
             data["reply"] = "Action processed, Sir."
 
-    # Truncate overly long replies
-    if len(data["reply"]) > 300:
-        data["reply"] = data["reply"][:297] + "..."
+    # Guard against excessively runaway replies (> 2500 chars) while allowing full conversational depth
+    if len(data["reply"]) > 2500:
+        data["reply"] = data["reply"][:2497] + "..."
 
     # Ensure action is a dict
     if not isinstance(data.get("action"), dict):
@@ -2067,24 +2072,26 @@ def chat_endpoint(payload: ChatInput):
     response_data: Optional[Dict[str, Any]] = None
     engine_used = "J.A.R.V.I.S. Local Matrix (Fallback)"
 
-    # 1. Attempt Local Gemma 2 via Ollama (Apple Silicon M2)
-    try:
-        response_data = call_local_gemma(chat_history)
-        engine_used = "Local Gemma 2 (Apple M2)"
-    except Exception as e:
-        # print(f"[JARVIS] Local Gemma 2 unavailable: {e}")
-        pass
+    # 1. Attempt Google Gemini / Gemma (Cloud API) first if valid API key is present
+    api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
+    has_valid_api_key = bool(api_key and (api_key.startswith("AQ.") or api_key.startswith("AIza") or len(api_key) > 20))
 
-    # 2. Attempt Google Gemini / Gemma (Cloud API)
+    if has_valid_api_key:
+        try:
+            response_data = call_google_ai_studio(chat_history, api_key)
+            engine_used = "Google Gemma / Gemini AI (Cloud)"
+        except Exception as e:
+            # print(f"[JARVIS] Cloud AI error: {e}")
+            pass
+
+    # 2. Attempt Local Gemma 2 via Ollama (Apple Silicon M2) if Cloud AI not used/available
     if not response_data:
-        api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
-        if api_key and (api_key.startswith("AQ.") or api_key.startswith("AIza") or len(api_key) > 20):
-            try:
-                response_data = call_google_ai_studio(chat_history, api_key)
-                engine_used = "Google Gemma / Gemini AI (Cloud)"
-            except Exception as e:
-                # print(f"[JARVIS] Cloud AI error: {e}")
-                pass
+        try:
+            response_data = call_local_gemma(chat_history)
+            engine_used = "Local Gemma 2 (Apple M2)"
+        except Exception as e:
+            # print(f"[JARVIS] Local Gemma 2 unavailable: {e}")
+            pass
 
     # 3. Rule-based offline engine
     if not response_data:

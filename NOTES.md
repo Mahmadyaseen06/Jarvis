@@ -102,9 +102,16 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Automated WhatsApp +91 Normalization: Enhanced contact resolver and `auto_send_whatsapp` to detect standard 10-digit Indian mobile numbers (starting with 6, 7, 8, 9) and normalize to `+91` for display and `91` for `whatsapp://send?phone=...` URI parameters.
   - OpenJarvis Executive Briefing Engine: Added `DIGEST_BRIEFING` command responding to "give me my morning digest", "brief me", "status report", "executive summary", etc. Pulls real-time battery vitals, SSD storage, active todos, and defense posture into both speech and an interactive HUD briefing card. Added endpoints `GET /api/openjarvis/briefing` and `GET /api/openjarvis/status`.
   - Bug & Fix (Todos Data Type Guard): When `GET /api/todos` response `{"todos": [...]}` was saved back without unwrapping, `todos.json` stored keys resulting in strings in list comprehensions (`AttributeError: 'str' object has no attribute 'get'`). Fixed by hardening `load_todos` and `save_todos` to unwrap `data["todos"]` if dict, validate dict items with `"task"`, and make all comprehensions defensive with `isinstance(t, dict)`.
-  - CLI & UI: Added `DIGEST_BRIEFING` formatting to `./bro` CLI and built a holographic Executive Briefing status card in `index.html`.
 - 2026-10-18 — Dynamic Friend Contact Registration & WhatsApp Multi-Recipient Dispatch:
   - Natural Contact Directory Management: Added `MANAGE_CONTACTS` engine to `fallback_jarvis_engine` responding to directives like "save contact Rahul 9876543210", "add contact Aman with phone 9123456789", and "show contacts". Contacts are dynamically persisted to `contacts.json`.
   - Seamless Contact Resolution: Added instant name resolution in `resolve_contact()` and `auto_send_whatsapp()` so users can send messages to friends either directly by phone number or by their registered first name (e.g. "send whatsapp to Rahul let's meet").
   - CLI: Added `MANAGE_CONTACTS` formatting to `./bro` CLI showing registered contact cards and directory listings.
   - Integration Tests: Expanded test suite to 45/45 end-to-end tests (45/45 passing).
+- 2026-10-18 — Gemini Cloud Conversational Chatbot & Model Cascade Optimization:
+  - Bug & Discovery: In `call_google_ai_studio`, sending `"thinkingConfig": {"thinkingBudget": 0}` to `gemini-3.5-flash-lite` caused Google AI Studio to reject the request with `HTTP 400: Request contains an invalid argument.`. Furthermore, `gemini-3.8-flash` had exhausted free tier quota (HTTP 429).
+  - Discovery: `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, and `gemini-3.1-flash-lite-preview` have active free tier quota and respond with low latency (~1.0s).
+  - Optimization: Placed `gemini-3.5-flash-lite` and `gemini-3.1-flash-lite` at the top of `GOOGLE_MODELS`; restricted `thinkingConfig` exclusively to models that support it; raised HTTP client read timeout to 7.0s.
+  - Conversational Depth: Replaced 300-char truncation in `validate_response` with a 2,500-char threshold, allowing rich paragraphs, explanations, and banter.
+  - Cloud-First Routing: In `chat_endpoint`, prioritized Google Gemini Cloud AI when an API key is configured, avoiding 2.0s connection delays against offline local Ollama.
+  - CLI Resiliency: In `./bro`, increased HTTP timeout from 4.0s to 12.0s and added fallback to in-process `chat_endpoint` so CLI commands always receive full Gemini AI intelligence.
+  - Verification: Tested `./bro "who are you and which type of model you are"` with verified real responses. All 45 integration tests passing.
