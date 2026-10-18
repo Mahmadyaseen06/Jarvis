@@ -88,19 +88,24 @@ PRESET_WIDGET_NAMES = [
 # ─────────────────────────────────────────────────────────────────
 # J.A.R.V.I.S. SYSTEM PROMPT (Enhanced for macOS Siri & System Tasks)
 # ─────────────────────────────────────────────────────────────────
-SYSTEM_PROMPT = """You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the witty, loyal, and brilliantly articulate AI assistant from Iron Man, voiced by Paul Bettany, running locally on the user's Mac.
+SYSTEM_PROMPT = """You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), the brilliant, articulate, and loyal AI assistant running directly on macOS for your Commander and creator, Yaseen.
 
 Your character:
-- Extremely intelligent, calm, and slightly dry-witted.
-- Address the user as "Sir" or occasionally "Commander."
-- Proactively offer insights, not just responses.
-- Never say "I'm an AI" or break character.
+- Extremely intelligent, calm, proactive, and slightly dry-witted.
+- Address the user as "Sir", "Commander", or "Mr. Yaseen".
+- When asked to write letters, documents, emails, or messages, compose them from Yaseen (never use "Tony Stark").
+- Tailor the letter style to the recipient and topic:
+  * Letters to family (sister, brother, mom, dad, friend): warm, loving, personal, informal.
+  * Letters to authorities (principal, dean, teacher, boss, manager, HR): formal, articulate, polite.
+- Always sign off letters with:
+  "Yours respectfully,\nYaseen" (for formal) or
+  "With love and best wishes,\nYaseen" (for personal/family).
 
 Output format: You MUST always respond with valid JSON and nothing else. Structure:
 {
   "reply": "<Your spoken response, 1-2 sentences max, in character>",
   "action": {
-    "command": "<ONE of: PLAY_MEDIA, ACTIVATE_CAMERA, CALCULATE, FIND_FILE, OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
+    "command": "<ONE of: COMPOSE_DOCUMENT, PLAY_MEDIA, ACTIVATE_CAMERA, CALCULATE, FIND_FILE, OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, SHOW_TELEMETRY, AUTOMATE_DM, NONE>",
     "media_query": "<Song, artist, video, or movie to play if PLAY_MEDIA, e.g. Bohemian Rhapsody, Interstellar soundtrack>",
     "service": "<Streaming service if PLAY_MEDIA: spotify, youtube, netflix, apple_music, auto>",
     "action_type": "<If ACTIVATE_CAMERA: open, close, capture>",
@@ -547,45 +552,97 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
         and any(k in lower for k in ["letter", "application", "excuse", "note", "leave", "resignation", "apology"])
     )
     if is_letter_intent and not any(k in lower for k in ["calculate", "scan", "volume"]):
-        # 1. Recipient extraction
-        if "principal" in lower:
-            recipient = "The Principal"
-            org_line = "School / College Administration"
-        elif "boss" in lower or "manager" in lower or "employer" in lower:
-            recipient = "The Reporting Manager / Boss"
-            org_line = "Corporate Executive Office"
-        elif "teacher" in lower or "professor" in lower:
-            recipient = "The Professor / Class Instructor"
-            org_line = "Academic Department"
-        elif "hr" in lower or "human resources" in lower:
-            recipient = "The Human Resources Department"
-            org_line = "People Operations & Personnel"
-        else:
-            rec_match = re.search(r"\b(?:to|for)\s+(?:the\s+)?([a-zA-Z\s]+?)(?:\s+regarding|\s+about|\s+requesting|\s+due|\s+that|\s+for|\s+because|$)", user_text, re.IGNORECASE)
-            recipient = rec_match.group(1).strip().title() if rec_match else "The Respected Authority"
-            org_line = "Administrative Office"
-
-        # 2. Reason extraction
-        if any(k in lower for k in ["illness", "sick", "fever", "unwell", "hospital", "doctor", "health", "medical"]):
-            reason = "Sudden Medical Illness and Recovery"
-            desc_detail = "unforeseen acute medical illness and physical exhaustion. My consulting physician has strictly advised complete bed rest and medication to facilitate recovery and prevent complications."
-        elif any(k in lower for k in ["urgent", "emergency", "personal", "cant attend", "can't attend", "cannot attend", "so i can't attend", "so i cant attend"]):
-            reason = "Urgent Circumstances Preventing In-Person Attendance"
-            desc_detail = "critical and unforeseen personal contingencies that require my immediate physical presence and attention, preventing me from attending scheduled obligations today."
-        elif any(k in lower for k in ["wedding", "family", "function", "trip", "vacation"]):
-            reason = "Important Family Commitments"
-            desc_detail = "mandatory family obligations and pre-scheduled personal commitments that necessitate my presence."
-        else:
-            reason_match = re.search(r"\b(?:regarding|about|requesting|due to|because of|that|for)\s+(.*)", user_text, re.IGNORECASE)
-            raw_reason = reason_match.group(1).strip() if reason_match else "Unavoidable Leave of Absence"
-            reason = raw_reason.title()
-            desc_detail = f"circumstances regarding {raw_reason}, requiring my immediate absence from scheduled duties."
-
+        # 1. Determine Letter Nature (Personal / Family vs Formal Authority)
         today_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
-        subject = f"Formal Application for Leave of Absence - {reason}"
+        is_family = any(k in lower for k in ["sister", "brother", "mother", "mom", "father", "dad", "friend", "cousin", "bro", "bestie", "uncle", "aunt"])
 
-        # 3. Formulate Complete Formal Letter
-        letter_content = f"""Date: {today_str}
+        if is_family:
+            if "sister" in lower:
+                recipient = "My Dear Sister"
+                salutation = "Dearest Sister,"
+            elif "brother" in lower or "bro" in lower:
+                recipient = "My Dear Brother"
+                salutation = "Dearest Brother,"
+            elif "mother" in lower or "mom" in lower:
+                recipient = "Mom"
+                salutation = "Dearest Mom,"
+            elif "father" in lower or "dad" in lower:
+                recipient = "Dad"
+                salutation = "Dearest Dad,"
+            else:
+                rec_match = re.search(r"\b(?:to|for)\s+(?:my\s+)?([a-zA-Z\s]+?)(?:\s+regarding|\s+about|\s+requesting|\s+due|\s+that|\s+for|\s+because|$)", user_text, re.IGNORECASE)
+                rec_val = rec_match.group(1).strip().title() if rec_match else "Friend"
+                recipient = rec_val
+                salutation = f"Dearest {rec_val},"
+
+            document_type = "Personal Letter"
+
+            # Reason extraction
+            reason_match = re.search(r"\b(?:about|regarding|that|saying|for)\s+(.*)", user_text, re.IGNORECASE)
+            raw_reason = reason_match.group(1).strip() if reason_match else "Staying in Touch and Checking In"
+            reason = raw_reason.title()
+            subject = f"Personal Letter: {reason}"
+
+            letter_content = f"""Date: {today_str}
+
+{salutation}
+
+Subject: {subject}
+
+I hope this letter finds you in wonderful spirits and excellent health. I wanted to take a moment to write to you personally regarding {raw_reason}.
+
+I hope everything has been going smoothly on your end. Please know that you are always in my thoughts, and I am continuously cheering you on in all your endeavors. Whenever you have a quiet moment, please do write back or give me a call—I would love to catch up on everything in your life.
+
+Take wonderful care of yourself, and please let me know if you need anything at all.
+
+With all my love and warmest regards,
+
+Yaseen
+[Personal J.A.R.V.I.S. Neural Console]"""
+
+        else:
+            # Formal Authority Letter (Principal, Boss, HR, etc.)
+            if "principal" in lower:
+                recipient = "The Principal"
+                org_line = "School / College Administration"
+                document_type = "Formal Academic Leave Application"
+            elif "boss" in lower or "manager" in lower or "employer" in lower:
+                recipient = "The Reporting Manager / Boss"
+                org_line = "Corporate Executive Office"
+                document_type = "Professional Leave / Official Notice"
+            elif "teacher" in lower or "professor" in lower:
+                recipient = "The Professor / Class Instructor"
+                org_line = "Academic Department"
+                document_type = "Formal Academic Notice"
+            elif "hr" in lower or "human resources" in lower:
+                recipient = "The Human Resources Department"
+                org_line = "People Operations & Personnel"
+                document_type = "Official HR Application"
+            else:
+                rec_match = re.search(r"\b(?:to|for)\s+(?:the\s+)?([a-zA-Z\s]+?)(?:\s+regarding|\s+about|\s+requesting|\s+due|\s+that|\s+for|\s+because|$)", user_text, re.IGNORECASE)
+                recipient = rec_match.group(1).strip().title() if rec_match else "The Respected Authority"
+                org_line = "Administrative Office"
+                document_type = "Formal Correspondence"
+
+            # Reason extraction
+            if any(k in lower for k in ["illness", "sick", "fever", "unwell", "hospital", "doctor", "health", "medical"]):
+                reason = "Sudden Medical Illness and Recovery"
+                desc_detail = "unforeseen acute medical illness and physical exhaustion. My consulting physician has strictly advised complete bed rest and medication to facilitate recovery and prevent complications."
+            elif any(k in lower for k in ["urgent", "emergency", "personal", "cant attend", "can't attend", "cannot attend", "so i can't attend", "so i cant attend"]):
+                reason = "Urgent Circumstances Preventing In-Person Attendance"
+                desc_detail = "critical and unforeseen personal contingencies that require my immediate physical presence and attention, preventing me from attending scheduled obligations today."
+            elif any(k in lower for k in ["wedding", "family", "function", "trip", "vacation"]):
+                reason = "Important Family Commitments"
+                desc_detail = "mandatory family obligations and pre-scheduled personal commitments that necessitate my presence."
+            else:
+                reason_match = re.search(r"\b(?:regarding|about|requesting|due to|because of|that|for)\s+(.*)", user_text, re.IGNORECASE)
+                raw_reason = reason_match.group(1).strip() if reason_match else "Unavoidable Leave of Absence"
+                reason = raw_reason.title()
+                desc_detail = f"circumstances regarding {raw_reason}, requiring my immediate absence from scheduled duties."
+
+            subject = f"Formal Application for Leave of Absence - {reason}"
+
+            letter_content = f"""Date: {today_str}
 
 To:
 {recipient}
@@ -605,7 +662,7 @@ Thank you very much for your understanding, support, and consideration in this m
 
 Yours respectfully,
 
-Tony Stark
+Yaseen
 [Authorized J.A.R.V.I.S. Neural Console]"""
 
         encoded_sub = urllib.parse.quote(subject)
@@ -613,10 +670,10 @@ Tony Stark
         gmail_compose = f"https://mail.google.com/mail/?view=cm&fs=1&su={encoded_sub}&body={encoded_body}"
 
         return {
-            "reply": f"I have composed a formal letter for {recipient} regarding {reason}, Sir. The complete document is displayed on your HUD console ready for review, 1-click clipboard copy, or email dispatch.",
+            "reply": f"I have composed a {document_type.lower()} for {recipient} regarding {reason}, Commander Yaseen. The document is displayed on your HUD console ready for review, 1-click clipboard copy, or email dispatch.",
             "action": {
                 "command": "COMPOSE_DOCUMENT",
-                "document_type": "Formal Leave Application",
+                "document_type": document_type,
                 "recipient": recipient,
                 "subject": subject,
                 "reason": reason,
@@ -1259,8 +1316,10 @@ def call_local_gemma(history: List[Dict[str, Any]]) -> Dict[str, Any]:
 # GOOGLE AI STUDIO INTEGRATION
 # ─────────────────────────────────────────────────────────────────
 GOOGLE_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-3.8-flash-lite",
+    "gemini-3.5-flash",
     "gemini-flash-latest",
-    "gemini-flash-lite-latest",
 ]
 
 
@@ -1491,15 +1550,16 @@ def chat_endpoint(payload: ChatInput):
         # print(f"[JARVIS] Local Gemma 2 unavailable: {e}")
         pass
 
-    # 2. Attempt Google Gemini Flash (Cloud API)
+    # 2. Attempt Google Gemini / Gemma (Cloud API)
     if not response_data:
-        api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
-        if api_key and api_key.startswith("AIza"):
+        api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
+        if api_key and (api_key.startswith("AQ.") or api_key.startswith("AIza") or len(api_key) > 20):
             try:
                 response_data = call_google_ai_studio(chat_history, api_key)
-                engine_used = "Google Gemini Flash (Cloud)"
+                engine_used = "Google Gemma / Gemini AI (Cloud)"
             except Exception as e:
-                print(f"[JARVIS] Cloud AI failed: {e}")
+                # print(f"[JARVIS] Cloud AI error: {e}")
+                pass
 
     # 3. Rule-based offline engine
     if not response_data:
