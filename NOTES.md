@@ -43,4 +43,4 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Frontend Cleanup: Removed static quick chips bar per user request to streamline the command console.
   - Voice Responsiveness: Enhanced microphone visual active states (ring glow, active pulse) and instant tap-to-send toggle.
   - Test Suite: Added test 9b verifying "open calculator and type the calculation then execute" with 17/17 tests passing.
-
+- Bug (test 9b): When Gemini handled "open calculator and type the calculation" instead of the rule engine, the CALCULATE action lacked `mode: "human_desktop_simulation"`. Fixed by stamping `action["mode"] = "human_desktop_simulation"` inside `execute_mac_task` CALCULATE block — runs after both engines, so it's always set.

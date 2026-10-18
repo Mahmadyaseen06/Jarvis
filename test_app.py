@@ -111,6 +111,16 @@ def run_tests():
     assert "meeting" in str(data["action"]).lower()
     print("✅ 11. POST /chat (Flexible WhatsApp):", data)
 
+    # 11b. Automated messaging just by saying contact name
+    res = client.post("/chat", json={"text": "message Alex I will arrive at 7 PM"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 11b. POST /chat (Automated Message by Name):", data)
+    assert data["action"]["command"] == "SEND_WHATSAPP"
+    assert data["action"]["phone"] == "Alex"
+    assert "7 PM" in data["action"]["message"]
+    assert data["action"].get("auto_sent") == True
+
     # 12. NONE (Conversational chat)
     res = client.post("/chat", json={"text": "Hello Jarvis, tell me a quick witty remark"})
     assert res.status_code == 200
@@ -123,7 +133,7 @@ def run_tests():
     assert res.status_code == 200
     hist = res.json()
     print(f"✅ 13. GET /history: {hist['count']} messages preserved in context.")
-    assert hist["count"] == 24  # 12 user + 12 assistant
+    assert hist["count"] == 26  # 13 user + 13 assistant
 
     # 7. Clear History
     res = client.post("/clear")

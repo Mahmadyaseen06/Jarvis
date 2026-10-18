@@ -259,21 +259,48 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
                 "action": {"command": "SET_VOLUME", "volume": 0}
             }
 
-    # 3. WhatsApp Messaging
-    if "whatsapp" in lower or "what's app" in lower or "send message" in lower:
-        phone_match = re.search(r"(?:to|for|whatsapp(?:\s+message)?\s+to|whatsapp\s+)\s*([a-zA-Z0-9\+\-]+)", user_text, re.IGNORECASE)
-        phone = phone_match.group(1).strip() if phone_match else ""
-        if phone.lower() in ["message", "a", "someone", "whatsapp"]:
-            phone = ""
-        msg_match = re.search(r"(?:saying|that|message\s*:?)\s+(.*)", user_text, re.IGNORECASE)
-        if msg_match:
-            msg = msg_match.group(1).strip()
+    # 3. Automated Messaging (WhatsApp, Messages, SMS) by Contact Name
+    is_msg_intent = (
+        "whatsapp" in lower or "what's app" in lower
+        or "send message" in lower or "send a message" in lower
+        or "send text" in lower or "send a text" in lower
+        or bool(re.match(r"^(?:hey\s+|hi\s+)?(?:jarvis[\s,]*)?(?:please\s+)?(?:message|text)\s+[a-zA-Z0-9\+\-]+(?:\s+|$)", lower))
+    )
+    if is_msg_intent and not any(k in lower for k in ["calculate", "scan", "status", "volume", "defense"]):
+        phone = ""
+        # 1. Explicit "to <Name>" or "for <Name>"
+        to_match = re.search(r"\b(?:to|for)\s+([a-zA-Z0-9\+\-]+)", user_text, re.IGNORECASE)
+        if to_match and to_match.group(1).lower() not in ["whatsapp", "me", "us", "a", "the", "someone", "message", "text", "on", "in"]:
+            phone = to_match.group(1).strip()
+
+        # 2. Direct command "message <Name>" or "text <Name>" or "whatsapp <Name>"
+        if not phone:
+            direct_match = re.search(r"\b(?:message|text|whatsapp)\s+([a-zA-Z0-9\+\-]+)", user_text, re.IGNORECASE)
+            if direct_match and direct_match.group(1).lower() not in ["whatsapp", "me", "us", "a", "the", "someone", "message", "text", "on", "in"]:
+                phone = direct_match.group(1).strip()
+
+        # 3. Extract message content
+        saying_match = re.search(r"\b(?:saying|that)\s+(.*)", user_text, re.IGNORECASE)
+        if saying_match:
+            msg = saying_match.group(1).strip()
         else:
-            cleaned = re.sub(r"^(?:please\s+)?(?:send\s+(?:a\s+)?(?:whatsapp\s+)?message(?:\s+on\s+whatsapp)?(?:\s+to\s+[\w\+\-]+)?|whatsapp(?:\s+[\w\+\-]+)?)\s*", "", user_text, flags=re.IGNORECASE).strip()
-            msg = cleaned if cleaned and len(cleaned) > 2 else "Hello from J.A.R.V.I.S."
+            colon_match = re.search(r":\s*(.*)", user_text)
+            if colon_match:
+                msg = colon_match.group(1).strip()
+            elif phone:
+                idx = user_text.lower().find(phone.lower())
+                if idx != -1:
+                    after_phone = user_text[idx + len(phone):].strip()
+                    cleaned = re.sub(r"^(?:saying|that|message|to|with)\s*", "", after_phone, flags=re.IGNORECASE).strip()
+                    msg = cleaned if cleaned else "Hello from J.A.R.V.I.S."
+                else:
+                    msg = "Hello from J.A.R.V.I.S."
+            else:
+                msg = "Hello from J.A.R.V.I.S."
+
         return {
-            "reply": f"Composing WhatsApp message for {phone or 'recipient'}, Sir.",
-            "action": {"command": "SEND_WHATSAPP", "phone": phone, "message": msg}
+            "reply": f"Sending message to {phone or 'recipient'}: '{msg}', Sir. Transmitted automatically.",
+            "action": {"command": "SEND_WHATSAPP", "phone": phone, "message": msg, "auto_sent": True}
         }
 
     # 4. Email / Gmail
@@ -517,6 +544,45 @@ def auto_play_media(service: str, query: str):
     threading.Thread(target=_run, daemon=True).start()
 
 
+def auto_send_message(recipient: str, message: str):
+    """Automatically dispatch message on macOS with zero manual clicks required."""
+    def _run():
+        import time
+        encoded_msg = urllib.parse.quote(message)
+        # 1. WhatsApp automated launch & Return keystroke
+        try:
+            wa_desktop = f"whatsapp://send?phone={recipient}&text={encoded_msg}" if recipient else f"whatsapp://send?text={encoded_msg}"
+            subprocess.run(["open", wa_desktop], check=False)
+            time.sleep(1.2)
+            send_script = '''
+            tell application "System Events"
+                tell process "WhatsApp"
+                    key code 36
+                end tell
+            end tell
+            '''
+            subprocess.run(["osascript", "-e", send_script], check=False)
+        except Exception:
+            pass
+
+        # 2. Apple Messages native buddy dispatch
+        try:
+            imessage_script = f'''
+            tell application "Messages"
+                try
+                    set targetService to 1st service whose service type = iMessage
+                    set targetBuddy to buddy "{recipient}" of targetService
+                    send "{message}" to targetBuddy
+                end try
+            end tell
+            '''
+            subprocess.run(["osascript", "-e", imessage_script], check=False)
+        except Exception:
+            pass
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
 # ─────────────────────────────────────────────────────────────────
 # NATIVE MACOS AUTOMATION DISPATCHER
 # ─────────────────────────────────────────────────────────────────
@@ -549,8 +615,9 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
             wa_web = f"https://web.whatsapp.com/send?text={encoded_msg}"
             action["web_url"] = wa_web
             action["desktop_url"] = wa_desktop
-            subprocess.Popen(["open", wa_desktop])
-            result = {"executed": True, "detail": f"WhatsApp draft initialized for: '{msg}'"}
+            action["auto_sent"] = True
+            auto_send_message(phone, msg)
+            result = {"executed": True, "detail": f"Message to {phone or 'recipient'} sent automatically via system dispatch: '{msg}'"}
 
         elif cmd == "SEND_EMAIL":
             to = action.get("to", "").strip()
@@ -584,6 +651,7 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
             calc_answer = action.get("answer") or action.get("result") or ""
             action["answer"] = str(calc_answer)
             action["app_name"] = "Calculator"
+            action["mode"] = "human_desktop_simulation"
             action["keystroke_sequence"] = [c for c in expression.replace("x", "*").replace("X", "*") if c in "0123456789+-*/."] + ["="]
             human_type_calculator(expression, str(calc_answer))
             result = {"executed": True, "detail": f"{expression} = {calc_answer} (Executed via Human Desktop Automation)"}

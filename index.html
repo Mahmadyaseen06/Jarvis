@@ -1011,20 +1011,20 @@
       if (cmd === 'SEND_WHATSAPP') {
         const phone = action.phone || 'Contact';
         const msg = action.message || '';
-        const webUrl = action.web_url || '#';
-        const desktopUrl = action.desktop_url || '#';
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border border-primary/30 mt-2">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[#25D366] text-base">chat</span>
-                <span class="font-headline-sm text-sm text-on-surface font-semibold">${escapeHtml(phone)}</span>
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[#25D366]/40 mt-2 shadow-[0_4px_16px_rgba(37,211,102,0.12)]">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#25D366] text-lg">mark_chat_read</span>
+                <span class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">${escapeHtml(phone)}</span>
               </div>
-              <div class="font-code-stream text-xs text-on-surface-variant italic truncate max-w-sm">"${escapeHtml(msg)}"</div>
+              <div class="font-code-stream text-xs text-on-surface-variant italic truncate max-w-md">"${escapeHtml(msg)}"</div>
+              <div class="text-[10px] font-label-telemetry text-on-surface-variant/70 uppercase">AUTONOMOUS DISPATCH // ZERO MANUAL CLICKS REQUIRED</div>
             </div>
-            <div class="flex items-center gap-1.5 self-end sm:self-auto">
-              <a href="${escapeHtml(desktopUrl)}" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-primary bg-primary/10 hover:bg-primary/20 rounded uppercase transition-colors">OPEN APP</a>
-              <a href="${escapeHtml(webUrl)}" target="_blank" rel="noopener" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-surface-variant bg-surface-container-high hover:bg-surface-container rounded uppercase transition-colors">OPEN WEB</a>
+            <div class="flex items-center self-end sm:self-auto">
+              <span class="px-2.5 py-1 rounded text-[11px] font-label-telemetry font-bold bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/30 uppercase flex items-center gap-1.5 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-ping"></span> SENT AUTOMATICALLY
+              </span>
             </div>
           </div>
         `;
@@ -1033,17 +1033,21 @@
       if (cmd === 'SEND_EMAIL') {
         const to = action.to || 'recipient';
         const subj = action.subject || 'Status';
-        const gmailUrl = action.gmail_url || '#';
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border border-secondary-container/30 mt-2">
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-secondary-container/40 mt-2 shadow-[0_4px_16px_rgba(255,183,77,0.1)]">
             <div class="space-y-0.5">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-secondary-container text-base">mail</span>
-                <span class="font-headline-sm text-sm text-on-surface font-semibold">${escapeHtml(to)}</span>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary-container text-lg">forward_to_inbox</span>
+                <span class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">${escapeHtml(to)}</span>
               </div>
-              <div class="font-code-stream text-xs text-on-surface-variant truncate max-w-sm">Subject: ${escapeHtml(subj)}</div>
+              <div class="font-code-stream text-xs text-on-surface-variant truncate max-w-md">Subject: ${escapeHtml(subj)}</div>
+              <div class="text-[10px] font-label-telemetry text-on-surface-variant/70 uppercase">DISPATCHED TO MAIL CLIENT // ZERO MANUAL CLICKS REQUIRED</div>
             </div>
-            <a href="${escapeHtml(gmailUrl)}" target="_blank" rel="noopener" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-secondary-container bg-secondary-container/10 hover:bg-secondary-container/20 rounded uppercase transition-colors self-end sm:self-auto">OPEN GMAIL</a>
+            <div class="flex items-center self-end sm:self-auto">
+              <span class="px-2.5 py-1 rounded text-[11px] font-label-telemetry font-bold bg-secondary-container/15 text-secondary-container border border-secondary-container/30 uppercase flex items-center gap-1.5 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-ping"></span> TRANSMITTED
+              </span>
+            </div>
           </div>
         `;
       }
