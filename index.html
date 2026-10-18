@@ -173,6 +173,16 @@
           <div class="flex items-center gap-space-sm">
             <!-- Live Vitals Pill -->
             <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low border border-outline-variant/30 text-[10px] font-code-stream text-on-surface-variant" id="vitals-pill" title="Live macOS Hardware Vitals">
+              <span class="flex items-center gap-0.5 text-emerald-400 font-bold" id="vitals-battery" title="MacBook Battery Status">
+                <span class="material-symbols-outlined text-[13px]" id="battery-icon">battery_charging_full</span>
+                <span id="vitals-battery-val">91%</span>
+              </span>
+              <span class="text-outline">|</span>
+              <span class="flex items-center gap-0.5 text-amber-400 font-bold" id="vitals-storage" title="Macintosh HD Free Storage">
+                <span class="material-symbols-outlined text-[13px]">hard_drive</span>
+                <span id="vitals-storage-val">83GB FREE</span>
+              </span>
+              <span class="text-outline">|</span>
               <span>CPU:</span> <strong class="text-primary font-bold" id="vitals-cpu">14%</strong>
               <span class="text-outline">|</span>
               <span>RAM:</span> <strong class="text-on-surface font-semibold" id="vitals-ram">16GB</strong>
@@ -1111,23 +1121,110 @@
         `;
       }
 
-      if (cmd === 'SEND_WHATSAPP') {
-        const phone = action.phone || 'Contact';
-        const msg = action.message || '';
+      if (cmd === 'SHOW_TELEMETRY') {
+        const batt = action.battery || { percent: 91, charging: true, power_source: 'AC Power' };
+        const st = action.storage || { total_gb: 228.3, free_gb: 83.5, percent: 63.4 };
+        const cpu = action.cpu_percent || 18.0;
+        const ram = action.total_ram_gb || 16.0;
+
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[#25D366]/40 mt-2 shadow-[0_4px_16px_rgba(37,211,102,0.12)]">
-            <div class="space-y-0.5">
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/95 border border-primary/40 shadow-[0_4px_24px_rgba(0,212,255,0.15)] space-y-3 mt-2">
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[#25D366] text-lg">mark_chat_read</span>
-                <span class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">${escapeHtml(phone)}</span>
+                <span class="material-symbols-outlined text-primary text-xl">speed</span>
+                <div>
+                  <div class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">MACOS SYSTEM HARDWARE TELEMETRY</div>
+                  <div class="font-label-telemetry text-[10px] text-primary">REAL-TIME SENSORS // APPLE SILICON M2</div>
+                </div>
               </div>
-              <div class="font-code-stream text-xs text-on-surface-variant italic truncate max-w-md">"${escapeHtml(msg)}"</div>
-              <div class="text-[10px] font-label-telemetry text-on-surface-variant/70 uppercase">AUTONOMOUS DISPATCH // ZERO MANUAL CLICKS REQUIRED</div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-primary/20 text-primary border border-primary/40">ONLINE</span>
             </div>
-            <div class="flex items-center self-end sm:self-auto">
-              <span class="px-2.5 py-1 rounded text-[11px] font-label-telemetry font-bold bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/30 uppercase flex items-center gap-1.5 shadow-sm">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-ping"></span> SENT AUTOMATICALLY
-              </span>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <!-- Battery -->
+              <div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-emerald-500/30 flex flex-col gap-1">
+                <div class="flex items-center justify-between text-emerald-400">
+                  <span class="material-symbols-outlined text-base">${batt.charging ? 'battery_charging_full' : 'battery_full'}</span>
+                  <span class="text-[9px] font-mono font-bold">${batt.charging ? 'CHARGING' : 'BATTERY'}</span>
+                </div>
+                <div class="font-mono text-lg font-bold text-on-surface">${batt.percent}%</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">${escapeHtml(batt.power_source)}</div>
+                <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+                  <div class="bg-emerald-400 h-full rounded-full" style="width:${batt.percent}%"></div>
+                </div>
+              </div>
+
+              <!-- Storage -->
+              <div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-amber-500/30 flex flex-col gap-1">
+                <div class="flex items-center justify-between text-amber-400">
+                  <span class="material-symbols-outlined text-base">hard_drive</span>
+                  <span class="text-[9px] font-mono font-bold">SSD</span>
+                </div>
+                <div class="font-mono text-lg font-bold text-on-surface">${st.free_gb} GB</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">Free of ${st.total_gb} GB</div>
+                <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+                  <div class="bg-amber-400 h-full rounded-full" style="width:${st.percent}%"></div>
+                </div>
+              </div>
+
+              <!-- CPU Load -->
+              <div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-primary/30 flex flex-col gap-1">
+                <div class="flex items-center justify-between text-primary">
+                  <span class="material-symbols-outlined text-base">memory</span>
+                  <span class="text-[9px] font-mono font-bold">CPU LOAD</span>
+                </div>
+                <div class="font-mono text-lg font-bold text-on-surface">${cpu}%</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">Load Average</div>
+                <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+                  <div class="bg-primary h-full rounded-full" style="width:${min(cpu, 100)}%"></div>
+                </div>
+              </div>
+
+              <!-- RAM -->
+              <div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-purple-500/30 flex flex-col gap-1">
+                <div class="flex items-center justify-between text-purple-400">
+                  <span class="material-symbols-outlined text-base">memory_alt</span>
+                  <span class="text-[9px] font-mono font-bold">UNIFIED RAM</span>
+                </div>
+                <div class="font-mono text-lg font-bold text-on-surface">${ram} GB</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">Metal GPU Shared</div>
+                <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+                  <div class="bg-purple-400 h-full rounded-full" style="width:75%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (cmd === 'SEND_WHATSAPP' || cmd === 'AUTOMATE_DM') {
+        const phone = action.phone || action.recipient || 'Contact';
+        const msg = action.message || '';
+        const platform = (action.platform || 'whatsapp').toLowerCase();
+        const isImessage = platform === 'imessage' || platform === 'sms';
+        const brandColor = isImessage ? '#007AFF' : '#25D366';
+        const brandName = isImessage ? 'Apple iMessage' : 'WhatsApp Desktop';
+        const brandIcon = isImessage ? 'chat' : 'mark_chat_read';
+        const targetUrl = isImessage ? (action.sms_url || '#') : (action.desktop_url || action.web_url || '#');
+
+        return `
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex flex-col gap-2.5 border mt-2 shadow-lg" style="border-color:${brandColor}55">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-lg" style="color:${brandColor}">${brandIcon}</span>
+                  <span class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">${escapeHtml(phone)}</span>
+                  <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase" style="background:${brandColor}22;color:${brandColor}">${brandName}</span>
+                </div>
+                <div class="font-code-stream text-xs text-on-surface-variant italic truncate max-w-md">"${escapeHtml(msg)}"</div>
+                <div class="text-[10px] font-label-telemetry text-on-surface-variant/70 uppercase">AUTONOMOUS DISPATCH // ZERO MANUAL CLICKS REQUIRED</div>
+              </div>
+              <div class="flex items-center gap-2 self-end sm:self-auto">
+                ${targetUrl !== '#' ? `<button onclick="window.open('${escapeHtml(targetUrl)}')" class="px-2.5 py-1 font-label-telemetry text-[10px] text-white rounded uppercase shadow-sm cursor-pointer" style="background:${brandColor}">OPEN CHAT</button>` : ''}
+                <span class="px-2.5 py-1 rounded text-[11px] font-label-telemetry font-bold uppercase flex items-center gap-1.5 shadow-sm" style="background:${brandColor}20;color:${brandColor};border:1px solid ${brandColor}40">
+                  <span class="w-1.5 h-1.5 rounded-full animate-ping" style="background:${brandColor}"></span> SENT
+                </span>
+              </div>
             </div>
           </div>
         `;
@@ -1872,8 +1969,19 @@
         const v = await res.json();
         const cpuEl = document.getElementById('vitals-cpu');
         const ramEl = document.getElementById('vitals-ram');
+        const battEl = document.getElementById('vitals-battery-val');
+        const battIcon = document.getElementById('battery-icon');
+        const storageEl = document.getElementById('vitals-storage-val');
+
         if (cpuEl) cpuEl.textContent = `${v.cpu_percent}%`;
         if (ramEl) ramEl.textContent = `${v.total_ram_gb}GB`;
+        if (battEl && v.battery) {
+          battEl.textContent = `${v.battery.percent}%`;
+          if (battIcon) battIcon.textContent = v.battery.charging ? 'battery_charging_full' : 'battery_full';
+        }
+        if (storageEl && v.storage) {
+          storageEl.textContent = `${v.storage.free_gb}GB FREE`;
+        }
       } catch (_) {}
     }
 

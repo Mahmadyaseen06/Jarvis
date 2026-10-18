@@ -244,8 +244,50 @@ def run_tests():
     assert joke_data["action"]["command"] == "NONE"
     print("✅ 23. POST /chat (Conversational 'find'): Safe non-file intent preserved.")
 
+    # 24. Battery Telemetry Query
+    res_batt = client.post("/chat", json={"text": "what is my battery percentage"})
+    assert res_batt.status_code == 200
+    batt_data = res_batt.json()
+    assert batt_data["action"]["command"] == "SHOW_TELEMETRY"
+    assert batt_data["action"]["telemetry_type"] == "battery"
+    assert "battery" in batt_data["action"]
+    assert isinstance(batt_data["action"]["battery"]["percent"], int)
+    print(f"✅ 24. POST /chat (Battery Vitals): {batt_data['action']['battery']['percent']}% ({batt_data['action']['battery']['power_source']})")
+
+    # 25. Storage / Disk Usage Query
+    res_storage = client.post("/chat", json={"text": "how much storage do I have left?"})
+    assert res_storage.status_code == 200
+    storage_data = res_storage.json()
+    assert storage_data["action"]["command"] == "SHOW_TELEMETRY"
+    assert storage_data["action"]["telemetry_type"] == "storage"
+    assert "storage" in storage_data["action"]
+    print(f"✅ 25. POST /chat (Storage Vitals): {storage_data['action']['storage']['free_gb']}GB free / {storage_data['action']['storage']['total_gb']}GB")
+
+    # 26. Direct DM Automation (iMessage platform routing)
+    res_dm = client.post("/chat", json={"text": "dm Alex on imessage I will be there soon"})
+    assert res_dm.status_code == 200
+    dm_data = res_dm.json()
+    assert dm_data["action"]["command"] in ["SEND_WHATSAPP", "AUTOMATE_DM"]
+    assert dm_data["action"]["platform"] == "imessage"
+    assert dm_data["action"]["phone"] == "Alex"
+    assert "I will be there soon" in dm_data["action"]["message"]
+    print("✅ 26. POST /chat (Direct DM Automation): Autonomous iMessage dispatch verified.")
+
+    # 27. GET /api/dms/status
+    res_dm_status = client.get("/api/dms/status")
+    assert res_dm_status.status_code == 200
+    assert "imessage" in res_dm_status.json()
+    assert "whatsapp" in res_dm_status.json()
+    print("✅ 27. GET /api/dms/status: Multi-channel DM status operational.")
+
+    # 28. POST /api/dms/send
+    res_dm_send = client.post("/api/dms/send", json={"recipient": "Tony", "message": "Repulsor test complete", "platform": "imessage"})
+    assert res_dm_send.status_code == 200
+    assert res_dm_send.json()["ok"] is True
+    print("✅ 28. POST /api/dms/send: Programmatic DM API verified.")
+
     print("=" * 60)
-    print("🎉 ALL TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 28 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":

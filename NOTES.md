@@ -59,3 +59,12 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Fixed: Added dedicated handlers for real-time chronometry ("what time is it", "what's the date"), persona identity ("who are you", "who made you"), and witty Stark quips ("tell me a joke").
   - Fixed: Skipped Google AI Studio call when key starts with invalid `AQ.` prefix, eliminating multi-second 403 Forbidden delays on local runs.
   - Test Suite: Expanded to 23 end-to-end integration tests (23/23 passing).
+- 2026-10-18 — System Hardware Vitals & Direct Autonomous DM Dispatch:
+  - Fixed: When running `./run.sh` while background server was active, Uvicorn crashed with `[Errno 48] Address already in use`. Upgraded `run.sh` to automatically detect port 8000 and reclaim it cleanly.
+  - Added: Full hardware vitals telemetry (`get_system_hardware_vitals()`) reading battery percent and power source via `pmset -g batt`, storage capacity via `shutil.disk_usage('/')`, real-time CPU load average, and Apple Silicon Metal GPU allocation.
+  - Added: Voice and text query routing for battery (`"what is my battery percentage"`, `"is my mac charging"`), storage (`"how much storage do I have"`, `"disk space"`), and full diagnostics (`"system vitals"`), returning verbal reports and `SHOW_TELEMETRY` HUD meters.
+  - Added: Autonomous Direct Message (DM) dispatch via `AUTOMATE_DM` / `SEND_WHATSAPP` with multi-channel support for Apple Messages (`imessage`, `sms`) and WhatsApp Desktop (`whatsapp`).
+  - Added: Programmatic DM API endpoints `GET /api/dms/status` and `POST /api/dms/send`.
+  - Added: Live Battery and Storage meters in the HUD top telemetry bar of `index.html`.
+  - Test Suite: Expanded to 28 end-to-end integration tests (28/28 passing).
+
