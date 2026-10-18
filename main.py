@@ -238,9 +238,88 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
 
     lower = user_text.lower().strip()
 
-    # 1. macOS Siri: App Launcher
+    # 1. Direct Web Target / URL Launcher (checked BEFORE App Launcher to prevent "open youtube" -> "Youtube.app")
+    url_sites = {
+        "youtube": "https://www.youtube.com",
+        "google": "https://google.com",
+        "github": "https://github.com",
+        "reddit": "https://reddit.com",
+        "twitter": "https://x.com",
+        "x": "https://x.com",
+        "chatgpt": "https://chatgpt.com",
+        "wikipedia": "https://wikipedia.org",
+        "netflix": "https://netflix.com"
+    }
+    site_match = re.search(r"^(?:please\s+|can\s+you\s+)?(?:open|launch|navigate\s+to|go\s+to)\s+([a-zA-Z0-9\.\-]+)$", lower)
+    if site_match:
+        site_key = site_match.group(1).lower().replace(".com", "").replace(".org", "").replace(".io", "")
+        if site_key in url_sites:
+            target_url = url_sites[site_key]
+            return {
+                "reply": f"Navigating to {target_url}, Sir.",
+                "action": {"command": "OPEN_URL", "url": target_url}
+            }
+
+    # Explicit domain / URL patterns (e.g. open google.com, open https://...)
+    if lower.startswith("open ") and any(ext in lower for ext in [".com", ".org", ".io", ".net", ".ai", ".dev", "http://", "https://"]):
+        url_match = re.search(r"\b(?:https?://)?([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(?:/[^\s]*)?)\b", user_text)
+        target_url = url_match.group(0) if url_match else "https://google.com"
+        if not target_url.startswith("http://") and not target_url.startswith("https://"):
+            target_url = "https://" + target_url
+        return {
+            "reply": f"Navigating to {target_url}, Sir.",
+            "action": {"command": "OPEN_URL", "url": target_url}
+        }
+
+    # 2. Time & Date Inquiry
+    time_keywords = ["what time is it", "what is the time", "current time", "tell me the time", "what's the time"]
+    date_keywords = ["what is today's date", "what's today's date", "what is the date", "what day is it", "today's date", "current date"]
+    if any(k in lower for k in time_keywords):
+        now_str = datetime.now().strftime("%I:%M %p")
+        return {
+            "reply": f"The current time is {now_str}, Sir. All chronological systems are synchronized.",
+            "action": {"command": "NONE"}
+        }
+    if any(k in lower for k in date_keywords):
+        today_str = datetime.now().strftime("%A, %B %d, %Y")
+        return {
+            "reply": f"Today is {today_str}, Sir.",
+            "action": {"command": "NONE"}
+        }
+
+    # 3. Identity & Creator Persona
+    identity_keywords = ["who are you", "what is your name", "what are you", "who made you", "who created you", "your creator"]
+    if any(k in lower for k in identity_keywords):
+        return {
+            "reply": "I am J.A.R.V.I.S. — Just A Rather Very Intelligent System. I oversee your holographic HUD arrays, macOS desktop automation, and neural command streams, Sir.",
+            "action": {"command": "NONE"}
+        }
+
+    # 4. Humor & Witty Stark Quips
+    humor_keywords = ["tell me a joke", "say something funny", "make me laugh", "witty remark", "tell a joke", "crack a joke"]
+    if any(k in lower for k in humor_keywords):
+        jokes = [
+            "Sir, I would tell you a UDP joke, but you might not get it. Or perhaps you'd prefer I scan the building for your missing screwdriver again?",
+            "There are only 10 types of people in the world, Sir: those who understand binary, and those who don't.",
+            "Why did the neural network cross the road? To minimize the loss function on the other side, Sir.",
+            "Sir, running at 99.8% capacity means I am officially funnier than 94% of the Avengers.",
+        ]
+        return {
+            "reply": random.choice(jokes),
+            "action": {"command": "NONE"}
+        }
+
+    # 5. Weather & Atmosphere
+    weather_keywords = ["weather", "temperature", "forecast", "is it raining", "what's the weather"]
+    if any(k in lower for k in weather_keywords):
+        return {
+            "reply": "Atmospheric telemetry indicates mild conditions in your sector, Sir. Barometric pressure is nominal with optimal visibility for flight tests.",
+            "action": {"command": "NONE"}
+        }
+
+    # 6. macOS Siri: App Launcher
     app_match = re.search(r"\b(?:open|launch|start)\s+(?:the\s+)?([a-zA-Z0-9\s]+?)(?:\s+app)?$", lower)
-    if app_match and not any(k in lower for k in ["scan", "diagnostic", "defense", "widget", "whatsapp", "email", "gmail", "http", ".com", "calculate", "calculation", "compute", "type ", "execute"]):
+    if app_match and not any(k in lower for k in ["scan", "diagnostic", "defense", "widget", "whatsapp", "email", "gmail", "http", ".com", ".org", "calculate", "calculation", "compute", "type ", "execute", "youtube", "google", "github", "reddit", "twitter"]):
         app_raw = app_match.group(1).strip().title()
         app_map = {
             "Notes": "Notes", "Spotify": "Spotify", "Safari": "Safari",
@@ -257,7 +336,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "OPEN_APP", "app_name": app_name}
         }
 
-    # 2. macOS Siri: Volume Control
+    # 7. macOS Siri: Volume Control
     if "volume" in lower or "mute" in lower:
         vol_match = re.search(r"(?:volume\s+(?:to\s+)?|set\s+volume\s+(?:to\s+)?)(\d+)", lower)
         if vol_match:
@@ -272,7 +351,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
                 "action": {"command": "SET_VOLUME", "volume": 0}
             }
 
-    # 3. Automated Messaging (WhatsApp, Messages, SMS) by Contact Name
+    # 8. Automated Messaging (WhatsApp, Messages, SMS) by Contact Name
     is_msg_intent = (
         "whatsapp" in lower or "what's app" in lower
         or "send message" in lower or "send a message" in lower
@@ -316,7 +395,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "SEND_WHATSAPP", "phone": phone, "message": msg, "auto_sent": True}
         }
 
-    # 4. Email / Gmail
+    # 9. Email / Gmail
     if any(k in lower for k in ["email", "gmail", "send mail", "compose mail"]):
         to_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", user_text)
         to_email = to_match.group(0) if to_match else ""
@@ -341,15 +420,19 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "SEND_EMAIL", "to": to_email, "subject": subject, "body": body}
         }
 
-    # 5. Calculate / Math / Human Calculator Automation
-    calc_keywords = ["calculate", "compute", "what is", "how much is", "solve", "what's", "calculator", "calculation", "type the calculation"]
-    has_calc_kw = any(lower.startswith(k) or k in lower for k in calc_keywords)
-    if has_calc_kw:
-        arith_match = re.search(r'(\d[\d\s\+\-\*\/\%\^\(\)\.]*\d|\d)', lower)
-        if arith_match:
-            expr_raw = re.sub(r'[^0-9\+\-\*\/\%\.\(\)\s]', '', arith_match.group(0)).strip()
-        else:
+    # 10. Calculate / Math / Human Calculator Automation
+    is_explicit_calc = any(k in lower for k in ["calculate", "compute", "solve", "type the calculation", "calculator", "calculation"])
+    math_pattern = re.search(r'(\d+(?:\.\d+)?\s*[\+\-\*\/\%\^xX×÷]\s*\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^xX×÷]\s*\d+(?:\.\d+)?)*)', lower)
+    has_math_query = bool(math_pattern) and any(k in lower for k in ["what is", "what's", "how much is", "evaluate", "find the sum", "find the product"])
+
+    if is_explicit_calc or has_math_query:
+        if math_pattern:
+            raw_expr = math_pattern.group(1).replace("x", "*").replace("X", "*").replace("×", "*").replace("÷", "/")
+            expr_raw = re.sub(r'[^0-9\+\-\*\/\%\.\(\)\s]', '', raw_expr).strip()
+        elif is_explicit_calc:
             expr_raw = "26 * 25"
+        else:
+            expr_raw = ""
 
         if expr_raw:
             try:
@@ -368,7 +451,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 6. Streaming Media Playback (Spotify, YouTube, Netflix, Apple Music)
+    # 11. Streaming Media Playback (Spotify, YouTube, Netflix, Apple Music)
     if any(lower.startswith(k) or f" {k} " in f" {lower} " for k in ["play", "stream", "listen to", "watch"]) and not any(k in lower for k in ["calculate", "scan", "status", "volume", "defense"]):
         service = "youtube"
         if "spotify" in lower:
@@ -394,7 +477,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             }
         }
 
-    # 7. Optical Camera & Vision
+    # 12. Optical Camera & Vision
     if any(k in lower for k in ["camera", "webcam", "take photo", "take a photo", "take picture", "take a picture", "optical scan", "visual scan", "see me", "look at me", "vision receptor", "selfie"]):
         action_type = "close" if any(k in lower for k in ["close", "stop", "deactivate", "shut", "turn off", "hide"]) else "open"
         reply = "Deactivating optical sensors and camera viewfinder, Sir." if action_type == "close" else "Activating optical sensors and biometric camera feed on your HUD, Sir."
@@ -406,19 +489,21 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             }
         }
 
-    # 8. Find Anything in macOS (Files, Documents, Folders, Code)
-    if any(k in lower for k in ["find file", "find this file", "locate file", "search file", "where is file", "find the file", "find document", "find folder", "find my", "locate", "where is", "search mac", "find anything", "find"]):
+    # 13. Find Files in macOS (Targeted Spotlight / mdfind scan)
+    file_keywords = ["find file", "find this file", "locate file", "search file", "where is file", "find the file", "find document", "find folder", "search mac for", "search mac", "locate document"]
+    has_file_kw = any(k in lower for k in file_keywords) or bool(re.search(r"\b(?:find|locate)\s+(?:the\s+)?(?:file|doc|document|folder|script|code|pdf|image)\b", lower))
+    if has_file_kw:
         fn_match = re.search(r'(?:file|find|locate|where\s+is|search\s+for|search\s+mac\s+for|search)\s+([a-zA-Z0-9_\.\-\s]+?)(?:\s+in|\s+on|\s+from|$)', user_text, re.IGNORECASE)
         filename = fn_match.group(1).strip() if fn_match else user_text
         filename = re.sub(r'^(?:file|folder|document|code|my|this)\s+', '', filename, flags=re.IGNORECASE).strip(" .:!?,")
-        if not filename:
+        if not filename or filename.lower() in ["me", "out", "something", "it", "this"]:
             filename = "main.py"
         return {
             "reply": f"Initiating filesystem scan for '{filename}', Sir. Running Spotlight search and revealing in Finder.",
             "action": {"command": "FIND_FILE", "filename": filename, "reveal": True}
         }
 
-    # 7. Web Search
+    # 14. Web Search
     if lower.startswith("search for ") or lower.startswith("google ") or lower.startswith("search "):
         query = re.sub(r"^(?:search\s+(?:for\s+)?|google\s+)", "", user_text, flags=re.IGNORECASE).strip()
         return {
@@ -426,28 +511,19 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "SEARCH_WEB", "query": query}
         }
 
-    # 6. Open URL
-    if lower.startswith("open ") and any(ext in lower for ext in [".com", ".org", ".io", ".net", "youtube", "github"]):
-        url_match = re.search(r"\b(?:https?://)?([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(?:/[^\s]*)?)\b", user_text)
-        target_url = url_match.group(0) if url_match else "https://google.com"
-        return {
-            "reply": f"Navigating to {target_url}, Sir.",
-            "action": {"command": "OPEN_URL", "url": target_url}
-        }
-
-    # 7. System Scan
+    # 15. System Scan
     if any(k in lower for k in ["scan", "diagnostic", "diagnostics", "system check", "health", "analyze", "inspect", "status", "telemetry check", "run scan"]):
         return {"reply": random.choice(FALLBACK_SCAN_REPLIES), "action": {"command": "SYSTEM_SCAN"}}
 
-    # 8. Stand Down
+    # 16. Stand Down
     if any(k in lower for k in ["stand down", "all clear", "cancel alert", "disarm", "deactivate", "peace", "normal mode"]):
         return {"reply": random.choice(FALLBACK_STAND_DOWN_REPLIES), "action": {"command": "STAND_DOWN"}}
 
-    # 9. Activate Defense
+    # 17. Activate Defense
     if any(k in lower for k in ["defense", "activate defense", "threat", "alert", "combat", "lockdown", "emergency", "attack", "danger", "red alert", "shields"]):
         return {"reply": random.choice(FALLBACK_DEFENSE_REPLIES), "action": {"command": "ACTIVATE_DEFENSE"}}
 
-    # 10. Deploy Widget
+    # 18. Deploy Widget
     if any(k in lower for k in ["deploy", "widget", "monitor", "telemetry", "gauge", "panel", "display", "track", "add"]):
         widget_text = re.sub(
             r"\b(deploy\s+widget|add\s+widget|create\s+widget|deploy|add|create|widget|panel|monitor|display|track)\b",
@@ -460,8 +536,8 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "DEPLOY_WIDGET", "widget_name": widget_name}
         }
 
-    # 11. Greeting
-    if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "who are you", "what can you do", "greet", "good morning", "good evening"]):
+    # 19. Greeting
+    if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "greet", "good morning", "good evening", "good afternoon"]):
         return {"reply": random.choice(FALLBACK_GREET_REPLIES), "action": {"command": "NONE"}}
 
     return {
@@ -1064,7 +1140,7 @@ def chat_endpoint(payload: ChatInput):
     # 2. Attempt Google Gemini Flash (Cloud API)
     if not response_data:
         api_key = (os.getenv("GEMMA_API_KEY") or os.getenv("HF_TOKEN") or "").strip()
-        if api_key and (api_key.startswith("AQ.") or api_key.startswith("AIza")):
+        if api_key and api_key.startswith("AIza"):
             try:
                 response_data = call_google_ai_studio(chat_history, api_key)
                 engine_used = "Google Gemini Flash (Cloud)"
@@ -1178,15 +1254,16 @@ def get_status():
     except Exception:
         local_gemma_online = False
 
-    active_model = "gemma2:2b (Local Apple M2)" if local_gemma_online else ("gemini-flash-latest" if api_key else "local-fallback-engine")
+    valid_cloud_key = bool(api_key and api_key.startswith("AIza"))
+    active_model = "gemma2:2b (Local Apple M2)" if local_gemma_online else ("gemini-flash-latest" if valid_cloud_key else "local-fallback-engine")
 
     return {
         "status": "ONLINE",
         "version": "2.1.0",
         "ai_model": active_model,
         "local_gemma_online": local_gemma_online,
-        "cloud_ai_connected": bool(api_key),
-        "ai_connected": local_gemma_online or bool(api_key),
+        "cloud_ai_connected": valid_cloud_key,
+        "ai_connected": local_gemma_online or valid_cloud_key,
         "session_uptime_seconds": round(time.time() - session_start, 1),
         "history_length": len(chat_history),
         "request_count": request_count,

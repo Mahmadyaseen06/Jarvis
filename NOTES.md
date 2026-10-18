@@ -51,5 +51,11 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Procedural Web Audio SFX Engine: Synthesizes pure Web Audio API sound effects (beeps, chimes, action confirmations, and abort dampeners) with a top-bar `SFX ON/OFF` toggle.
   - Three.js 3D Holographic Particle Sphere: Ambient full-screen 1,200-particle Fibonacci sphere on `#threeHoloCanvas` that rotates and dynamically expands based on physical vocal audio frequencies from `AnalyserNode`.
   - Live macOS Hardware Vitals (`GET /api/vitals`): Reports real macOS CPU load, RAM utilization, and Apple Silicon Metal GPU status.
-  - Test Suite: Expanded to 19 end-to-end integration tests (19/19 passing).
-
+  - 2026-10-18 — Response Routing & Live Execution Fixes:
+  - Fixed: `calc_keywords` contained bare `"what is"` and `"what's"`, causing conversational queries ("what is your name?", "what is the date?") to default `expr_raw` to `26 * 25` and launch Calculator.app. Restricted calculation exclusively to explicit math verbs or queries containing numbers + math operators.
+  - Fixed: `file_keywords` contained bare `"find"`, misrouting general conversational speech ("can you find a good joke") to Spotlight `FIND_FILE`. Restricted to explicit file search keywords and patterns.
+  - Fixed: "open youtube" or "open google" previously triggered `OPEN_APP` (seeking `Youtube.app`) before URL matching. Moved direct `url_sites` and domain dispatch before `OPEN_APP` to route cleanly to `https://www.youtube.com`.
+  - Fixed: YouTube action card previously embedded deprecated `listType=search` iframes which YouTube blocks with playback errors. Upgraded to Stark Industries Holographic Media Deck with interactive `▶ PLAY NOW` tactile button and automatic client-side popup dispatch.
+  - Fixed: Added dedicated handlers for real-time chronometry ("what time is it", "what's the date"), persona identity ("who are you", "who made you"), and witty Stark quips ("tell me a joke").
+  - Fixed: Skipped Google AI Studio call when key starts with invalid `AQ.` prefix, eliminating multi-second 403 Forbidden delays on local runs.
+  - Test Suite: Expanded to 23 end-to-end integration tests (23/23 passing).

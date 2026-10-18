@@ -213,11 +213,43 @@ def run_tests():
     assert "platform" in vitals_data
     print(f"✅ 19. GET /api/vitals: {vitals_data['platform']} CPU: {vitals_data['cpu_percent']}% RAM: {vitals_data['total_ram_gb']}GB")
 
+    # 20. Identity Query ("what is your name" should NOT trigger CALCULATE)
+    res_identity = client.post("/chat", json={"text": "what is your name?"})
+    assert res_identity.status_code == 200
+    identity_data = res_identity.json()
+    assert identity_data["action"]["command"] == "NONE"
+    assert "J.A.R.V.I.S." in identity_data["reply"]
+    print("✅ 20. POST /chat (Identity): Clean identity response, no false calculation trap.")
+
+    # 21. Time Query ("what time is it" should NOT trigger CALCULATE)
+    res_time = client.post("/chat", json={"text": "what time is it?"})
+    assert res_time.status_code == 200
+    time_data = res_time.json()
+    assert time_data["action"]["command"] == "NONE"
+    assert "time is" in time_data["reply"]
+    print("✅ 21. POST /chat (Time Check): Chronological response verified.")
+
+    # 22. Direct Web Target ("open youtube" should route to OPEN_URL, not OPEN_APP)
+    res_web = client.post("/chat", json={"text": "open youtube"})
+    assert res_web.status_code == 200
+    web_data = res_web.json()
+    assert web_data["action"]["command"] == "OPEN_URL"
+    assert "youtube.com" in web_data["action"]["url"]
+    print("✅ 22. POST /chat (Web Target): Direct site launcher to OPEN_URL verified.")
+
+    # 23. Safe Conversational Query with 'find' ("can you find a good joke" should NOT trigger FIND_FILE)
+    res_joke = client.post("/chat", json={"text": "can you find a good joke"})
+    assert res_joke.status_code == 200
+    joke_data = res_joke.json()
+    assert joke_data["action"]["command"] == "NONE"
+    print("✅ 23. POST /chat (Conversational 'find'): Safe non-file intent preserved.")
+
     print("=" * 60)
     print("🎉 ALL TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":
     run_tests()
+
 
 

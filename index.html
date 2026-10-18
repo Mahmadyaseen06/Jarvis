@@ -1039,6 +1039,16 @@
           }
         }
 
+        // Auto-open web targets if returned and permitted by browser popup policy
+        if (data.action && (data.action.command === 'OPEN_URL' || data.action.command === 'PLAY_MEDIA')) {
+          const targetUrl = data.action.url || (data.action.service === 'youtube' ? data.action.web_url : null);
+          if (targetUrl && targetUrl !== '#') {
+            try {
+              window.open(targetUrl, '_blank');
+            } catch(e) {}
+          }
+        }
+
       } catch (err) {
         removeThinkingIndicator();
         appendJarvisMessage(`
@@ -1161,6 +1171,43 @@
         `;
       }
 
+      if (cmd === 'OPEN_URL') {
+        const url = action.url || '#';
+        return `
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex items-center justify-between border border-primary/40 mt-2 shadow-[0_4px_16px_rgba(0,212,255,0.12)]">
+            <div class="flex items-center gap-3 overflow-hidden">
+              <span class="material-symbols-outlined text-primary text-2xl shrink-0">open_in_browser</span>
+              <div class="truncate">
+                <div class="font-headline-sm text-sm text-on-surface font-semibold truncate">${escapeHtml(url)}</div>
+                <div class="font-code-stream text-xs text-primary">WEB TARGET // LAUNCH PROTOCOL DISPATCHED</div>
+              </div>
+            </div>
+            <button onclick="window.open('${escapeHtml(url)}', '_blank')" class="shrink-0 ml-2 px-3.5 py-1.5 font-mono text-xs font-bold text-white bg-primary hover:bg-primary/80 rounded-lg flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,212,255,0.4)] transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-sm">launch</span> OPEN
+            </button>
+          </div>
+        `;
+      }
+
+      if (cmd === 'SEARCH_WEB') {
+        const query = action.query || '';
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+        return `
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex items-center justify-between border border-primary/40 mt-2 shadow-[0_4px_16px_rgba(0,212,255,0.12)]">
+            <div class="flex items-center gap-3 overflow-hidden">
+              <span class="material-symbols-outlined text-primary text-2xl shrink-0">travel_explore</span>
+              <div class="truncate">
+                <div class="font-headline-sm text-sm text-on-surface font-semibold truncate">${escapeHtml(query)}</div>
+                <div class="font-code-stream text-xs text-primary">GOOGLE SEARCH QUERY ARMED</div>
+              </div>
+            </div>
+            <button onclick="window.open('${escapeHtml(searchUrl)}', '_blank')" class="shrink-0 ml-2 px-3.5 py-1.5 font-mono text-xs font-bold text-white bg-primary hover:bg-primary/80 rounded-lg flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,212,255,0.4)] transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-sm">search</span> SEARCH
+            </button>
+          </div>
+        `;
+      }
+
       if (cmd === 'PLAY_MEDIA') {
         const query = action.media_query || '';
         const service = (action.service || 'youtube').toLowerCase();
@@ -1172,9 +1219,28 @@
         const color = colors[service] || '#00d4ff';
         const serviceName = service === 'apple_music' ? 'Apple Music' : service.charAt(0).toUpperCase() + service.slice(1);
 
-        const embedPlayerHtml = (service === 'youtube' && query) ? `
-          <div class="mt-2 rounded-xl overflow-hidden border border-red-500/30 aspect-video w-full bg-black relative shadow-lg">
-            <iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        const mediaDeck = service === 'youtube' ? `
+          <div class="mt-2 p-3 rounded-xl bg-black/60 border border-red-500/30 flex flex-col gap-3 shadow-lg">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-xs font-mono text-red-400">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span>YOUTUBE NEURAL DISPATCH // QUERY LOCKED</span>
+              </div>
+              <span class="text-[10px] font-mono text-on-surface-variant/70">AUTOPLAY ARMED</span>
+            </div>
+            <div class="flex items-center justify-between bg-surface-container-high/60 p-2.5 rounded-lg border border-outline-variant/20">
+              <div class="flex items-center gap-2.5 overflow-hidden">
+                <span class="material-symbols-outlined text-red-500 text-2xl shrink-0">smart_display</span>
+                <div class="truncate">
+                  <div class="font-bold text-sm text-on-surface truncate">${escapeHtml(query)}</div>
+                  <div class="text-[10px] font-mono text-on-surface-variant">Click to play top stream directly in browser</div>
+                </div>
+              </div>
+              <button onclick="window.open('${escapeHtml(webUrl)}', '_blank')" class="shrink-0 ml-2 px-3.5 py-2 font-mono text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-lg flex items-center gap-1.5 shadow-[0_0_12px_rgba(239,68,68,0.5)] transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-sm">play_arrow</span>
+                <span>PLAY NOW</span>
+              </button>
+            </div>
           </div>
         ` : '';
 
@@ -1193,7 +1259,7 @@
                 <a href="${escapeHtml(webUrl)}" target="_blank" rel="noopener" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-surface-variant bg-surface-container-high hover:bg-surface-container rounded uppercase transition-colors">OPEN WEB</a>
               </div>
             </div>
-            ${embedPlayerHtml}
+            ${mediaDeck}
           </div>
         `;
       }
