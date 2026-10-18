@@ -183,10 +183,41 @@ def run_tests():
     assert data_cam["action"]["command"] == "ACTIVATE_CAMERA"
     assert data_cam["action"].get("open_hud_camera") is True
 
+    # 17. 4-Tier Cognitive Brain & Goal Queue
+    res_brain = client.get("/api/brain")
+    assert res_brain.status_code == 200
+    brain_data = res_brain.json()
+    assert "identity" in brain_data
+    assert "working_memory" in brain_data
+    assert "episodic_memory" in brain_data
+    assert "goal_queue" in brain_data
+    print(f"✅ 17. GET /api/brain: 4-Tier Memory operational (Episodic count: {len(brain_data['episodic_memory'])})")
+
+    res_goal = client.post("/api/brain/goal", json={"title": "Calibrate repulsor field output"})
+    assert res_goal.status_code == 200
+    assert res_goal.json()["ok"] is True
+    print("✅ 17b. POST /api/brain/goal: Successfully enqueued cognitive directive.")
+
+    # 18. Emergency Protocol Zero
+    res_p0 = client.post("/api/protocol-zero")
+    assert res_p0.status_code == 200
+    assert res_p0.json()["status"] == "aborted"
+    print("✅ 18. POST /api/protocol-zero: Emergency halt executed cleanly.")
+
+    # 19. Hardware Vitals Telemetry
+    res_vitals = client.get("/api/vitals")
+    assert res_vitals.status_code == 200
+    vitals_data = res_vitals.json()
+    assert "cpu_percent" in vitals_data
+    assert "total_ram_gb" in vitals_data
+    assert "platform" in vitals_data
+    print(f"✅ 19. GET /api/vitals: {vitals_data['platform']} CPU: {vitals_data['cpu_percent']}% RAM: {vitals_data['total_ram_gb']}GB")
+
     print("=" * 60)
     print("🎉 ALL TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":
     run_tests()
+
 
