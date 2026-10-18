@@ -886,6 +886,15 @@ def get_whisper_model():
     return _whisper_model
 
 
+def _sync_transcribe(content: bytes) -> str:
+    model = get_whisper_model()
+    if not model:
+        return ""
+    audio_stream = io.BytesIO(content)
+    segments, _ = model.transcribe(audio_stream, beam_size=1)
+    return " ".join([s.text.strip() for s in segments if s.text]).strip()
+
+
 @app.post("/api/transcribe")
 async def transcribe_audio(audio: UploadFile = File(...)):
     """
@@ -898,13 +907,7 @@ async def transcribe_audio(audio: UploadFile = File(...)):
         if not content or len(content) < 100:
             return {"text": "", "status": "empty"}
 
-        model = get_whisper_model()
-        if not model:
-            return {"text": "", "error": "whisper_unavailable"}
-
-        audio_stream = io.BytesIO(content)
-        segments, _ = model.transcribe(audio_stream, beam_size=1)
-        transcribed_text = " ".join([s.text.strip() for s in segments if s.text]).strip()
+        transcribed_text = await asyncio.to_thread(_sync_transcribe, content)
         return {"text": transcribed_text, "status": "ok"}
     except Exception as e:
         print(f"[JARVIS WHISPER ERROR] {e}")
