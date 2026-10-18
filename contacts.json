@@ -1,0 +1,16 @@
+{
+  "phone": {
+    "alex": "+1234567890",
+    "mom": "+1987654321",
+    "dad": "+1987654322",
+    "boss": "+1987654323",
+    "sister": "+1987654324",
+    "yaseen": "+1234567899"
+  },
+  "email": {
+    "alex": "alex@example.com",
+    "boss": "boss@stark.com",
+    "sister": "sister@example.com",
+    "mom": "mom@example.com"
+  }
+}
