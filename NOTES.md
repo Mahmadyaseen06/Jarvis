@@ -67,4 +67,10 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Added: Programmatic DM API endpoints `GET /api/dms/status` and `POST /api/dms/send`.
   - Added: Live Battery and Storage meters in the HUD top telemetry bar of `index.html`.
   - Test Suite: Expanded to 28 end-to-end integration tests (28/28 passing).
+- 2026-10-18 — ReferenceError 'min is not defined' Fix & Full System Access / DM Hub:
+  - Bug: In `index.html` line 1179, `${min(cpu, 100)}%` threw `ReferenceError: min is not defined` inside `renderActionCard`, which caused the catch block to intercept the error and display `Unable to connect to neural core: min is not defined` on the user's HUD when querying battery or vitals.
+  - Fix: Replaced `${min(cpu, 100)}` with `${Math.min(Number(cpu) || 0, 100)}%` and validated JavaScript syntax via Node.js `--eval`.
+  - Added: Comprehensive `full_system` hardware telemetry query covering battery % with charging time remaining, SSD storage breakdown, Apple Silicon M2 CPU load, Unified RAM, macOS build, system uptime, and multi-channel DM gateway status.
+  - Added: Executable CLI tool `./bro` (and `jarvis` symlink) allowing direct terminal commands (`./bro what is my battery percentage`, `./bro give a full access to my system`, `./bro dm Alex on imessage`) so commands run from the terminal succeed without `zsh: command not found: bro`.
+  - Test Suite: Expanded to 30 end-to-end integration tests (30/30 passing).
 

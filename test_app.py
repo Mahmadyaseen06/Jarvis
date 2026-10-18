@@ -286,8 +286,27 @@ def run_tests():
     assert res_dm_send.json()["ok"] is True
     print("✅ 28. POST /api/dms/send: Programmatic DM API verified.")
 
+    # 29. Full System Diagnostics & Telemetry Query
+    res_full_sys = client.post("/chat", json={"text": "give a full access to my system and get every information like battery precentage, storage, etc,.. And give direct access to my DMs so that it can domeverything automatically."})
+    assert res_full_sys.status_code == 200
+    full_sys_data = res_full_sys.json()
+    assert full_sys_data["action"]["command"] == "SHOW_TELEMETRY"
+    assert full_sys_data["action"]["telemetry_type"] == "full_system"
+    assert "battery" in full_sys_data["action"]
+    assert "storage" in full_sys_data["action"]
+    assert "chip" in full_sys_data["action"]
+    print("✅ 29. POST /chat (Full System Access & Vitals): Complete hardware diagnostics verified.")
+
+    # 30. Direct DM Gateway Access Query
+    res_dm_hub = client.post("/chat", json={"text": "access to my dms"})
+    assert res_dm_hub.status_code == 200
+    dm_hub_data = res_dm_hub.json()
+    assert dm_hub_data["action"]["command"] == "AUTOMATE_DM"
+    assert dm_hub_data["action"]["mode"] == "hub"
+    print("✅ 30. POST /chat (Direct DM Access): Autonomous DM gateway hub routing verified.")
+
     print("=" * 60)
-    print("🎉 ALL 28 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 30 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":

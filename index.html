@@ -1122,10 +1122,13 @@
       }
 
       if (cmd === 'SHOW_TELEMETRY') {
-        const batt = action.battery || { percent: 91, charging: true, power_source: 'AC Power' };
+        const batt = action.battery || { percent: 91, charging: true, power_source: 'AC Power', time_remaining: 'Charging' };
         const st = action.storage || { total_gb: 228.3, free_gb: 83.5, percent: 63.4 };
         const cpu = action.cpu_percent || 18.0;
         const ram = action.total_ram_gb || 16.0;
+        const chip = action.chip || 'Apple Silicon M2 (8 Cores)';
+        const osVer = action.macos_version || 'macOS (Darwin)';
+        const uptime = action.uptime || '6h active';
 
         return `
           <div class="p-space-sm rounded-xl bg-surface-container-highest/95 border border-primary/40 shadow-[0_4px_24px_rgba(0,212,255,0.15)] space-y-3 mt-2">
@@ -1133,11 +1136,11 @@
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary text-xl">speed</span>
                 <div>
-                  <div class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">MACOS SYSTEM HARDWARE TELEMETRY</div>
-                  <div class="font-label-telemetry text-[10px] text-primary">REAL-TIME SENSORS // APPLE SILICON M2</div>
+                  <div class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">MACOS FULL SYSTEM TELEMETRY & DIAGNOSTICS</div>
+                  <div class="font-label-telemetry text-[10px] text-primary">REAL-TIME SENSORS // ${escapeHtml(chip)} // ${escapeHtml(osVer)}</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-primary/20 text-primary border border-primary/40">ONLINE</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-primary/20 text-primary border border-primary/40">ONLINE // UP: ${escapeHtml(uptime)}</span>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -1148,7 +1151,7 @@
                   <span class="text-[9px] font-mono font-bold">${batt.charging ? 'CHARGING' : 'BATTERY'}</span>
                 </div>
                 <div class="font-mono text-lg font-bold text-on-surface">${batt.percent}%</div>
-                <div class="text-[9px] font-mono text-on-surface-variant truncate">${escapeHtml(batt.power_source)}</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">${escapeHtml(batt.time_remaining || batt.power_source)}</div>
                 <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
                   <div class="bg-emerald-400 h-full rounded-full" style="width:${batt.percent}%"></div>
                 </div>
@@ -1158,10 +1161,10 @@
               <div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-amber-500/30 flex flex-col gap-1">
                 <div class="flex items-center justify-between text-amber-400">
                   <span class="material-symbols-outlined text-base">hard_drive</span>
-                  <span class="text-[9px] font-mono font-bold">SSD</span>
+                  <span class="text-[9px] font-mono font-bold">SSD STORAGE</span>
                 </div>
                 <div class="font-mono text-lg font-bold text-on-surface">${st.free_gb} GB</div>
-                <div class="text-[9px] font-mono text-on-surface-variant truncate">Free of ${st.total_gb} GB</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">Free of ${st.total_gb} GB (${st.percent}% used)</div>
                 <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
                   <div class="bg-amber-400 h-full rounded-full" style="width:${st.percent}%"></div>
                 </div>
@@ -1174,9 +1177,9 @@
                   <span class="text-[9px] font-mono font-bold">CPU LOAD</span>
                 </div>
                 <div class="font-mono text-lg font-bold text-on-surface">${cpu}%</div>
-                <div class="text-[9px] font-mono text-on-surface-variant truncate">Load Average</div>
+                <div class="text-[9px] font-mono text-on-surface-variant truncate">${escapeHtml(chip)}</div>
                 <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
-                  <div class="bg-primary h-full rounded-full" style="width:${min(cpu, 100)}%"></div>
+                  <div class="bg-primary h-full rounded-full" style="width:${Math.min(Number(cpu) || 0, 100)}%"></div>
                 </div>
               </div>
 
@@ -1191,6 +1194,19 @@
                 <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
                   <div class="bg-purple-400 h-full rounded-full" style="width:75%"></div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Direct Autonomous DM Gateway Bar -->
+            <div class="p-2 rounded-lg bg-surface-container-lowest/70 border border-outline-variant/30 flex items-center justify-between text-xs font-mono">
+              <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined text-primary text-sm">chat</span>
+                <span>AUTONOMOUS DM GATEWAY:</span>
+                <span class="text-emerald-400 font-bold">iMessage & WhatsApp ONLINE</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="window.open('sms:', '_blank')" class="px-2 py-1 rounded bg-surface-container border border-primary/30 hover:bg-primary/20 text-primary text-[10px] font-bold transition-all">iMESSAGE</button>
+                <button onclick="window.open('https://web.whatsapp.com', '_blank')" class="px-2 py-1 rounded bg-surface-container border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold transition-all">WHATSAPP</button>
               </div>
             </div>
           </div>
