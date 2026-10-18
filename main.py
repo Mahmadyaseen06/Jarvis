@@ -899,7 +899,15 @@ def _sync_transcribe(content: bytes) -> str:
     if not model:
         return ""
     audio_stream = io.BytesIO(content)
-    segments, _ = model.transcribe(audio_stream, beam_size=1)
+    segments, _ = model.transcribe(
+        audio_stream,
+        language="en",
+        beam_size=1,
+        best_of=1,
+        temperature=0.0,
+        condition_on_previous_text=False,
+        vad_filter=True,
+    )
     return " ".join([s.text.strip() for s in segments if s.text]).strip()
 
 

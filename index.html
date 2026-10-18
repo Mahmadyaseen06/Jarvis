@@ -508,11 +508,14 @@
         }
 
         const avg = sum / eqBars.length;
-        if (avg > 14) {
+        if (avg > 8) {
           hasDetectedSpeech = true;
           lastSpokeTime = Date.now();
-        } else if (hasDetectedSpeech && lastSpokeTime > 0 && (Date.now() - lastSpokeTime > 1600)) {
-          // In Brave/Arc or offline, auto-dispatch on 1.6s natural pause
+          if (statusCaption && isListening && !statusCaption.textContent.includes('TRANSCRIBING')) {
+            statusCaption.textContent = "HEARING AUDIO // RECORDING...";
+          }
+        } else if (hasDetectedSpeech && lastSpokeTime > 0 && (Date.now() - lastSpokeTime > 2500)) {
+          // Generous 2.5s silence buffer so speech is never cut off mid-sentence
           finishRecordingAndDispatch();
           return;
         }
@@ -568,7 +571,8 @@
           else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
           else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
 
-          mediaRecorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
+          const options = mimeType ? { mimeType, audioBitsPerSecond: 128000 } : undefined;
+          mediaRecorder = new MediaRecorder(micStream, options);
           mediaRecorder.ondataavailable = (e) => {
             if (e.data && e.data.size > 0) audioChunks.push(e.data);
           };
@@ -760,12 +764,12 @@
               commandInput.value = currentSpoken;
               transcribePreview.textContent = `"${currentSpoken}"`;
 
-              // Auto-send after 1200ms natural pause
+              // Auto-send after 1800ms natural pause
               pauseTimer = setTimeout(() => {
                 if (!voiceSent && currentSpoken) {
                   finishRecordingAndDispatch();
                 }
-              }, 1200);
+              }, 1800);
             }
           };
 
