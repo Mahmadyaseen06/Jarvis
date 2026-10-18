@@ -1,0 +1,24 @@
+{
+  "phone": {
+    "alex": "+1234567890",
+    "mom": "+1987654321",
+    "dad": "+1987654322",
+    "boss": "+1987654323",
+    "sister": "+1987654324",
+    "yaseen": "+918197646867",
+    "me": "+918197646867",
+    "myself": "+918197646867",
+    "commander": "+918197646867",
+    "8197646867": "+918197646867",
+    "pepper": "+1999888777",
+    "rahul": "9876543210",
+    "aman": "9123456789"
+  },
+  "email": {
+    "alex": "alex@example.com",
+    "boss": "boss@stark.com",
+    "sister": "sister@example.com",
+    "mom": "mom@example.com",
+    "pepper": "pepper@stark.com"
+  }
+}
