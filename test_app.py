@@ -324,8 +324,34 @@ def run_tests():
     assert "content" in letter_b_data["action"]
     print(f"✅ 32. POST /chat (Letter to Boss): {letter_b_data['action']['subject']} ({letter_b_data['action']['word_count']} words)")
 
+    # 33. OpenJarvis Code Synthesis (WRITE_CODE)
+    res_code = client.post("/chat", json={"text": "write a code to add two numbers in Python"})
+    assert res_code.status_code == 200
+    code_data = res_code.json()
+    assert code_data["action"]["command"] == "WRITE_CODE"
+    assert "add_two_numbers" in code_data["action"]["code"] or "add_numbers" in code_data["action"]["code"] or "def" in code_data["action"]["code"]
+    assert "Yaseen" in code_data["reply"] or "Commander" in code_data["reply"] or "Sir" in code_data["reply"]
+    assert code_data["action"]["execution"]["success"] is True
+    print(f"✅ 33. POST /chat (WRITE_CODE OpenJarvis): {code_data['action']['title']} pre-executed in {code_data['action']['execution']['duration']}s")
+
+    # 34. POST /api/code/run Endpoint
+    res_run = client.post("/api/code/run", json={"code": "x = 40 + 2\nprint(f'Computed: {x}')"})
+    assert res_run.status_code == 200
+    run_data = res_run.json()
+    assert run_data["ok"] is True
+    assert "Computed: 42" in run_data["output"]
+    print(f"✅ 34. POST /api/code/run: Isolated OpenJarvis runner executed in {run_data['duration']}s: {run_data['output']}")
+
+    # 35. POST /api/shell/run Endpoint
+    res_shell = client.post("/api/shell/run", json={"command": "echo 'J.A.R.V.I.S. OpenJarvis Active'"})
+    assert res_shell.status_code == 200
+    shell_data = res_shell.json()
+    assert shell_data["ok"] is True
+    assert "J.A.R.V.I.S. OpenJarvis Active" in shell_data["output"]
+    print(f"✅ 35. POST /api/shell/run: Hardened shell executor verified in {shell_data['duration']}s")
+
     print("=" * 60)
-    print("🎉 ALL 32 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 35 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":

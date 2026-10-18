@@ -88,6 +88,16 @@ def main():
         print(f"{CYAN}--- DOCUMENT PREVIEW ---{RESET}")
         print(content)
         print(f"{CYAN}------------------------{RESET}\n")
+    elif cmd == "WRITE_CODE":
+        title = action.get("title", "Python Code")
+        code = action.get("code", "")
+        output = action.get("output", "")
+        duration = action.get("execution", {}).get("duration", 0.02)
+        print(f"{CYAN}{BOLD}[OPENJARVIS CODE INTERPRETER // {title.upper()}]{RESET}")
+        print(f"{YELLOW}--- PYTHON SOURCE ---{RESET}")
+        print(code)
+        print(f"{YELLOW}--- SANDBOX OUTPUT ({duration}s) ---{RESET}")
+        print(f"{GREEN}{output}{RESET}\n")
 
 if __name__ == "__main__":
     main()
