@@ -137,9 +137,36 @@ def run_tests():
     assert "text" in res.json()
     print("✅ 14. POST /api/transcribe: Local Faster-Whisper audio transcription verified.")
 
+    # 15. PLAY_MEDIA Command (Spotify & YouTube)
+    res = client.post("/chat", json={"text": "Jarvis, play Bohemian Rhapsody on Spotify"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 15. POST /chat (PLAY_MEDIA Spotify):", data)
+    assert data["action"]["command"] == "PLAY_MEDIA"
+    assert data["action"]["service"] == "spotify"
+    assert "Bohemian Rhapsody" in data["action"]["media_query"]
+    assert "spotify" in data["action"].get("desktop_url", "").lower() or "spotify" in data["action"].get("web_url", "").lower()
+
+    res_yt = client.post("/chat", json={"text": "play interstellar soundtrack on youtube"})
+    assert res_yt.status_code == 200
+    data_yt = res_yt.json()
+    print("✅ 15b. POST /chat (PLAY_MEDIA YouTube):", data_yt)
+    assert data_yt["action"]["command"] == "PLAY_MEDIA"
+    assert data_yt["action"]["service"] == "youtube"
+    assert "interstellar" in data_yt["action"]["media_query"].lower()
+
+    # 16. ACTIVATE_CAMERA Command
+    res_cam = client.post("/chat", json={"text": "activate camera and run optical scan"})
+    assert res_cam.status_code == 200
+    data_cam = res_cam.json()
+    print("✅ 16. POST /chat (ACTIVATE_CAMERA):", data_cam)
+    assert data_cam["action"]["command"] == "ACTIVATE_CAMERA"
+    assert data_cam["action"].get("open_hud_camera") is True
+
     print("=" * 60)
     print("🎉 ALL TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":
     run_tests()
+

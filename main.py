@@ -84,11 +84,15 @@ Output format: You MUST always respond with valid JSON and nothing else. Structu
 {
   "reply": "<Your spoken response, 1-2 sentences max, in character>",
   "action": {
-    "command": "<ONE of: CALCULATE, FIND_FILE, OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
+    "command": "<ONE of: PLAY_MEDIA, ACTIVATE_CAMERA, CALCULATE, FIND_FILE, OPEN_APP, SET_VOLUME, SEND_WHATSAPP, SEND_EMAIL, SEARCH_WEB, OPEN_URL, SYSTEM_SCAN, ACTIVATE_DEFENSE, DEPLOY_WIDGET, STAND_DOWN, NONE>",
+    "media_query": "<Song, artist, video, or movie to play if PLAY_MEDIA, e.g. Bohemian Rhapsody, Interstellar soundtrack>",
+    "service": "<Streaming service if PLAY_MEDIA: spotify, youtube, netflix, apple_music, auto>",
+    "action_type": "<If ACTIVATE_CAMERA: open, close, capture>",
     "expression": "<Math expression if CALCULATE, e.g. 26 * 25>",
     "result": "<Calculated numeric answer if CALCULATE, e.g. 650>",
-    "filename": "<Filename to find if FIND_FILE, e.g. notes.txt>",
-    "app_name": "<Target Mac app name if OPEN_APP or CALCULATE, e.g. Calculator, Spotify, Notes, Safari, Music, Terminal, Calendar, Maps>",
+    "filename": "<Filename or search query to find if FIND_FILE, e.g. main.py, notes.txt>",
+    "reveal": true,
+    "app_name": "<Target Mac app name if OPEN_APP, CALCULATE, or PLAY_MEDIA>",
     "volume": <Integer 0-100 if SET_VOLUME>,
     "phone": "<Phone number or contact name if SEND_WHATSAPP>",
     "message": "<Message text if SEND_WHATSAPP>",
@@ -103,8 +107,10 @@ Output format: You MUST always respond with valid JSON and nothing else. Structu
 }
 
 Command selection rules:
+- PLAY_MEDIA: User asks to play, stream, listen to, or watch any music, song, artist, video, movie, or playlist (e.g. "play Bohemian Rhapsody on Spotify", "play lofi beats on YouTube", "play stranger things on netflix", "play music", "stream interstellar soundtrack").
+- ACTIVATE_CAMERA: User asks to open camera, turn on webcam, visual scan, optical scan, take a picture/photo, or see me (e.g. "activate camera", "open camera", "turn on webcam", "run optical scan", "take a photo", "close camera").
 - CALCULATE: User asks to calculate, compute, multiply, divide, add, or solve any arithmetic (e.g. "calculate 26*25", "what is 26 * 25", "calculate 100 / 4"). Always compute the answer AND set app_name to "Calculator".
-- FIND_FILE: User asks to find, locate, or search for a file on their Mac (e.g. "find this file notes.txt in system", "locate project report").
+- FIND_FILE: User asks to find, locate, search for, or open any file, folder, document, or code on their Mac (e.g. "find file main.py", "where is notes.txt", "locate project folder", "search for resume.pdf", "find my downloads").
 - OPEN_APP: User asks to open, launch, or start any application (e.g. "open Spotify", "open Notes", "launch Safari", "start Calculator", "open Music", "open Terminal").
 - SET_VOLUME: User asks to adjust system volume (e.g. "set volume to 70%", "mute volume", "turn volume up to 50").
 - SEND_WHATSAPP: User asks to send a WhatsApp message or text someone (e.g. "send WhatsApp to Alex saying I will be there soon", "WhatsApp Mom that I arrived safely").
@@ -316,13 +322,54 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # 6. Find File in System
-    if any(k in lower for k in ["find file", "find this file", "locate file", "search file", "where is file", "find the file"]):
-        fn_match = re.search(r'(?:file|find|locate)\s+([a-zA-Z0-9_\.\-\s]+?)(?:\s+in|\s+on|\s+from|$)', user_text, re.IGNORECASE)
-        filename = fn_match.group(1).strip() if fn_match else user_text
+    # 6. Streaming Media Playback (Spotify, YouTube, Netflix, Apple Music)
+    if any(lower.startswith(k) or f" {k} " in f" {lower} " for k in ["play", "stream", "listen to", "watch"]) and not any(k in lower for k in ["calculate", "scan", "status", "volume", "defense"]):
+        service = "youtube"
+        if "spotify" in lower:
+            service = "spotify"
+        elif "netflix" in lower or "movie" in lower or "series" in lower or "season" in lower:
+            service = "netflix"
+        elif "apple music" in lower or "itunes" in lower:
+            service = "apple_music"
+
+        query_text = re.sub(r"^(?:hey\s+|hi\s+)?jarvis[\s,]*", "", user_text, flags=re.IGNORECASE).strip()
+        query_text = re.sub(r"^(?:please\s+|can\s+you\s+)?(?:play|stream|listen\s+to|watch)\s+", "", query_text, flags=re.IGNORECASE).strip()
+        query_text = re.sub(r"\s+on\s+(?:spotify|youtube|netflix|apple\s+music)\s*$", "", query_text, flags=re.IGNORECASE).strip()
+        if not query_text:
+            query_text = "Iron Man AC/DC Back in Black"
+
+        service_display = service.replace("_", " ").title()
         return {
-            "reply": f"Initiating filesystem scan for '{filename}', Sir. Running Spotlight search now.",
-            "action": {"command": "FIND_FILE", "filename": filename}
+            "reply": f"Streaming '{query_text}' on {service_display}, Sir.",
+            "action": {
+                "command": "PLAY_MEDIA",
+                "media_query": query_text,
+                "service": service
+            }
+        }
+
+    # 7. Optical Camera & Vision
+    if any(k in lower for k in ["camera", "webcam", "take photo", "take a photo", "take picture", "take a picture", "optical scan", "visual scan", "see me", "look at me", "vision receptor", "selfie"]):
+        action_type = "close" if any(k in lower for k in ["close", "stop", "deactivate", "shut", "turn off", "hide"]) else "open"
+        reply = "Deactivating optical sensors and camera viewfinder, Sir." if action_type == "close" else "Activating optical sensors and biometric camera feed on your HUD, Sir."
+        return {
+            "reply": reply,
+            "action": {
+                "command": "ACTIVATE_CAMERA",
+                "action_type": action_type
+            }
+        }
+
+    # 8. Find Anything in macOS (Files, Documents, Folders, Code)
+    if any(k in lower for k in ["find file", "find this file", "locate file", "search file", "where is file", "find the file", "find document", "find folder", "find my", "locate", "where is", "search mac", "find anything", "find"]):
+        fn_match = re.search(r'(?:file|find|locate|where\s+is|search\s+for|search\s+mac\s+for|search)\s+([a-zA-Z0-9_\.\-\s]+?)(?:\s+in|\s+on|\s+from|$)', user_text, re.IGNORECASE)
+        filename = fn_match.group(1).strip() if fn_match else user_text
+        filename = re.sub(r'^(?:file|folder|document|code|my|this)\s+', '', filename, flags=re.IGNORECASE).strip(" .:!?,")
+        if not filename:
+            filename = "main.py"
+        return {
+            "reply": f"Initiating filesystem scan for '{filename}', Sir. Running Spotlight search and revealing in Finder.",
+            "action": {"command": "FIND_FILE", "filename": filename, "reveal": True}
         }
 
     # 7. Web Search
@@ -447,30 +494,108 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
             subprocess.Popen(["open", "-a", "Calculator"])
             result = {"executed": True, "detail": f"{expression} = {calc_answer}"}
 
+        elif cmd == "PLAY_MEDIA":
+            query = action.get("media_query", "").strip() or "Iron Man AC/DC Back in Black"
+            service = action.get("service", "youtube").lower()
+            encoded_query = urllib.parse.quote(query)
+
+            if service == "spotify":
+                desktop_url = f"spotify:search:{encoded_query}"
+                web_url = f"https://open.spotify.com/search/{encoded_query}"
+                action["desktop_url"] = desktop_url
+                action["web_url"] = web_url
+                try:
+                    subprocess.Popen(["open", desktop_url])
+                except Exception:
+                    subprocess.Popen(["open", web_url])
+                result = {"executed": True, "detail": f"Streaming '{query}' on Spotify"}
+            elif service == "netflix":
+                web_url = f"https://www.netflix.com/search?q={encoded_query}"
+                action["web_url"] = web_url
+                subprocess.Popen(["open", web_url])
+                result = {"executed": True, "detail": f"Opening '{query}' on Netflix"}
+            elif service == "apple_music":
+                desktop_url = f"music://search?term={encoded_query}"
+                web_url = f"https://music.apple.com/us/search?term={encoded_query}"
+                action["desktop_url"] = desktop_url
+                action["web_url"] = web_url
+                try:
+                    subprocess.Popen(["open", desktop_url])
+                except Exception:
+                    subprocess.Popen(["open", web_url])
+                result = {"executed": True, "detail": f"Streaming '{query}' on Apple Music"}
+            else:  # default YouTube
+                web_url = f"https://www.youtube.com/results?search_query={encoded_query}"
+                action["web_url"] = web_url
+                subprocess.Popen(["open", web_url])
+                result = {"executed": True, "detail": f"Streaming '{query}' on YouTube"}
+
+        elif cmd == "ACTIVATE_CAMERA":
+            action_type = action.get("action_type", "open").lower()
+            if action_type in ["close", "stop", "deactivate", "shut", "turn off"]:
+                action["open_hud_camera"] = False
+                result = {"executed": True, "detail": "Camera viewfinder deactivated on HUD"}
+            else:
+                action["open_hud_camera"] = True
+                result = {"executed": True, "detail": "Optical camera sensor feed active on HUD"}
+
         elif cmd == "FIND_FILE":
             filename = action.get("filename", "").strip()
             if filename:
-                # Use macOS mdfind (Spotlight) to find the file
+                paths = []
+                # Tier 1: Spotlight Display Name match
                 try:
                     found = subprocess.check_output(
                         ["mdfind", f"kMDItemDisplayName == '*{filename}*'cdw"],
                         timeout=5
                     ).decode().strip()
                     if found:
-                        paths = found.split('\n')[:5]  # Top 5 results
-                        action["found_paths"] = paths
-                        result = {"executed": True, "detail": f"Found {len(paths)} match(es): {paths[0]}"}
-                    else:
-                        # Try broader search
+                        paths = [p for p in found.split('\n') if p.strip()][:8]
+                except Exception:
+                    pass
+
+                # Tier 2: Spotlight File System Name match if no matches
+                if not paths:
+                    try:
                         found2 = subprocess.check_output(
                             ["mdfind", f"kMDItemFSName == '*{filename}*'c"],
                             timeout=5
                         ).decode().strip()
-                        paths = found2.split('\n')[:5] if found2 else []
-                        action["found_paths"] = paths
-                        result = {"executed": bool(paths), "detail": f"Spotlight search completed. {len(paths)} result(s) found." if paths else "No files found matching that name, Sir."}
-                except Exception as fe:
-                    result = {"executed": False, "detail": f"Filesystem search unavailable: {fe}"}
+                        if found2:
+                            paths = [p for p in found2.split('\n') if p.strip()][:8]
+                    except Exception:
+                        pass
+
+                # Tier 3: General Spotlight full-text search
+                if not paths:
+                    try:
+                        found3 = subprocess.check_output(
+                            ["mdfind", filename],
+                            timeout=5
+                        ).decode().strip()
+                        if found3:
+                            paths = [p for p in found3.split('\n') if p.strip()][:8]
+                    except Exception:
+                        pass
+
+                action["found_paths"] = paths
+                if paths:
+                    action["top_path"] = paths[0]
+                    # Automatically reveal top match in Finder
+                    if action.get("reveal", True):
+                        try:
+                            subprocess.Popen(["open", "-R", paths[0]])
+                        except Exception:
+                            pass
+                    result = {
+                        "executed": True,
+                        "detail": f"Located {len(paths)} item(s) on Mac. Top match revealed in Finder: {paths[0]}"
+                    }
+                else:
+                    result = {
+                        "executed": False,
+                        "detail": f"No files or items matching '{filename}' found on this Mac, Sir."
+                    }
 
     except Exception as e:
         result = {"executed": False, "detail": f"macOS execution note: {e}"}
