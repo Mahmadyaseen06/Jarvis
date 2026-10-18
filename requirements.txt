@@ -3,3 +3,4 @@ uvicorn
 pydantic
 huggingface_hub
 python-dotenv
+faster-whisper
