@@ -1036,7 +1036,21 @@ def _sync_transcribe(content: bytes) -> str:
     return " ".join([s.text.strip() for s in segments if s.text]).strip()
 
 
+@app.post("/api/reveal")
+async def reveal_in_finder(body: dict):
+    """Reveal a file path in macOS Finder using open -R."""
+    path = body.get("path", "").strip()
+    if not path:
+        return {"ok": False, "detail": "No path provided"}
+    try:
+        subprocess.Popen(["open", "-R", path])
+        return {"ok": True, "detail": f"Revealed in Finder: {path}"}
+    except Exception as e:
+        return {"ok": False, "detail": str(e)}
+
+
 @app.post("/api/transcribe")
+
 async def transcribe_audio(audio: UploadFile = File(...)):
     """
     Local Whisper transcription endpoint.

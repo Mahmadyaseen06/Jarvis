@@ -214,6 +214,10 @@
                 <span class="font-label-status text-label-status text-on-surface-variant uppercase">M2 MEMORY</span>
                 <span class="font-code-stream text-code-stream text-on-surface font-semibold">4.8 GB / 16 GB</span>
               </div>
+              <button onclick="toggleCameraViewfinder()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container-high transition-colors border border-primary/20 text-primary shadow-sm" title="Toggle Optical Camera HUD" type="button">
+                <span class="material-symbols-outlined text-sm">videocam</span>
+                <span class="font-label-telemetry text-label-telemetry tracking-wider uppercase">OPTICAL HUD</span>
+              </button>
               <div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-low shadow-sm">
                 <span class="font-label-status text-label-status text-on-surface-variant uppercase transition-colors" id="defense-label">DEFENSE: STANDBY</span>
                 <button aria-label="Toggle Defense Protocol" class="w-10 h-5 rounded-full bg-surface-container-high p-0.5 flex items-center transition-all duration-300 focus:outline-none" id="defense-switch" onclick="toggleDefenseSwitch()" type="button">
@@ -331,9 +335,13 @@
                 <!-- Dynamic User Query Input -->
                 <input autocomplete="off" class="flex-1 bg-transparent border-0 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-0 px-2 py-2.5 min-w-0" id="command-input" placeholder="Ask J.A.R.V.I.S. anything or issue suit protocol..." type="text"/>
                 <!-- Mic Trigger with Wave Pulse Aura -->
-                <button aria-label="Voice Activation" class="relative w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-high text-primary hover:bg-surface-container-highest transition-all duration-200 focus:outline-none mr-1.5" id="dock-mic-btn" onclick="toggleVoiceInput()" title="Voice Microphone" type="button">
+                <button aria-label="Voice Activation" class="relative w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-high text-primary hover:bg-surface-container-highest transition-all duration-200 focus:outline-none mr-1" id="dock-mic-btn" onclick="toggleVoiceInput()" title="Voice Microphone" type="button">
                   <span class="absolute inset-0 rounded-full bg-primary/30 scale-100 opacity-0 transition-all duration-300 pointer-events-none" id="dock-mic-ring"></span>
                   <span class="material-symbols-outlined text-xl" id="dock-mic-icon">mic</span>
+                </button>
+                <!-- Camera HUD Dock Button -->
+                <button aria-label="Toggle Camera HUD" class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-high text-primary hover:bg-surface-container-highest transition-all duration-200 focus:outline-none mr-1.5" onclick="toggleCameraViewfinder()" title="Optical Camera HUD" type="button">
+                  <span class="material-symbols-outlined text-xl">videocam</span>
                 </button>
                 <!-- Command Dispatch Trigger -->
                 <button aria-label="Transmit Command" class="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-on-primary hover:bg-primary-container transition-all duration-200 shadow-[0_0_12px_rgba(0,212,255,0.4)] focus:outline-none active:scale-95" id="submit-btn" type="submit">
@@ -345,6 +353,39 @@
           </div>
         </div>
       </main>
+
+      <!-- ── HOLOGRAPHIC CAMERA HUD OVERLAY ─────────────────────── -->
+      <div id="camera-hud-overlay" style="display:none;" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="relative w-full max-w-2xl rounded-2xl overflow-hidden border border-primary/50 shadow-[0_0_60px_rgba(0,212,255,0.4)] bg-surface/90">
+          <!-- Optical Reticle scanline overlay -->
+          <div class="absolute inset-0 pointer-events-none z-10">
+            <div class="absolute top-1/2 left-0 right-0 h-px bg-primary/40"></div>
+            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-primary/40"></div>
+            <div class="absolute top-3 left-3 w-8 h-8 border-l-2 border-t-2 border-primary"></div>
+            <div class="absolute top-3 right-3 w-8 h-8 border-r-2 border-t-2 border-primary"></div>
+            <div class="absolute bottom-3 left-3 w-8 h-8 border-l-2 border-b-2 border-primary"></div>
+            <div class="absolute bottom-3 right-3 w-8 h-8 border-r-2 border-b-2 border-primary"></div>
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 font-label-telemetry text-label-telemetry text-primary tracking-widest">OPTICAL SENSOR FEED // STARK HUD v2.1</div>
+            <div class="absolute bottom-16 left-1/2 -translate-x-1/2 font-label-telemetry text-label-telemetry text-primary/70" id="cam-status-label">LIVE BIOMETRIC FEED ACTIVE</div>
+          </div>
+          <!-- Video stream -->
+          <video id="hud-camera-video" autoplay playsinline muted class="w-full aspect-video object-cover" style="transform:scaleX(-1);"></video>
+          <!-- Snapshot canvas (hidden) -->
+          <canvas id="hud-camera-canvas" class="hidden"></canvas>
+          <!-- Control Bar -->
+          <div class="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-surface-container-lowest/80 backdrop-blur-md border-t border-primary/20">
+            <span class="font-label-telemetry text-label-telemetry text-primary tracking-widest">RES: 1920×1080 // IR: ENABLED</span>
+            <div class="flex items-center gap-3">
+              <button onclick="takeCameraSnapshot()" class="px-4 py-1.5 rounded-xl bg-primary text-on-primary font-label-telemetry text-label-telemetry tracking-wider uppercase shadow-[0_0_12px_rgba(0,212,255,0.5)] hover:bg-primary-container active:scale-95 transition-all" title="Capture Snapshot">
+                <span class="material-symbols-outlined text-base align-middle">photo_camera</span> CAPTURE
+              </button>
+              <button onclick="closeCameraViewfinder()" class="px-4 py-1.5 rounded-xl bg-error/20 border border-error/40 text-error font-label-telemetry text-label-telemetry tracking-wider uppercase hover:bg-error/30 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base align-middle">videocam_off</span> CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- FOOTER -->
       <footer class="w-full bg-surface-container-lowest/80 backdrop-blur-md px-space-md py-space-sm mt-auto border-t border-outline-variant/30">
@@ -912,6 +953,15 @@
         `;
         appendJarvisMessage(cardContent, data.reply);
 
+        // Auto-open/close camera HUD if ACTIVATE_CAMERA command is returned
+        if (data.action && data.action.command === 'ACTIVATE_CAMERA') {
+          if (data.action.open_hud_camera === true) {
+            openCameraViewfinder();
+          } else if (data.action.open_hud_camera === false) {
+            closeCameraViewfinder();
+          }
+        }
+
       } catch (err) {
         removeThinkingIndicator();
         appendJarvisMessage(`
@@ -1005,16 +1055,66 @@
         `;
       }
 
+      if (cmd === 'PLAY_MEDIA') {
+        const query = action.media_query || '';
+        const service = (action.service || 'youtube').toLowerCase();
+        const webUrl = action.web_url || '#';
+        const desktopUrl = action.desktop_url || '#';
+        const icons = { spotify: 'library_music', youtube: 'play_circle', netflix: 'movie', apple_music: 'music_note' };
+        const colors = { spotify: '#1DB954', youtube: '#FF0000', netflix: '#E50914', apple_music: '#FA2B59' };
+        const icon = icons[service] || 'headphones';
+        const color = colors[service] || '#00d4ff';
+        const serviceName = service === 'apple_music' ? 'Apple Music' : service.charAt(0).toUpperCase() + service.slice(1);
+        return `
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border mt-2" style="border-color:${color}33">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-2xl" style="color:${color}">${icon}</span>
+              <div>
+                <div class="font-headline-sm text-sm text-on-surface font-semibold">${escapeHtml(query)}</div>
+                <div class="font-code-stream text-xs" style="color:${color}">${serviceName.toUpperCase()} STREAM // ROUTING NOW</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+              ${desktopUrl !== '#' ? `<a href="${escapeHtml(desktopUrl)}" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-primary rounded uppercase" style="background:${color};box-shadow:0 0 12px ${color}44">OPEN APP</a>` : ''}
+              <a href="${escapeHtml(webUrl)}" target="_blank" rel="noopener" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-surface-variant bg-surface-container-high hover:bg-surface-container rounded uppercase transition-colors">OPEN WEB</a>
+            </div>
+          </div>
+        `;
+      }
+
+      if (cmd === 'ACTIVATE_CAMERA') {
+        const isOpen = action.open_hud_camera === true;
+        return `
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex items-center justify-between border border-primary/30 mt-2">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-2xl">${isOpen ? 'videocam' : 'videocam_off'}</span>
+              <div>
+                <div class="font-headline-sm text-sm text-on-surface font-semibold">${isOpen ? 'OPTICAL CAMERA ACTIVE' : 'OPTICAL CAMERA OFFLINE'}</div>
+                <div class="font-code-stream text-xs text-on-surface-variant">${isOpen ? 'Live biometric feed streaming on HUD' : 'Camera viewfinder deactivated'}</div>
+              </div>
+            </div>
+            <button onclick="${isOpen ? 'openCameraViewfinder()' : 'closeCameraViewfinder()'}" class="px-3 py-1 font-label-telemetry text-label-telemetry text-primary bg-primary/10 hover:bg-primary/20 rounded uppercase transition-colors">${isOpen ? 'VIEW FEED' : 'CLOSED'}</button>
+          </div>
+        `;
+      }
+
       if (cmd === 'FIND_FILE') {
         const fname = action.filename || '';
         const paths = action.found_paths || [];
-        const detail = paths.length ? paths[0] : 'Scanning Spotlight catalog...';
+        const topPath = action.top_path || (paths.length ? paths[0] : null);
+        const pathsHtml = paths.slice(0, 5).map((p, i) => `
+          <div class="flex items-center gap-2 py-0.5">
+            <span class="font-code-stream text-[10px] text-primary/60 w-5 shrink-0">${String(i + 1).padStart(2, '0')}</span>
+            <span class="font-code-stream text-[10px] text-on-surface-variant break-all flex-1">${escapeHtml(p)}</span>
+          </div>`).join('');
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 space-y-1 border border-primary/30 mt-2">
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 space-y-2 border border-primary/30 mt-2">
             <div class="font-code-stream text-xs text-primary font-semibold flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">folder_open</span> FILESYSTEM SCAN: "${escapeHtml(fname)}"
+              <span class="material-symbols-outlined text-sm">folder_open</span>
+              SPOTLIGHT SCAN: "${escapeHtml(fname)}" &mdash; ${paths.length} RESULT(S)
             </div>
-            <p class="font-code-stream text-[11px] text-on-surface-variant break-all">${escapeHtml(detail)}</p>
+            ${paths.length ? `<div class="space-y-0.5">${pathsHtml}</div>` : '<p class="font-code-stream text-[11px] text-error">NO MATCHING FILES FOUND ON THIS MAC, SIR.</p>'}
+            ${topPath ? `<div class="flex gap-2 pt-1"><button onclick="revealInFinder('${escapeHtml(topPath).replace(/'/g, '\\&apos;')}')" class="px-3 py-1 font-label-telemetry text-label-telemetry text-primary bg-primary/10 hover:bg-primary/20 rounded uppercase transition-colors flex items-center gap-1"><span class=\"material-symbols-outlined text-xs\">folder_open</span> REVEAL IN FINDER</button></div>` : ''}
           </div>
         `;
       }
@@ -1166,6 +1266,95 @@
         .replace(/'/g, "&#039;");
     }
 
+    // ── OPTICAL CAMERA HUD ─────────────────────────────────────────────────
+    let cameraStream = null;
+
+    async function openCameraViewfinder() {
+      const overlay = document.getElementById('camera-hud-overlay');
+      const video = document.getElementById('hud-camera-video');
+      const camLabel = document.getElementById('cam-status-label');
+      if (!overlay || !video) return;
+
+      overlay.style.display = 'flex';
+      if (!cameraStream) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: 'user' },
+            audio: false
+          });
+          video.srcObject = cameraStream;
+          if (camLabel) camLabel.textContent = 'LIVE BIOMETRIC FEED ACTIVE';
+        } catch (err) {
+          if (camLabel) camLabel.textContent = 'CAMERA ACCESS DENIED — CHECK PERMISSIONS';
+          console.warn('[JARVIS] Camera access denied:', err.message);
+        }
+      } else {
+        video.srcObject = cameraStream;
+      }
+    }
+
+    function closeCameraViewfinder() {
+      const overlay = document.getElementById('camera-hud-overlay');
+      const video = document.getElementById('hud-camera-video');
+      if (overlay) overlay.style.display = 'none';
+      if (video) video.srcObject = null;
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+    }
+
+    function toggleCameraViewfinder() {
+      const overlay = document.getElementById('camera-hud-overlay');
+      if (!overlay) return;
+      if (overlay.style.display === 'none' || !overlay.style.display) {
+        openCameraViewfinder();
+      } else {
+        closeCameraViewfinder();
+      }
+    }
+
+    function takeCameraSnapshot() {
+      const video = document.getElementById('hud-camera-video');
+      const canvas = document.getElementById('hud-camera-canvas');
+      if (!video || !canvas || !cameraStream) return;
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+      // mirror to match the CSS scaleX(-1)
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `jarvis_snapshot_${Date.now()}.png`;
+      link.click();
+      appendJarvisMessage(`
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">photo_camera</span>
+          <span class="font-code-stream text-code-stream text-primary uppercase font-bold">OPTICAL SNAPSHOT CAPTURED — SAVING TO DOWNLOADS</span>
+        </div>
+      `, null);
+    }
+
+    // ── FINDER REVEAL HELPER ─────────────────────────────────────────────────
+    function revealInFinder(path) {
+      // Trigger server-side open -R via a hidden fetch call to a dedicated endpoint
+      fetch(`${API_BASE}/api/reveal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path })
+      }).then(() => {
+        appendJarvisMessage(`
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-base">folder_open</span>
+            <span class="font-code-stream text-code-stream text-primary uppercase font-bold">REVEALING IN FINDER: ${escapeHtml(path)}</span>
+          </div>
+        `, null);
+      }).catch(() => {});
+    }
+
     // ── SYSTEM HEALTH & STATUS CHECKER ──────────────────────────────────────
     async function checkSystemStatus() {
       try {
@@ -1183,3 +1372,4 @@
   </script>
 </body>
 </html>
+
