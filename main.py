@@ -302,11 +302,15 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             "action": {"command": "NONE"}
         }
 
-    # 3. Identity & Creator Persona
-    identity_keywords = ["who are you", "what is your name", "what are you", "who made you", "who created you", "your creator"]
+    # 3. Identity, Model & Creator Persona
+    identity_keywords = [
+        "who are you", "what is your name", "what are you", "who made you", "who created you",
+        "your creator", "which model", "what model", "type of model", "kind of model",
+        "what ai are you", "are you an ai", "what architecture", "tell me about yourself"
+    ]
     if any(k in lower for k in identity_keywords):
         return {
-            "reply": "I am J.A.R.V.I.S. — Just A Rather Very Intelligent System. I oversee your holographic HUD arrays, macOS desktop automation, and neural command streams, Sir.",
+            "reply": "I am J.A.R.V.I.S. (Just A Rather Very Intelligent System), powered by Google Gemini and Neural Core intelligence tailored for Commander Yaseen. I am a multimodal task and conversational model capable of deep reasoning, macOS automation, code synthesis, and real-time dialogue, Sir.",
             "action": {"command": "NONE"}
         }
 
@@ -1823,9 +1827,12 @@ def call_local_gemma(history: List[Dict[str, Any]]) -> Dict[str, Any]:
 # GOOGLE AI STUDIO INTEGRATION
 # ─────────────────────────────────────────────────────────────────
 GOOGLE_MODELS = [
-    "gemini-3.8-flash",
-    "gemini-3.8-flash-lite",
     "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-3.1-flash-lite",
+    "gemini-3-flash-preview",
+    "gemini-3.8-flash",
     "gemini-flash-latest",
 ]
 
@@ -1833,8 +1840,8 @@ GOOGLE_MODELS = [
 def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[str, Any]:
     """
     Call Google AI Studio with multi-model fallback:
-    1. Tries gemini-flash-latest (fast, smart)
-    2. Falls back to gemini-flash-lite-latest (faster, lighter)
+    1. Tries gemini-3.5-flash (fast, state-of-the-art conversational chatbot)
+    2. Falls back to gemini-3.5-flash-lite, gemini-flash-lite-latest, etc.
     Timeout: 4s per attempt.
     """
     global ai_success_count
@@ -1850,7 +1857,7 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
         "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
         "contents": contents,
         "generationConfig": {
-            "temperature": 0.2,
+            "temperature": 0.5,
             "maxOutputTokens": 1500,
             "candidateCount": 1,
             "thinkingConfig": {
@@ -1863,7 +1870,7 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
     for model in GOOGLE_MODELS:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         try:
-            with httpx.Client(timeout=httpx.Timeout(connect=2.5, read=3.5, write=2.0, pool=2.0)) as client:
+            with httpx.Client(timeout=httpx.Timeout(connect=2.5, read=4.5, write=2.0, pool=2.0)) as client:
                 resp = client.post(url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
@@ -1888,15 +1895,16 @@ def call_google_ai_studio(history: List[Dict[str, Any]], api_key: str) -> Dict[s
                 return result
         except httpx.HTTPStatusError as e:
             last_error = e
-            # Fail fast if key has policy / permission denial (400, 401, 403, 404)
-            if e.response.status_code in (400, 401, 403, 404):
-                print(f"[JARVIS] Cloud AI auth/policy code {e.response.status_code}: failing fast to offline engine")
+            # Only fail fast if key is unauthorized (401)
+            if e.response.status_code == 401:
+                print(f"[JARVIS] Cloud AI auth code 401 (Invalid API key): failing to offline engine")
                 break
+            print(f"[JARVIS] Model {model} status {e.response.status_code}: trying next candidate...")
             continue
         except httpx.TimeoutException as e:
             last_error = e
-            print(f"[JARVIS] Model {model} timeout: failing fast")
-            break
+            print(f"[JARVIS] Model {model} timeout: trying next candidate...")
+            continue
         except Exception as e:
             last_error = e
             print(f"[JARVIS] Model {model} error: {type(e).__name__}: {e}")
