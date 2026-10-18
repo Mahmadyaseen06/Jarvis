@@ -44,3 +44,67 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Voice Responsiveness: Enhanced microphone visual active states (ring glow, active pulse) and instant tap-to-send toggle.
   - Test Suite: Added test 9b verifying "open calculator and type the calculation then execute" with 17/17 tests passing.
 - Bug (test 9b): When Gemini handled "open calculator and type the calculation" instead of the rule engine, the CALCULATE action lacked `mode: "human_desktop_simulation"`. Fixed by stamping `action["mode"] = "human_desktop_simulation"` inside `execute_mac_task` CALCULATE block — runs after both engines, so it's always set.
+- Documentation & Environment Synchronization: Added `faster-whisper` to `requirements.txt` and fully updated `README.md` to reflect the 3-Tier Multi-Model Cascade (Local Gemma 2 M2 Metal, Gemini Flash, Rule Engine), dual-engine STT (Faster-Whisper + Web Speech), human desktop calculator keystroke automation, direct YouTube/Spotify media playback, optical camera HUD reticle, deep Spotlight search, and the full 17-point automated test suite.
+- 2026-10-18 — Integrated Best Innovations from Community Feedback:
+  - 4-Tier Cognitive Memory Brain (`GET /api/brain`, `POST /api/brain/goal`): Tracks Identity & Persona, Working Memory (with active thought traces), Episodic Memory (audit log of executed tasks), and an Autonomous Goal Queue with real-time HUD drawer.
+  - Emergency Protocol Zero (`POST /api/protocol-zero`): Tactile 1-click abort button that immediately cancels speech synthesis, closes optical sensors, halts in-flight operations, and places J.A.R.V.I.S. into safe standby.
+  - Procedural Web Audio SFX Engine: Synthesizes pure Web Audio API sound effects (beeps, chimes, action confirmations, and abort dampeners) with a top-bar `SFX ON/OFF` toggle.
+  - Three.js 3D Holographic Particle Sphere: Ambient full-screen 1,200-particle Fibonacci sphere on `#threeHoloCanvas` that rotates and dynamically expands based on physical vocal audio frequencies from `AnalyserNode`.
+  - Live macOS Hardware Vitals (`GET /api/vitals`): Reports real macOS CPU load, RAM utilization, and Apple Silicon Metal GPU status.
+  - 2026-10-18 — Response Routing & Live Execution Fixes:
+  - Fixed: `calc_keywords` contained bare `"what is"` and `"what's"`, causing conversational queries ("what is your name?", "what is the date?") to default `expr_raw` to `26 * 25` and launch Calculator.app. Restricted calculation exclusively to explicit math verbs or queries containing numbers + math operators.
+  - Fixed: `file_keywords` contained bare `"find"`, misrouting general conversational speech ("can you find a good joke") to Spotlight `FIND_FILE`. Restricted to explicit file search keywords and patterns.
+  - Fixed: "open youtube" or "open google" previously triggered `OPEN_APP` (seeking `Youtube.app`) before URL matching. Moved direct `url_sites` and domain dispatch before `OPEN_APP` to route cleanly to `https://www.youtube.com`.
+  - Fixed: YouTube action card previously embedded deprecated `listType=search` iframes which YouTube blocks with playback errors. Upgraded to Stark Industries Holographic Media Deck with interactive `▶ PLAY NOW` tactile button and automatic client-side popup dispatch.
+  - Fixed: Added dedicated handlers for real-time chronometry ("what time is it", "what's the date"), persona identity ("who are you", "who made you"), and witty Stark quips ("tell me a joke").
+  - Fixed: Skipped Google AI Studio call when key starts with invalid `AQ.` prefix, eliminating multi-second 403 Forbidden delays on local runs.
+  - Test Suite: Expanded to 23 end-to-end integration tests (23/23 passing).
+- 2026-10-18 — System Hardware Vitals & Direct Autonomous DM Dispatch:
+  - Fixed: When running `./run.sh` while background server was active, Uvicorn crashed with `[Errno 48] Address already in use`. Upgraded `run.sh` to automatically detect port 8000 and reclaim it cleanly.
+  - Added: Full hardware vitals telemetry (`get_system_hardware_vitals()`) reading battery percent and power source via `pmset -g batt`, storage capacity via `shutil.disk_usage('/')`, real-time CPU load average, and Apple Silicon Metal GPU allocation.
+  - Added: Voice and text query routing for battery (`"what is my battery percentage"`, `"is my mac charging"`), storage (`"how much storage do I have"`, `"disk space"`), and full diagnostics (`"system vitals"`), returning verbal reports and `SHOW_TELEMETRY` HUD meters.
+  - Added: Autonomous Direct Message (DM) dispatch via `AUTOMATE_DM` / `SEND_WHATSAPP` with multi-channel support for Apple Messages (`imessage`, `sms`) and WhatsApp Desktop (`whatsapp`).
+  - Added: Programmatic DM API endpoints `GET /api/dms/status` and `POST /api/dms/send`.
+  - Added: Live Battery and Storage meters in the HUD top telemetry bar of `index.html`.
+  - Test Suite: Expanded to 28 end-to-end integration tests (28/28 passing).
+- 2026-10-18 — ReferenceError 'min is not defined' Fix & Full System Access / DM Hub:
+  - Bug: In `index.html` line 1179, `${min(cpu, 100)}%` threw `ReferenceError: min is not defined` inside `renderActionCard`, which caused the catch block to intercept the error and display `Unable to connect to neural core: min is not defined` on the user's HUD when querying battery or vitals.
+  - Fix: Replaced `${min(cpu, 100)}` with `${Math.min(Number(cpu) || 0, 100)}%` and validated JavaScript syntax via Node.js `--eval`.
+  - Added: Comprehensive `full_system` hardware telemetry query covering battery % with charging time remaining, SSD storage breakdown, Apple Silicon M2 CPU load, Unified RAM, macOS build, system uptime, and multi-channel DM gateway status.
+  - Added: Executable CLI tool `./bro` (and `jarvis` symlink) allowing direct terminal commands (`./bro what is my battery percentage`, `./bro give a full access to my system`, `./bro dm Alex on imessage`) so commands run from the terminal succeed without `zsh: command not found: bro`.
+  - Test Suite: Expanded to 30 end-to-end integration tests (30/30 passing).
+- 2026-10-18 — Advanced Neural Document & Formal Letter Composer:
+  - Issue: General writing directives like "write a letter to principal requestings used to illness" and "write a letter to the boss that I was sick" were falling through to generic standby conversational responses ("Monitoring all vectors", "Shall I run diagnostics") because the fallback engine lacked document synthesis capabilities.
+  - Solution: Implemented `COMPOSE_DOCUMENT` in `fallback_jarvis_engine` with intelligent recipient extraction (Principal, Boss, Manager, Teacher, HR), dynamic reason formulation (Medical Illness, Urgent Absences, Emergency, etc.), and full formal 4-paragraph letter structuring with official dates and sign-offs.
+  - Frontend: Built the Stark Industries Holographic Document Composer on the HUD with paper-like glassmorphic text sheet, 1-click `COPY LETTER` to clipboard with visual feedback, pre-filled `DISPATCH VIA GMAIL`, and `DOWNLOAD .TXT`.
+  - CLI: Added `COMPOSE_DOCUMENT` preview rendering to `./bro` and `./jarvis`.
+- 2026-10-18 — Commander Yaseen Identity & Cloud Gemini 3.8 Flash Activation:
+  - Personalization: Replaced hardcoded "Tony Stark" with the user's authentic name "Yaseen" in all chat UI headers, prompts, and document sign-offs.
+  - Letter Classification: Differentiated Personal Letters (to sister, brother, family, friends with warm, informal tone and loving closing) from Formal Applications (to principal, boss, HR with professional decorum).
+- 2026-10-18 — OpenJarvis Code Interpreter & Hardened Execution Integration:
+  - Feature Extraction: Integrated isolated subprocess Python Code Interpreter (`execute_python_code`) and hardened shell execution (`execute_shell_command`) inspired by OpenJarvis (`https://github.com/open-jarvis/OpenJarvis.git`).
+  - Endpoints: Added `POST /api/code/run` and `POST /api/shell/run` with AST syntax verification, child limit isolation, and timeout bounds.
+  - Instant Code Synthesis: In `fallback_jarvis_engine`, added `WRITE_CODE` handler for directives like "write a code to add two numbers in Python", "fibonacci", "factorial", etc. It generates clean, working code, pre-executes it in ~20ms, and attaches execution stdout/stderr directly.
+  - Zero-Latency Thinking Config: Added `"thinkingConfig": {"thinkingBudget": 0}` and increased `maxOutputTokens: 1500` for Gemini 3.8 Flash, and added fast failover on 401/403/timeout to prevent the 9-second `NEURAL CORES PROCESSING DIRECTIVE...` freeze.
+  - Holographic Code Deck: Built interactive code runner widget in `index.html` with editable syntax textarea, live terminal execution console, `▶ RUN CODE` button calling `/api/code/run`, `📋 COPY CODE`, and `DOWNLOAD .PY`.
+  - CLI: Added `WRITE_CODE` formatting to `./bro` and `./jarvis` terminal bridges.
+- 2026-10-18 — thevickypedia/Jarvis Integration & Automated WhatsApp Dispatch:
+  - Feature Extraction: Analyzed and integrated features from `thevickypedia/Jarvis` (`https://github.com/thevickypedia/Jarvis.git`), including contact resolution (`extract_contacts`), task/todo management (`todo_list`), system power controls (`controls.py`), and notification gateways (`communicator.py`).
+  - Contact Resolution Engine: Added `contacts.json` and `resolve_contact(name_or_number, key="phone")`. Resolves contact names (e.g. "Alex" -> "+1234567890", "Mom" -> "+1987654321") and sanitizes digits for native WhatsApp protocol URI formatting.
+  - Automated WhatsApp Dispatch: Implemented `auto_send_whatsapp()` with dual-engine delivery: generates `whatsapp://send?phone=<digits>&text=<msg>` with automated AppleScript Enter keystroke injection, alongside Web WhatsApp fallback `https://web.whatsapp.com/send?phone=<digits>&text=<msg>`.
+  - API Endpoints: Added `POST /api/whatsapp/send`, `GET /api/contacts`, `POST /api/contacts`, `GET /api/todos`, and `POST /api/todos`.
+  - System Controls: Added `LOCK_SCREEN` (`pmset displaysleepnow`) and `MANAGE_TODOS` commands.
+  - HUD Action Cards: Built dedicated WhatsApp Dispatch Card in `index.html` with recipient avatar, resolved phone indicator, 1-click `OPEN APP`, `OPEN WEB`, and `COPY`. Built `LOCK_SCREEN` and `MANAGE_TODOS` HUD cards.
+  - CLI: Enhanced `./bro` to render contact name, resolved number, desktop URI, and web URL.
+  - Test Suite: Expanded to 40/40 end-to-end integration tests (40/40 passing).
+- 2026-10-18 — OpenJarvis Executive Briefing, Natural YouTube & WhatsApp +91 Normalization:
+  - Natural Media & Web Search Intent: Extended `PLAY_MEDIA` to capture natural search queries like "best video to learn Java on YouTube" and "Apna college Java tutorial on YouTube", stripping trailing channel/service tokens and query preambles. Expanded web search prefixes to cover "who is", "what is", "where is", "why is", "how to", "tell me about".
+  - Automated WhatsApp +91 Normalization: Enhanced contact resolver and `auto_send_whatsapp` to detect standard 10-digit Indian mobile numbers (starting with 6, 7, 8, 9) and normalize to `+91` for display and `91` for `whatsapp://send?phone=...` URI parameters.
+  - OpenJarvis Executive Briefing Engine: Added `DIGEST_BRIEFING` command responding to "give me my morning digest", "brief me", "status report", "executive summary", etc. Pulls real-time battery vitals, SSD storage, active todos, and defense posture into both speech and an interactive HUD briefing card. Added endpoints `GET /api/openjarvis/briefing` and `GET /api/openjarvis/status`.
+  - Bug & Fix (Todos Data Type Guard): When `GET /api/todos` response `{"todos": [...]}` was saved back without unwrapping, `todos.json` stored keys resulting in strings in list comprehensions (`AttributeError: 'str' object has no attribute 'get'`). Fixed by hardening `load_todos` and `save_todos` to unwrap `data["todos"]` if dict, validate dict items with `"task"`, and make all comprehensions defensive with `isinstance(t, dict)`.
+  - CLI & UI: Added `DIGEST_BRIEFING` formatting to `./bro` CLI and built a holographic Executive Briefing status card in `index.html`.
+- 2026-10-18 — Dynamic Friend Contact Registration & WhatsApp Multi-Recipient Dispatch:
+  - Natural Contact Directory Management: Added `MANAGE_CONTACTS` engine to `fallback_jarvis_engine` responding to directives like "save contact Rahul 9876543210", "add contact Aman with phone 9123456789", and "show contacts". Contacts are dynamically persisted to `contacts.json`.
+  - Seamless Contact Resolution: Added instant name resolution in `resolve_contact()` and `auto_send_whatsapp()` so users can send messages to friends either directly by phone number or by their registered first name (e.g. "send whatsapp to Rahul let's meet").
+  - CLI: Added `MANAGE_CONTACTS` formatting to `./bro` CLI showing registered contact cards and directory listings.
+  - Integration Tests: Expanded test suite to 45/45 end-to-end tests (45/45 passing).
