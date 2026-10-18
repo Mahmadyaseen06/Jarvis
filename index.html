@@ -503,10 +503,22 @@
       function renderFrame() {
         if (!isListening) return;
         analyserNode.getByteFrequencyData(dataArray);
+        let sum = 0;
         for (let i = 0; i < eqBars.length; i++) {
           const val = dataArray[i * 2] || 0;
+          sum += val;
           const h = Math.max(4, Math.min(32, Math.round(val / 7) + 4));
           eqBars[i].style.height = `${h}px`;
+        }
+
+        const avg = sum / eqBars.length;
+        if (avg > 14) {
+          hasDetectedSpeech = true;
+          lastSpokeTime = Date.now();
+        } else if (hasDetectedSpeech && lastSpokeTime > 0 && (Date.now() - lastSpokeTime > 1600)) {
+          // In Brave/Arc or offline, auto-dispatch on 1.6s natural pause
+          finishRecordingAndDispatch();
+          return;
         }
 
         animFrameId = requestAnimationFrame(renderFrame);
@@ -537,6 +549,38 @@
     if (window.location.protocol === 'file:') {
       const banner = document.getElementById('file-protocol-warning');
       if (banner) banner.classList.remove('hidden');
+    }
+
+    // Pre-warm microphone stream on load so MediaRecorder starts at 0ms latency in Brave/Arc/Chrome
+    window.addEventListener('DOMContentLoaded', () => {
+      initAudioAnalyser().catch(() => {});
+    });
+    window.addEventListener('click', () => {
+      if (!micStream) initAudioAnalyser().catch(() => {});
+    }, { once: true });
+
+    function startMediaRecorderSync() {
+      if (!micStream || !micStream.active) return;
+      try {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          try { mediaRecorder.stop(); } catch (_) {}
+        }
+        audioChunks = [];
+        let mimeType = '';
+        if (typeof MediaRecorder !== 'undefined') {
+          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
+          else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+          else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+
+          mediaRecorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) audioChunks.push(e.data);
+          };
+          mediaRecorder.start(100);
+        }
+      } catch (err) {
+        console.warn("MediaRecorder start error:", err);
+      }
     }
 
     // ── HYBRID VOICE RECOGNITION (WEB SPEECH + LOCAL FASTER-WHISPER) ─────────
@@ -580,12 +624,13 @@
       }
 
       // Path 2: Offline / Brave fallback via Local Faster-Whisper
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        try {
-          statusCaption.textContent = "LOCAL WHISPER // TRANSCRIBING...";
-          transcribePreview.textContent = "Transcribing speech via local neural core...";
+      statusCaption.textContent = "LOCAL WHISPER // TRANSCRIBING...";
+      transcribePreview.textContent = "Processing speech via Apple Silicon neural core...";
 
-          const audioBlob = await new Promise((resolve) => {
+      let audioBlob = null;
+      if (mediaRecorder) {
+        if (mediaRecorder.state === 'recording') {
+          audioBlob = await new Promise((resolve) => {
             mediaRecorder.addEventListener('stop', () => {
               const mime = mediaRecorder.mimeType || 'audio/webm';
               resolve(audioChunks.length > 0 ? new Blob(audioChunks, { type: mime }) : null);
@@ -597,25 +642,30 @@
               resolve(null);
             }
           });
+        } else if (audioChunks.length > 0) {
+          const mime = mediaRecorder.mimeType || 'audio/webm';
+          audioBlob = new Blob(audioChunks, { type: mime });
+        }
+      }
 
-          if (audioBlob && audioBlob.size > 500) {
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'command.webm');
+      if (audioBlob && audioBlob.size > 200) {
+        try {
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'command.webm');
 
-            const res = await fetch(`${API_BASE}/api/transcribe`, {
-              method: 'POST',
-              body: formData
-            });
+          const res = await fetch(`${API_BASE}/api/transcribe`, {
+            method: 'POST',
+            body: formData
+          });
 
-            if (res.ok) {
-              const data = await res.json();
-              const whisperText = (data.text || '').trim();
-              if (whisperText) {
-                commandInput.value = whisperText;
-                transcribePreview.textContent = `"${whisperText}"`;
-                sendVoiceResult(whisperText);
-                return;
-              }
+          if (res.ok) {
+            const data = await res.json();
+            const whisperText = (data.text || '').trim();
+            if (whisperText) {
+              commandInput.value = whisperText;
+              transcribePreview.textContent = `"${whisperText}"`;
+              sendVoiceResult(whisperText);
+              return;
             }
           }
         } catch (err) {
@@ -660,10 +710,27 @@
 
       voiceSent = false;
       hasDetectedSpeech = false;
+      lastSpokeTime = 0;
       audioChunks = [];
       commandInput.value = '';
       transcribePreview.textContent = 'Listening... Speak now.';
       setVoiceListeningState(true);
+
+      // Start MediaRecorder immediately if micStream is pre-warmed, else initialize in parallel
+      if (micStream && micStream.active) {
+        startMediaRecorderSync();
+        startLiveMicVisualizer();
+      } else {
+        initAudioAnalyser().then((micOk) => {
+          if (micOk && isListening) {
+            startMediaRecorderSync();
+            startLiveMicVisualizer();
+          } else if (!micOk && !recognition) {
+            statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
+            transcribePreview.textContent = "Click 🔒 in URL bar -> set Microphone to 'Allow'";
+          }
+        });
+      }
 
       // Step 1: Web Speech API (CALLED SYNCHRONOUSLY to preserve User Gesture activation)
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -693,6 +760,7 @@
             const currentSpoken = (fullText + interimText).trim();
             if (currentSpoken) {
               hasDetectedSpeech = true;
+              lastSpokeTime = Date.now();
               commandInput.value = currentSpoken;
               transcribePreview.textContent = `"${currentSpoken}"`;
 
@@ -707,7 +775,11 @@
 
           recognition.onerror = (e) => {
             if (e.error === 'network') {
-              console.info("[JARVIS VOICE] Web Speech cloud network unavailable; Local Faster-Whisper active.");
+              console.info("[JARVIS VOICE] Web Speech cloud network unavailable (Brave/Arc privacy mode). Local Faster-Whisper active.");
+              if (isListening) {
+                statusCaption.textContent = "BRAVE VOICE CORE // RECORDING...";
+                transcribePreview.textContent = "🎙️ Listening... Speak your command, then tap to send.";
+              }
             } else if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
               statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
               transcribePreview.textContent = "Click 🔒 in URL bar -> set Microphone to 'Allow'";
@@ -735,36 +807,6 @@
           console.warn("Web Speech start failed, Local Faster-Whisper active:", err);
         }
       }
-
-      // Step 2: Initialize Audio Analyser & MediaRecorder in parallel
-      initAudioAnalyser().then((micOk) => {
-        if (!micOk) {
-          if (!recognition) {
-            statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
-            transcribePreview.textContent = "Click 🔒 in URL bar -> set Microphone to 'Allow'";
-          }
-          return;
-        }
-
-        startLiveMicVisualizer();
-
-        try {
-          let mimeType = '';
-          if (typeof MediaRecorder !== 'undefined') {
-            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
-            else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
-            else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
-
-            mediaRecorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
-            mediaRecorder.ondataavailable = (e) => {
-              if (e.data && e.data.size > 0) audioChunks.push(e.data);
-            };
-            mediaRecorder.start(100);
-          }
-        } catch (err) {
-          console.warn("MediaRecorder init error:", err);
-        }
-      });
 
       // Step 3: Hard limit safety timeout (12s)
       maxDurationTimer = setTimeout(() => {
