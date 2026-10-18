@@ -88,6 +88,15 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Zero-Latency Thinking Config: Added `"thinkingConfig": {"thinkingBudget": 0}` and increased `maxOutputTokens: 1500` for Gemini 3.8 Flash, and added fast failover on 401/403/timeout to prevent the 9-second `NEURAL CORES PROCESSING DIRECTIVE...` freeze.
   - Holographic Code Deck: Built interactive code runner widget in `index.html` with editable syntax textarea, live terminal execution console, `▶ RUN CODE` button calling `/api/code/run`, `📋 COPY CODE`, and `DOWNLOAD .PY`.
   - CLI: Added `WRITE_CODE` formatting to `./bro` and `./jarvis` terminal bridges.
-  - Test Suite: Expanded to 35/35 end-to-end integration tests (35/35 passing).
+- 2026-10-18 — thevickypedia/Jarvis Integration & Automated WhatsApp Dispatch:
+  - Feature Extraction: Analyzed and integrated features from `thevickypedia/Jarvis` (`https://github.com/thevickypedia/Jarvis.git`), including contact resolution (`extract_contacts`), task/todo management (`todo_list`), system power controls (`controls.py`), and notification gateways (`communicator.py`).
+  - Contact Resolution Engine: Added `contacts.json` and `resolve_contact(name_or_number, key="phone")`. Resolves contact names (e.g. "Alex" -> "+1234567890", "Mom" -> "+1987654321") and sanitizes digits for native WhatsApp protocol URI formatting.
+  - Automated WhatsApp Dispatch: Implemented `auto_send_whatsapp()` with dual-engine delivery: generates `whatsapp://send?phone=<digits>&text=<msg>` with automated AppleScript Enter keystroke injection, alongside Web WhatsApp fallback `https://web.whatsapp.com/send?phone=<digits>&text=<msg>`.
+  - API Endpoints: Added `POST /api/whatsapp/send`, `GET /api/contacts`, `POST /api/contacts`, `GET /api/todos`, and `POST /api/todos`.
+  - System Controls: Added `LOCK_SCREEN` (`pmset displaysleepnow`) and `MANAGE_TODOS` commands.
+  - HUD Action Cards: Built dedicated WhatsApp Dispatch Card in `index.html` with recipient avatar, resolved phone indicator, 1-click `OPEN APP`, `OPEN WEB`, and `COPY`. Built `LOCK_SCREEN` and `MANAGE_TODOS` HUD cards.
+  - CLI: Enhanced `./bro` to render contact name, resolved number, desktop URI, and web URL.
+  - Test Suite: Expanded to 40/40 end-to-end integration tests (40/40 passing).
+
 
 

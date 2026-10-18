@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "task": "Review Arc Reactor core output",
+    "done": false
+  },
+  {
+    "id": 2,
+    "task": "Verify macOS WhatsApp gateway credentials",
+    "done": true
+  },
+  {
+    "id": 3,
+    "task": "Calibrate Mark 85 repulsor arrays",
+    "done": false
+  }
+]

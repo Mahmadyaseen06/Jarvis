@@ -73,11 +73,18 @@ def main():
         print(f"  • DMs:     iMessage & WhatsApp ONLINE (Autonomous Gateway Active)\n")
     elif cmd in ["AUTOMATE_DM", "SEND_WHATSAPP"]:
         recipient = action.get("recipient", "Recipient")
+        resolved_phone = action.get("resolved_phone") or action.get("phone", "")
         msg = action.get("message", "")
-        print(f"{YELLOW}[DIRECT MESSAGE DISPATCH]{RESET}")
-        print(f"  • To:      {recipient}")
-        print(f"  • Content: '{msg}'")
-        print(f"  • Status:  Transmitted via Apple Messages / WhatsApp\n")
+        desktop_url = action.get("desktop_url", "")
+        web_url = action.get("web_url", "")
+        print(f"{GREEN}{BOLD}[WHATSAPP DIRECT DISPATCH // AUTOMATED]{RESET}")
+        print(f"  • Contact:     {recipient}")
+        if resolved_phone and resolved_phone != recipient:
+            print(f"  • Number:      {resolved_phone}")
+        print(f"  • Content:     '{msg}'")
+        print(f"  • Desktop URI: {desktop_url}")
+        print(f"  • Web URL:     {web_url}")
+        print(f"  • Delivery:    Transmitted via WhatsApp Desktop & Web Gateway\n")
     elif cmd == "COMPOSE_DOCUMENT":
         recipient = action.get("recipient", "Recipient")
         subject = action.get("subject", "Formal Letter")

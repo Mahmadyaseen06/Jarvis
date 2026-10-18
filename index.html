@@ -1402,32 +1402,110 @@
 
       if (cmd === 'SEND_WHATSAPP' || cmd === 'AUTOMATE_DM') {
         const phone = action.phone || action.recipient || 'Contact';
+        const resolvedPhone = action.resolved_phone || '';
         const msg = action.message || '';
         const platform = (action.platform || 'whatsapp').toLowerCase();
         const isImessage = platform === 'imessage' || platform === 'sms';
         const brandColor = isImessage ? '#007AFF' : '#25D366';
         const brandName = isImessage ? 'Apple iMessage' : 'WhatsApp Desktop';
         const brandIcon = isImessage ? 'chat' : 'mark_chat_read';
-        const targetUrl = isImessage ? (action.sms_url || '#') : (action.desktop_url || action.web_url || '#');
+        const desktopUrl = action.desktop_url || (isImessage ? (action.sms_url || '#') : '#');
+        const webUrl = action.web_url || '#';
 
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 flex flex-col gap-2.5 border mt-2 shadow-lg" style="border-color:${brandColor}55">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
+          <div class="p-4 rounded-xl bg-surface-container-highest/95 flex flex-col gap-3 border mt-2 shadow-[0_8px_32px_rgba(37,211,102,0.18)]" style="border-color:${brandColor}55">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shadow-inner" style="background:${brandColor}22;border:1px solid ${brandColor}55">
                   <span class="material-symbols-outlined text-lg" style="color:${brandColor}">${brandIcon}</span>
-                  <span class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">${escapeHtml(phone)}</span>
-                  <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase" style="background:${brandColor}22;color:${brandColor}">${brandName}</span>
                 </div>
-                <div class="font-code-stream text-xs text-on-surface-variant italic truncate max-w-md">"${escapeHtml(msg)}"</div>
-                <div class="text-[10px] font-label-telemetry text-on-surface-variant/70 uppercase">AUTONOMOUS DISPATCH // ZERO MANUAL CLICKS REQUIRED</div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">${escapeHtml(phone)}</span>
+                    ${resolvedPhone && resolvedPhone !== phone ? `<span class="font-mono text-[11px] text-on-surface-variant">(${escapeHtml(resolvedPhone)})</span>` : ''}
+                  </div>
+                  <div class="font-label-telemetry text-[10px] uppercase font-bold" style="color:${brandColor}">${brandName} // AUTONOMOUS DISPATCH ACTIVE</div>
+                </div>
               </div>
-              <div class="flex items-center gap-2 self-end sm:self-auto">
-                ${targetUrl !== '#' ? `<button onclick="window.open('${escapeHtml(targetUrl)}')" class="px-2.5 py-1 font-label-telemetry text-[10px] text-white rounded uppercase shadow-sm cursor-pointer" style="background:${brandColor}">OPEN CHAT</button>` : ''}
-                <span class="px-2.5 py-1 rounded text-[11px] font-label-telemetry font-bold uppercase flex items-center gap-1.5 shadow-sm" style="background:${brandColor}20;color:${brandColor};border:1px solid ${brandColor}40">
-                  <span class="w-1.5 h-1.5 rounded-full animate-ping" style="background:${brandColor}"></span> SENT
-                </span>
+              <span class="px-2.5 py-1 rounded text-[10px] font-label-telemetry font-bold uppercase flex items-center gap-1.5 shadow-sm" style="background:${brandColor}20;color:${brandColor};border:1px solid ${brandColor}40">
+                <span class="w-1.5 h-1.5 rounded-full animate-ping" style="background:${brandColor}"></span> DISPATCHED
+              </span>
+            </div>
+
+            <!-- Message Preview Bubble -->
+            <div class="p-3 rounded-lg bg-surface-container-lowest/90 border border-outline-variant/30 font-mono text-xs text-on-surface leading-relaxed shadow-inner">
+              <div class="text-[10px] font-bold text-on-surface-variant/70 uppercase mb-1">TRANSMITTED PAYLOAD:</div>
+              <div class="italic">"${escapeHtml(msg)}"</div>
+            </div>
+
+            <!-- Action Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-outline-variant/20">
+              <div class="flex items-center gap-2">
+                ${desktopUrl !== '#' ? `
+                  <button onclick="window.open('${escapeHtml(desktopUrl)}')" class="px-3 py-1.5 rounded-lg text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" style="background:${brandColor}">
+                    <span class="material-symbols-outlined text-xs">open_in_new</span>
+                    <span>OPEN APP</span>
+                  </button>
+                ` : ''}
+                ${webUrl !== '#' ? `
+                  <button onclick="window.open('${escapeHtml(webUrl)}', '_blank')" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/40 font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-xs" style="color:${brandColor}">public</span>
+                    <span>OPEN WEB</span>
+                  </button>
+                ` : ''}
               </div>
+              <button onclick="
+                navigator.clipboard.writeText('${escapeHtml(msg).replace(/'/g, "\\'")}').then(() => {
+                  this.innerHTML = '<span class=\\'material-symbols-outlined text-xs\\'>check</span> COPIED';
+                  setTimeout(() => {
+                    this.innerHTML = '<span class=\\'material-symbols-outlined text-xs\\'>content_copy</span> COPY';
+                  }, 1500);
+                });
+              " class="px-2.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-xs font-mono flex items-center gap-1 border border-outline-variant/30">
+                <span class="material-symbols-outlined text-xs">content_copy</span>
+                <span>COPY</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (cmd === 'LOCK_SCREEN') {
+        return `
+          <div class="p-4 rounded-xl bg-surface-container-highest/95 border border-amber-500/40 shadow-[0_8px_32px_rgba(255,183,77,0.15)] flex items-center justify-between mt-2">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                <span class="material-symbols-outlined text-xl">lock</span>
+              </div>
+              <div>
+                <div class="font-headline-sm text-sm text-on-surface font-bold">WORKSPACE SECURED // DISPLAY TERMINAL ASLEEP</div>
+                <div class="font-label-telemetry text-[10px] text-amber-400">MACOS PMSET STANDBY DISPATCHED // THEVICKYPEDIA CONTROLS</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">LOCKED</span>
+          </div>
+        `;
+      }
+
+      if (cmd === 'MANAGE_TODOS') {
+        const todos = action.todos || [];
+        return `
+          <div class="p-4 rounded-xl bg-surface-container-highest/95 border border-purple-500/40 shadow-[0_8px_32px_rgba(168,85,247,0.18)] space-y-2.5 mt-2">
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-400 text-lg">checklist</span>
+                <span class="font-headline-sm text-sm text-on-surface font-bold">STARK TODO & TASK REGISTRY</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">${todos.length} TASKS</span>
+            </div>
+            <div class="space-y-1.5 max-h-40 overflow-y-auto">
+              ${todos.map(t => `
+                <div class="p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/30 flex items-center justify-between text-xs font-mono">
+                  <span class="text-on-surface">${escapeHtml(t.task)}</span>
+                  <span class="text-[10px] font-bold ${t.done ? 'text-emerald-400' : 'text-amber-400'}">${t.done ? 'COMPLETED' : 'PENDING'}</span>
+                </div>
+              `).join('')}
             </div>
           </div>
         `;

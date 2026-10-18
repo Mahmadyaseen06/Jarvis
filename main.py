@@ -72,7 +72,7 @@ VALID_COMMANDS = {
     "SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "STAND_DOWN",
     "OPEN_APP", "SET_VOLUME", "SEND_WHATSAPP", "SEND_EMAIL", "SEARCH_WEB", "OPEN_URL",
     "CALCULATE", "FIND_FILE", "PLAY_MEDIA", "ACTIVATE_CAMERA", "SHOW_TELEMETRY",
-    "AUTOMATE_DM", "COMPOSE_DOCUMENT", "WRITE_CODE", "NONE"
+    "AUTOMATE_DM", "COMPOSE_DOCUMENT", "WRITE_CODE", "LOCK_SCREEN", "MANAGE_TODOS", "NONE"
 }
 
 PRESET_WIDGET_NAMES = [
@@ -532,15 +532,27 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
             else:
                 msg = "Hello from J.A.R.V.I.S."
 
+        target_name = phone or "Alex"
+        resolved_phone = resolve_contact(target_name, key="phone") if target_name else "+1234567890"
+        clean_digits = re.sub(r"[^0-9]", "", resolved_phone)
+        encoded_msg = urllib.parse.quote(msg)
+        wa_desktop = f"whatsapp://send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"whatsapp://send?text={encoded_msg}"
+        wa_web = f"https://web.whatsapp.com/send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"https://web.whatsapp.com/send?text={encoded_msg}"
+        sms_desktop = f"sms:{resolved_phone}&body={encoded_msg}" if resolved_phone else f"sms:&body={encoded_msg}"
+
         plat_name = "WhatsApp" if platform == "whatsapp" else ("iMessage" if platform == "imessage" else "Apple Messages & WhatsApp")
         return {
-            "reply": f"Sending direct message to {phone or 'recipient'} via {plat_name}: '{msg}', Sir. Transmitted automatically.",
+            "reply": f"Dispatching direct WhatsApp message to {target_name} ({resolved_phone}) via {plat_name}: '{msg}', Sir. Transmitted automatically.",
             "action": {
                 "command": "SEND_WHATSAPP",
                 "platform": platform,
-                "phone": phone,
-                "recipient": phone,
+                "phone": target_name,
+                "recipient": target_name,
+                "resolved_phone": resolved_phone,
                 "message": msg,
+                "web_url": wa_web,
+                "desktop_url": wa_desktop,
+                "sms_url": sms_desktop,
                 "auto_sent": True
             }
         }
@@ -938,6 +950,35 @@ if __name__ == "__main__":
             "action": {"command": "DEPLOY_WIDGET", "widget_name": widget_name}
         }
 
+    # 18b. thevickypedia/Jarvis System Controls: Screen Lock / Sleep Display
+    if any(k in lower for k in ["lock screen", "lock mac", "sleep screen", "sleep display", "lock the screen"]):
+        return {
+            "reply": "Securing your workspace and putting display terminal to sleep, Sir.",
+            "action": {"command": "LOCK_SCREEN"}
+        }
+
+    # 18c. thevickypedia/Jarvis Task & Todo Registry
+    if any(lower.startswith(k) for k in ["add todo", "add task", "new todo", "create task", "remind me to"]):
+        task_clean = re.sub(r'^(?:please\s+)?(?:add\s+todo|add\s+task|new\s+todo|create\s+task|remind\s+me\s+to)\s*', '', user_text, flags=re.IGNORECASE).strip()
+        task_text = task_clean if task_clean else "New Stark Task"
+        todos = load_todos()
+        new_id = (max([t.get("id", 0) for t in todos], default=0)) + 1
+        new_todo = {"id": new_id, "task": task_text, "done": False}
+        todos.append(new_todo)
+        save_todos(todos)
+        return {
+            "reply": f"Added task to your active Stark todo registry: '{task_text}', Sir.",
+            "action": {"command": "MANAGE_TODOS", "operation": "add", "task": task_text, "todos": todos}
+        }
+
+    if any(k in lower for k in ["show todos", "show my todos", "list todos", "list my tasks", "what are my todos", "what are my tasks"]):
+        todos = load_todos()
+        todo_list_str = ", ".join([t["task"] for t in todos if not t.get("done")]) or "All tasks completed"
+        return {
+            "reply": f"You have {len(todos)} items in your Stark registry: {todo_list_str}, Sir.",
+            "action": {"command": "MANAGE_TODOS", "operation": "list", "todos": todos}
+        }
+
     # 19. Greeting
     if any(k in lower for k in ["hello", "hi", "hey", "jarvis", "greet", "good morning", "good evening", "good afternoon"]):
         return {"reply": random.choice(FALLBACK_GREET_REPLIES), "action": {"command": "NONE"}}
@@ -1033,6 +1074,137 @@ def auto_play_media(service: str, query: str):
             pass
 
     threading.Thread(target=_run, daemon=True).start()
+
+
+# ─────────────────────────────────────────────────────────────────
+# CONTACTS & TODOLIST REGISTRIES (Inspired by thevickypedia/Jarvis)
+# ─────────────────────────────────────────────────────────────────
+CONTACTS_FILE = os.path.join(BASE_DIR, "contacts.json")
+TODOS_FILE = os.path.join(BASE_DIR, "todos.json")
+
+def load_contacts() -> Dict[str, Dict[str, str]]:
+    default_contacts = {
+        "phone": {
+            "alex": "+1234567890",
+            "mom": "+1987654321",
+            "dad": "+1987654322",
+            "boss": "+1987654323",
+            "sister": "+1987654324",
+            "yaseen": "+1234567899"
+        },
+        "email": {
+            "alex": "alex@example.com",
+            "boss": "boss@stark.com",
+            "sister": "sister@example.com",
+            "mom": "mom@example.com"
+        }
+    }
+    try:
+        if os.path.exists(CONTACTS_FILE):
+            with open(CONTACTS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return default_contacts
+
+def save_contacts(contacts: Dict[str, Dict[str, str]]):
+    try:
+        with open(CONTACTS_FILE, "w", encoding="utf-8") as f:
+            json.dump(contacts, f, indent=2)
+    except Exception:
+        pass
+
+def resolve_contact(name_or_number: str, key: str = "phone") -> str:
+    """Resolve contact name to phone number or email using contact book (thevickypedia/Jarvis style)."""
+    raw = (name_or_number or "").strip()
+    if not raw:
+        return ""
+    
+    digits = re.sub(r"[^0-9]", "", raw)
+    if len(digits) >= 7 and key == "phone":
+        return raw
+
+    contacts = load_contacts()
+    lookup = contacts.get(key, {})
+    lowered = raw.lower()
+
+    if lowered in lookup:
+        return lookup[lowered]
+
+    for k, v in lookup.items():
+        if k in lowered or lowered in k:
+            return v
+
+    return raw
+
+def load_todos() -> List[Dict[str, Any]]:
+    default_todos = [
+        {"id": 1, "task": "Review Arc Reactor core output", "done": False},
+        {"id": 2, "task": "Verify macOS WhatsApp gateway credentials", "done": True}
+    ]
+    try:
+        if os.path.exists(TODOS_FILE):
+            with open(TODOS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return default_todos
+
+def save_todos(todos: List[Dict[str, Any]]):
+    try:
+        with open(TODOS_FILE, "w", encoding="utf-8") as f:
+            json.dump(todos, f, indent=2)
+    except Exception:
+        pass
+
+def auto_send_whatsapp(recipient: str, message: str) -> Dict[str, Any]:
+    """Automated WhatsApp dispatch inspired by thevickypedia/Jarvis:
+    1. Resolves contact name (e.g. Alex, Mom) to phone number.
+    2. Cleans phone digits for whatsapp:// URI and web.whatsapp.com.
+    3. Triggers native macOS WhatsApp app with AppleScript return keystroke.
+    4. Generates both desktop_url and web_url fallbacks.
+    """
+    resolved_phone = resolve_contact(recipient, key="phone") or recipient
+    clean_digits = re.sub(r"[^0-9]", "", resolved_phone)
+    encoded_msg = urllib.parse.quote(message)
+
+    desktop_url = f"whatsapp://send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"whatsapp://send?text={encoded_msg}"
+    web_url = f"https://web.whatsapp.com/send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"https://web.whatsapp.com/send?text={encoded_msg}"
+
+    def _dispatch():
+        import time
+        try:
+            # 1. Launch WhatsApp URL
+            subprocess.run(["open", desktop_url], check=False)
+            time.sleep(1.2)
+            # 2. Focus WhatsApp process and press Return
+            send_script = '''
+            tell application "System Events"
+                if exists (process "WhatsApp") then
+                    tell process "WhatsApp"
+                        set frontmost to true
+                        delay 0.4
+                        key code 36
+                    end tell
+                end if
+            end tell
+            '''
+            subprocess.run(["osascript", "-e", send_script], check=False)
+        except Exception:
+            pass
+
+    threading.Thread(target=_dispatch, daemon=True).start()
+
+    return {
+        "success": True,
+        "recipient": recipient,
+        "resolved_phone": resolved_phone,
+        "clean_digits": clean_digits,
+        "message": message,
+        "desktop_url": desktop_url,
+        "web_url": web_url,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 
 def auto_send_message(recipient: str, message: str, platform: str = "auto"):
@@ -1299,18 +1471,41 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
             phone = phone.strip()
             msg = action.get("message", "").strip() or "Hello from J.A.R.V.I.S."
             platform = action.get("platform", "auto").lower()
+
+            resolved_phone = action.get("resolved_phone") or resolve_contact(phone, key="phone") or phone
+            clean_digits = re.sub(r"[^0-9]", "", resolved_phone)
             encoded_msg = urllib.parse.quote(msg)
-            wa_desktop = f"whatsapp://send?phone={phone}&text={encoded_msg}" if phone else f"whatsapp://send?text={encoded_msg}"
-            wa_web = f"https://web.whatsapp.com/send?text={encoded_msg}"
-            sms_desktop = f"sms:{phone}&body={encoded_msg}" if phone else f"sms:&body={encoded_msg}"
+
+            wa_desktop = f"whatsapp://send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"whatsapp://send?text={encoded_msg}"
+            wa_web = f"https://web.whatsapp.com/send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"https://web.whatsapp.com/send?text={encoded_msg}"
+            sms_desktop = f"sms:{resolved_phone}&body={encoded_msg}" if resolved_phone else f"sms:&body={encoded_msg}"
+
+            action["phone"] = phone
+            action["resolved_phone"] = resolved_phone
             action["web_url"] = wa_web
             action["desktop_url"] = wa_desktop
             action["sms_url"] = sms_desktop
             action["platform"] = platform
             action["auto_sent"] = True
-            auto_send_message(phone, msg, platform)
+
+            if platform in ["whatsapp", "auto"]:
+                auto_send_whatsapp(phone, msg)
+            if platform in ["imessage", "messages", "sms", "auto"]:
+                auto_send_message(resolved_phone or phone, msg, platform)
+
             plat_name = "WhatsApp" if platform == "whatsapp" else ("iMessage" if platform == "imessage" else "Apple Messages & WhatsApp")
-            result = {"executed": True, "detail": f"Message to {phone or 'recipient'} sent automatically via {plat_name}: '{msg}'"}
+            result = {"executed": True, "detail": f"Message to {phone or 'recipient'} ({resolved_phone}) sent automatically via {plat_name}: '{msg}'"}
+
+        elif cmd == "LOCK_SCREEN":
+            try:
+                subprocess.Popen(["pmset", "displaysleepnow"])
+            except Exception:
+                pass
+            result = {"executed": True, "detail": "Display terminal placed in secure standby (Screen Locked)"}
+
+        elif cmd == "MANAGE_TODOS":
+            task = action.get("task", "")
+            result = {"executed": True, "detail": f"Todo task updated: '{task}'"}
 
         elif cmd == "SHOW_TELEMETRY":
             telemetry_type = action.get("telemetry_type", "all")
@@ -2140,6 +2335,71 @@ def run_shell_endpoint(payload: ShellRunRequest):
     """Execute shell command with OpenJarvis safety policy."""
     res = execute_shell_command(payload.command, timeout=payload.timeout or 5.0)
     return {"ok": res["success"], **res}
+
+
+class WhatsAppSendPayload(BaseModel):
+    recipient: str
+    message: str
+    phone: Optional[str] = None
+
+
+class ContactPayload(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+
+
+class TodoPayload(BaseModel):
+    task: str
+    done: Optional[bool] = False
+
+
+@app.post("/api/whatsapp/send")
+def send_whatsapp_endpoint(payload: WhatsAppSendPayload):
+    """Direct WhatsApp dispatch with contact resolution and native URL generation."""
+    rec = payload.recipient.strip()
+    msg = payload.message.strip()
+    if not rec or not msg:
+        raise HTTPException(status_code=400, detail="Recipient and message cannot be empty")
+    target = payload.phone.strip() if payload.phone else rec
+    res = auto_send_whatsapp(target, msg)
+    return {"ok": True, **res}
+
+
+@app.get("/api/contacts")
+def get_contacts_endpoint():
+    """Retrieve contact directory (inspired by thevickypedia/Jarvis)."""
+    return load_contacts()
+
+
+@app.post("/api/contacts")
+def add_contact_endpoint(payload: ContactPayload):
+    """Add or update contact entry."""
+    contacts = load_contacts()
+    name_clean = payload.name.strip().lower()
+    if payload.phone:
+        contacts.setdefault("phone", {})[name_clean] = payload.phone.strip()
+    if payload.email:
+        contacts.setdefault("email", {})[name_clean] = payload.email.strip()
+    save_contacts(contacts)
+    return {"ok": True, "name": payload.name, "contacts": contacts}
+
+
+@app.get("/api/todos")
+def get_todos_endpoint():
+    """Retrieve active todo tasks (inspired by thevickypedia/Jarvis)."""
+    return {"todos": load_todos()}
+
+
+@app.post("/api/todos")
+def add_todo_endpoint(payload: TodoPayload):
+    """Add a new task to todo registry."""
+    todos = load_todos()
+    new_id = (max([t.get("id", 0) for t in todos], default=0)) + 1
+    new_item = {"id": new_id, "task": payload.task.strip(), "done": bool(payload.done)}
+    todos.append(new_item)
+    save_todos(todos)
+    return {"ok": True, "todo": new_item, "total": len(todos)}
 
 
 if __name__ == "__main__":

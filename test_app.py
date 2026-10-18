@@ -350,8 +350,51 @@ def run_tests():
     assert "J.A.R.V.I.S. OpenJarvis Active" in shell_data["output"]
     print(f"✅ 35. POST /api/shell/run: Hardened shell executor verified in {shell_data['duration']}s")
 
+    # 36. Direct WhatsApp API Dispatch (POST /api/whatsapp/send)
+    res_wa = client.post("/api/whatsapp/send", json={"recipient": "Alex", "message": "Arriving in 5 minutes"})
+    assert res_wa.status_code == 200
+    wa_data = res_wa.json()
+    assert wa_data["ok"] is True
+    assert wa_data["resolved_phone"] == "+1234567890"
+    assert "whatsapp://send?phone=1234567890" in wa_data["desktop_url"]
+    assert "web.whatsapp.com" in wa_data["web_url"]
+    print(f"✅ 36. POST /api/whatsapp/send: Programmatic WhatsApp automated dispatch verified ({wa_data['desktop_url']})")
+
+    # 37. Contact Registry (GET & POST /api/contacts - thevickypedia/Jarvis)
+    res_ct = client.get("/api/contacts")
+    assert res_ct.status_code == 200
+    contacts = res_ct.json()
+    assert "alex" in contacts.get("phone", {})
+    res_add_ct = client.post("/api/contacts", json={"name": "Pepper", "phone": "+1999888777", "email": "pepper@stark.com"})
+    assert res_add_ct.status_code == 200
+    print("✅ 37. GET & POST /api/contacts: Contact book registry verified (thevickypedia/Jarvis)")
+
+    # 38. Todo Task Registry (GET & POST /api/todos - thevickypedia/Jarvis)
+    res_todos = client.get("/api/todos")
+    assert res_todos.status_code == 200
+    res_add_todo = client.post("/api/todos", json={"task": "Calibrate Mark 85 repulsor arrays", "done": False})
+    assert res_add_todo.status_code == 200
+    assert res_add_todo.json()["todo"]["task"] == "Calibrate Mark 85 repulsor arrays"
+    print("✅ 38. GET & POST /api/todos: Task and todo registry operational (thevickypedia/Jarvis)")
+
+    # 39. Natural Language WhatsApp with Contact Resolution in /chat
+    res_chat_wa = client.post("/chat", json={"text": "send whatsapp to Mom I will be late for dinner"})
+    assert res_chat_wa.status_code == 200
+    chat_wa_data = res_chat_wa.json()
+    assert chat_wa_data["action"]["command"] == "SEND_WHATSAPP"
+    assert chat_wa_data["action"]["recipient"] == "Mom"
+    assert chat_wa_data["action"]["resolved_phone"] == "+1987654321"
+    assert "1987654321" in chat_wa_data["action"]["web_url"]
+    print("✅ 39. POST /chat (WhatsApp Contact Resolution): 'Mom' resolved to +1987654321 with pre-filled Web/Desktop URLs")
+
+    # 40. Screen Lock / System Sleep (thevickypedia/Jarvis)
+    res_lock = client.post("/chat", json={"text": "Jarvis, lock screen and secure workstation"})
+    assert res_lock.status_code == 200
+    assert res_lock.json()["action"]["command"] == "LOCK_SCREEN"
+    print("✅ 40. POST /chat (Screen Lock & Standby): System lock command dispatched cleanly")
+
     print("=" * 60)
-    print("🎉 ALL 35 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 40 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":
