@@ -1511,6 +1511,52 @@
         `;
       }
 
+      if (cmd === 'DIGEST_BRIEFING') {
+        const batt = action.battery || {};
+        const storage = action.storage || {};
+        const todos = action.todos || [];
+        const wa = action.whatsapp_gateway || '+918197646867';
+        const time = action.time || '';
+        return `
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 space-y-3 border border-cyan-500/40 mt-2 shadow-[0_4px_20px_rgba(0,212,255,0.15)]">
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-cyan-400 text-xl">query_stats</span>
+                <span class="font-headline-sm text-sm text-on-surface font-bold">OPENJARVIS EXECUTIVE BRIEFING</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">${time || 'ACTIVE'}</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+              <div class="p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/20">
+                <div class="text-[10px] text-on-surface-variant uppercase">Power Core</div>
+                <div class="font-bold text-emerald-400 text-sm">${batt.percent || 100}%</div>
+                <div class="text-[9px] text-on-surface-variant/70">${batt.source || 'Battery'}</div>
+              </div>
+              <div class="p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/20">
+                <div class="text-[10px] text-on-surface-variant uppercase">SSD Storage</div>
+                <div class="font-bold text-cyan-400 text-sm">${storage.free_gb || 80} GB</div>
+                <div class="text-[9px] text-on-surface-variant/70">Available Free</div>
+              </div>
+              <div class="p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/20">
+                <div class="text-[10px] text-on-surface-variant uppercase">WhatsApp Comms</div>
+                <div class="font-bold text-green-400 text-xs truncate">${wa}</div>
+                <div class="text-[9px] text-green-300/70">Terminal Armed</div>
+              </div>
+              <div class="p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/20">
+                <div class="text-[10px] text-on-surface-variant uppercase">Mission Tasks</div>
+                <div class="font-bold text-purple-400 text-sm">${todos.length} Active</div>
+                <div class="text-[9px] text-purple-300/70">Directives</div>
+              </div>
+            </div>
+            ${todos.length ? `
+              <div class="text-[11px] font-mono text-on-surface-variant bg-surface-container-high/40 p-2 rounded border border-outline-variant/20">
+                <span class="text-primary font-bold">Priority Directive:</span> ${escapeHtml(todos[0])}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
       if (cmd === 'SEND_EMAIL') {
         const to = action.to || 'recipient';
         const subj = action.subject || 'Status';

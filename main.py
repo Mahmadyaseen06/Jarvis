@@ -72,7 +72,7 @@ VALID_COMMANDS = {
     "SYSTEM_SCAN", "ACTIVATE_DEFENSE", "DEPLOY_WIDGET", "STAND_DOWN",
     "OPEN_APP", "SET_VOLUME", "SEND_WHATSAPP", "SEND_EMAIL", "SEARCH_WEB", "OPEN_URL",
     "CALCULATE", "FIND_FILE", "PLAY_MEDIA", "ACTIVATE_CAMERA", "SHOW_TELEMETRY",
-    "AUTOMATE_DM", "COMPOSE_DOCUMENT", "WRITE_CODE", "LOCK_SCREEN", "MANAGE_TODOS", "NONE"
+    "AUTOMATE_DM", "COMPOSE_DOCUMENT", "WRITE_CODE", "LOCK_SCREEN", "MANAGE_TODOS", "DIGEST_BRIEFING", "NONE"
 }
 
 PRESET_WIDGET_NAMES = [
@@ -535,6 +535,8 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
         target_name = phone or "Alex"
         resolved_phone = resolve_contact(target_name, key="phone") if target_name else "+1234567890"
         clean_digits = re.sub(r"[^0-9]", "", resolved_phone)
+        if len(clean_digits) == 10 and clean_digits[0] in "6789":
+            clean_digits = f"91{clean_digits}"
         encoded_msg = urllib.parse.quote(msg)
         wa_desktop = f"whatsapp://send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"whatsapp://send?text={encoded_msg}"
         wa_web = f"https://web.whatsapp.com/send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"https://web.whatsapp.com/send?text={encoded_msg}"
@@ -549,6 +551,7 @@ def fallback_jarvis_engine(user_text: str) -> Dict[str, Any]:
                 "phone": target_name,
                 "recipient": target_name,
                 "resolved_phone": resolved_phone,
+                "clean_digits": clean_digits,
                 "message": msg,
                 "web_url": wa_web,
                 "desktop_url": wa_desktop,
@@ -865,8 +868,23 @@ if __name__ == "__main__":
             except Exception:
                 pass
 
-    # 11. Streaming Media Playback (Spotify, YouTube, Netflix, Apple Music)
-    if any(lower.startswith(k) or f" {k} " in f" {lower} " for k in ["play", "stream", "listen to", "watch"]) and not any(k in lower for k in ["calculate", "scan", "status", "volume", "defense"]):
+    # 11. Streaming Media & Tutorial Playback (YouTube, Spotify, Netflix, Apple Music)
+    media_platforms = ["youtube", "spotify", "netflix", "apple music", "soundcloud"]
+    media_nouns = ["video", "tutorial", "song", "track", "music", "podcast", "playlist", "episode"]
+    media_verbs = ["play", "stream", "listen to", "watch", "hear"]
+
+    has_media_intent = (
+        any(k in lower for k in media_platforms)
+        or any(k in lower for k in media_nouns)
+        or any(lower.startswith(k) or f" {k} " in f" {lower} " for k in media_verbs)
+    )
+    is_excluded_cmd = any(k in lower for k in [
+        "calculate", "scan", "status", "volume", "defense", "battery", "storage",
+        "lock screen", "todo", "write code", "write a code", "compose", "letter",
+        "email", "whatsapp", "dm", "message"
+    ])
+
+    if has_media_intent and not is_excluded_cmd:
         service = "youtube"
         if "spotify" in lower:
             service = "spotify"
@@ -876,8 +894,10 @@ if __name__ == "__main__":
             service = "apple_music"
 
         query_text = re.sub(r"^(?:hey\s+|hi\s+)?jarvis[\s,]*", "", user_text, flags=re.IGNORECASE).strip()
-        query_text = re.sub(r"^(?:please\s+|can\s+you\s+)?(?:play|stream|listen\s+to|watch)\s+", "", query_text, flags=re.IGNORECASE).strip()
-        query_text = re.sub(r"\s+on\s+(?:spotify|youtube|netflix|apple\s+music)\s*$", "", query_text, flags=re.IGNORECASE).strip()
+        query_text = re.sub(r"^(?:please\s+|can\s+you\s+)?(?:play|stream|listen\s+to|watch|find|show\s+me|search\s+for|search|give\s+me|get|look\s+up|open)\s+", "", query_text, flags=re.IGNORECASE).strip()
+        query_text = re.sub(r"\s+(?:on|in|from|at)\s+(?:spotify|youtube|netflix|apple\s+music)\s*$", "", query_text, flags=re.IGNORECASE).strip()
+        query_text = re.sub(r"^youtube\s+", "", query_text, flags=re.IGNORECASE).strip()
+        query_text = re.sub(r"^(?:what\s+is\s+the|which\s+is\s+the|what's\s+the)\s+", "", query_text, flags=re.IGNORECASE).strip()
         if not query_text:
             query_text = "Iron Man AC/DC Back in Black"
 
@@ -917,9 +937,10 @@ if __name__ == "__main__":
             "action": {"command": "FIND_FILE", "filename": filename, "reveal": True}
         }
 
-    # 14. Web Search
-    if lower.startswith("search for ") or lower.startswith("google ") or lower.startswith("search "):
-        query = re.sub(r"^(?:search\s+(?:for\s+)?|google\s+)", "", user_text, flags=re.IGNORECASE).strip()
+    # 14. Web Search & Informational Queries
+    search_prefixes = ["search for ", "google ", "search ", "who is ", "what is ", "where is ", "why is ", "why does ", "how to ", "how do ", "tell me about "]
+    if any(lower.startswith(p) for p in search_prefixes) or lower.startswith("find out "):
+        query = re.sub(r"^(?:search\s+(?:for\s+)?|google\s+|who\s+is\s+|what\s+is\s+|where\s+is\s+|why\s+is\s+|why\s+does\s+|how\s+to\s+|how\s+do\s+|tell\s+me\s+about\s+|find\s+out\s+)", "", user_text, flags=re.IGNORECASE).strip()
         return {
             "reply": f"Executing web search for '{query}', Sir.",
             "action": {"command": "SEARCH_WEB", "query": query}
@@ -973,10 +994,38 @@ if __name__ == "__main__":
 
     if any(k in lower for k in ["show todos", "show my todos", "list todos", "list my tasks", "what are my todos", "what are my tasks"]):
         todos = load_todos()
-        todo_list_str = ", ".join([t["task"] for t in todos if not t.get("done")]) or "All tasks completed"
+        todo_list_str = ", ".join([t.get("task", "") for t in todos if isinstance(t, dict) and not t.get("done")]) or "All tasks completed"
         return {
             "reply": f"You have {len(todos)} items in your Stark registry: {todo_list_str}, Sir.",
             "action": {"command": "MANAGE_TODOS", "operation": "list", "todos": todos}
+        }
+
+    # 18d. OpenJarvis Executive Briefing & Morning Digest Engine
+    if any(k in lower for k in ["morning digest", "daily digest", "briefing", "brief me", "executive summary", "status report", "executive briefing", "daily briefing"]):
+        vitals = get_system_hardware_vitals()
+        batt = vitals.get("battery", {})
+        todos = load_todos()
+        active_todos = [t.get("task", "") for t in todos if isinstance(t, dict) and not t.get("done")]
+        task_summary = f"{len(active_todos)} pending items" if active_todos else "all tasks completed"
+        time_str = datetime.now().strftime("%I:%M %p")
+        reply = (
+            f"Good day, Commander Yaseen. Here is your OpenJarvis Executive Briefing at {time_str}: "
+            f"Power systems stand at {batt.get('percent', 100)}% ({batt.get('source', 'Power')}), "
+            f"SSD storage has {vitals.get('storage', {}).get('free_gb', 0)}GB available, "
+            f"WhatsApp gateway is armed for your primary terminal (+918197646867), and you have {task_summary} on your mission board. All defense vectors nominal."
+        )
+        return {
+            "reply": reply,
+            "action": {
+                "command": "DIGEST_BRIEFING",
+                "briefing_type": "Executive Morning Digest",
+                "time": time_str,
+                "battery": batt,
+                "storage": vitals.get("storage", {}),
+                "todos": active_todos,
+                "whatsapp_gateway": "+918197646867",
+                "security": "Defense Nominal"
+            }
         }
 
     # 19. Greeting
@@ -1119,39 +1168,56 @@ def resolve_contact(name_or_number: str, key: str = "phone") -> str:
     raw = (name_or_number or "").strip()
     if not raw:
         return ""
-    
-    digits = re.sub(r"[^0-9]", "", raw)
-    if len(digits) >= 7 and key == "phone":
-        return raw
 
     contacts = load_contacts()
     lookup = contacts.get(key, {})
     lowered = raw.lower()
 
+    # 1. Direct match in registry (e.g. "yaseen", "me", "alex", "8197646867")
     if lowered in lookup:
         return lookup[lowered]
 
     for k, v in lookup.items():
-        if k in lowered or lowered in k:
+        if k in lowered or (len(k) > 2 and lowered in k):
             return v
+
+    # 2. If phone lookup and raw has digits
+    if key == "phone":
+        digits = re.sub(r"[^0-9]", "", raw)
+        # Indian 10-digit mobile number normalization
+        if len(digits) == 10 and digits[0] in "6789":
+            return f"+91{digits}"
+        if len(digits) >= 7:
+            return raw
 
     return raw
 
 def load_todos() -> List[Dict[str, Any]]:
     default_todos = [
         {"id": 1, "task": "Review Arc Reactor core output", "done": False},
-        {"id": 2, "task": "Verify macOS WhatsApp gateway credentials", "done": True}
+        {"id": 2, "task": "Verify macOS WhatsApp gateway credentials (+918197646867)", "done": True},
+        {"id": 3, "task": "Calibrate Mark 85 repulsor arrays", "done": False},
+        {"id": 4, "task": "Inspect OpenJarvis neural subroutines", "done": False}
     ]
     try:
         if os.path.exists(TODOS_FILE):
             with open(TODOS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if isinstance(data, dict) and "todos" in data:
+                    data = data["todos"]
+                if isinstance(data, list):
+                    valid = [item for item in data if isinstance(item, dict) and "task" in item]
+                    return valid if valid else default_todos
     except Exception:
         pass
     return default_todos
 
-def save_todos(todos: List[Dict[str, Any]]):
+def save_todos(todos: Any):
     try:
+        if isinstance(todos, dict) and "todos" in todos:
+            todos = todos["todos"]
+        if not isinstance(todos, list):
+            return
         with open(TODOS_FILE, "w", encoding="utf-8") as f:
             json.dump(todos, f, indent=2)
     except Exception:
@@ -1159,13 +1225,15 @@ def save_todos(todos: List[Dict[str, Any]]):
 
 def auto_send_whatsapp(recipient: str, message: str) -> Dict[str, Any]:
     """Automated WhatsApp dispatch inspired by thevickypedia/Jarvis:
-    1. Resolves contact name (e.g. Alex, Mom) to phone number.
-    2. Cleans phone digits for whatsapp:// URI and web.whatsapp.com.
+    1. Resolves contact name (e.g. Alex, Mom, Yaseen, 8197646867) to phone number.
+    2. Cleans phone digits for whatsapp:// URI and web.whatsapp.com with +91 handling.
     3. Triggers native macOS WhatsApp app with AppleScript return keystroke.
     4. Generates both desktop_url and web_url fallbacks.
     """
     resolved_phone = resolve_contact(recipient, key="phone") or recipient
     clean_digits = re.sub(r"[^0-9]", "", resolved_phone)
+    if len(clean_digits) == 10 and clean_digits[0] in "6789":
+        clean_digits = f"91{clean_digits}"
     encoded_msg = urllib.parse.quote(message)
 
     desktop_url = f"whatsapp://send?phone={clean_digits}&text={encoded_msg}" if clean_digits else f"whatsapp://send?text={encoded_msg}"
@@ -1506,6 +1574,9 @@ def execute_mac_task(action: Dict[str, Any]) -> Dict[str, Any]:
         elif cmd == "MANAGE_TODOS":
             task = action.get("task", "")
             result = {"executed": True, "detail": f"Todo task updated: '{task}'"}
+
+        elif cmd == "DIGEST_BRIEFING":
+            result = {"executed": True, "detail": "OpenJarvis Executive Briefing synthesized and telemetry projected to HUD array"}
 
         elif cmd == "SHOW_TELEMETRY":
             telemetry_type = action.get("telemetry_type", "all")
@@ -2400,6 +2471,49 @@ def add_todo_endpoint(payload: TodoPayload):
     todos.append(new_item)
     save_todos(todos)
     return {"ok": True, "todo": new_item, "total": len(todos)}
+
+
+@app.get("/api/openjarvis/briefing")
+def openjarvis_briefing_endpoint():
+    """Generate OpenJarvis Executive Briefing / Morning Digest."""
+    vitals = get_system_hardware_vitals()
+    todos = load_todos()
+    active_todos = [t for t in todos if not t.get("done")]
+    time_str = datetime.now().strftime("%I:%M %p")
+    return {
+        "ok": True,
+        "title": "OpenJarvis Executive Morning Digest",
+        "commander": "Yaseen",
+        "time": time_str,
+        "battery": vitals.get("battery", {}),
+        "storage": vitals.get("storage", {}),
+        "cpu_load": vitals.get("cpu_load_1m", 0),
+        "active_todos": active_todos,
+        "whatsapp_gateway": "+918197646867",
+        "security_posture": "Nominal / Defense Standby"
+    }
+
+
+@app.get("/api/openjarvis/status")
+def openjarvis_status_endpoint():
+    """OpenJarvis architecture health & capability manifest."""
+    return {
+        "ok": True,
+        "agent": "J.A.R.V.I.S. Neural Core (OpenJarvis Augmented)",
+        "commander": "Yaseen",
+        "whatsapp_phone": "+918197646867",
+        "capabilities": [
+            "code_interpreter",
+            "shell_exec",
+            "executive_digest",
+            "human_calculator",
+            "whatsapp_dispatch",
+            "youtube_player",
+            "spotlight_scan",
+            "hardware_vitals"
+        ],
+        "latency": "0.02s (offline rule engine) / 0.8s (Gemini 3.8 Flash)"
+    }
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ Run with: python3 test_app.py
 """
 
 from starlette.testclient import TestClient
-from main import app, chat_history
+from main import app, chat_history, save_todos
 
 def run_tests():
     client = TestClient(app)
@@ -370,11 +370,11 @@ def run_tests():
     print("✅ 37. GET & POST /api/contacts: Contact book registry verified (thevickypedia/Jarvis)")
 
     # 38. Todo Task Registry (GET & POST /api/todos - thevickypedia/Jarvis)
-    res_todos = client.get("/api/todos")
-    assert res_todos.status_code == 200
-    res_add_todo = client.post("/api/todos", json={"task": "Calibrate Mark 85 repulsor arrays", "done": False})
+    initial_todos = client.get("/api/todos").json().get("todos", [])
+    res_add_todo = client.post("/api/todos", json={"task": "Temporary integration test task", "done": False})
     assert res_add_todo.status_code == 200
-    assert res_add_todo.json()["todo"]["task"] == "Calibrate Mark 85 repulsor arrays"
+    assert res_add_todo.json()["todo"]["task"] == "Temporary integration test task"
+    save_todos(initial_todos)
     print("✅ 38. GET & POST /api/todos: Task and todo registry operational (thevickypedia/Jarvis)")
 
     # 39. Natural Language WhatsApp with Contact Resolution in /chat
@@ -393,8 +393,47 @@ def run_tests():
     assert res_lock.json()["action"]["command"] == "LOCK_SCREEN"
     print("✅ 40. POST /chat (Screen Lock & Standby): System lock command dispatched cleanly")
 
+    # 41. Natural YouTube Query 1: "best video to learn Java on YouTube"
+    res_yt1 = client.post("/chat", json={"text": "best video to learn Java on YouTube"})
+    assert res_yt1.status_code == 200
+    data_yt1 = res_yt1.json()
+    assert data_yt1["action"]["command"] == "PLAY_MEDIA"
+    assert data_yt1["action"]["service"] == "youtube"
+    assert "best video to learn Java" in data_yt1["action"]["media_query"]
+    assert "youtube.com/results" in data_yt1["action"]["web_url"]
+    print("✅ 41. POST /chat (Natural YouTube Intent 1): 'best video to learn Java on YouTube' -> PLAY_MEDIA YouTube")
+
+    # 42. Natural YouTube Query 2: "Apna college Java tutorial on YouTube"
+    res_yt2 = client.post("/chat", json={"text": "Apna college Java tutorial on YouTube"})
+    assert res_yt2.status_code == 200
+    data_yt2 = res_yt2.json()
+    assert data_yt2["action"]["command"] == "PLAY_MEDIA"
+    assert data_yt2["action"]["service"] == "youtube"
+    assert "Apna college Java tutorial" in data_yt2["action"]["media_query"]
+    print("✅ 42. POST /chat (Natural YouTube Intent 2): 'Apna college Java tutorial on YouTube' -> PLAY_MEDIA YouTube")
+
+    # 43. WhatsApp Direct to 8197646867 with Indian +91 Country Code Normalization
+    res_wa_num = client.post("/chat", json={"text": "whatsapp 8197646867 mission successful"})
+    assert res_wa_num.status_code == 200
+    data_wa_num = res_wa_num.json()
+    assert data_wa_num["action"]["command"] == "SEND_WHATSAPP"
+    assert data_wa_num["action"]["resolved_phone"] == "+918197646867"
+    assert "918197646867" in data_wa_num["action"]["clean_digits"]
+    print("✅ 43. POST /chat (WhatsApp +91 Normalization): '8197646867' normalized to +918197646867 and 918197646867")
+
+    # 44. OpenJarvis Executive Briefing / Morning Digest
+    res_digest = client.post("/chat", json={"text": "give me my morning digest"})
+    assert res_digest.status_code == 200
+    data_digest = res_digest.json()
+    assert data_digest["action"]["command"] == "DIGEST_BRIEFING"
+    assert "OpenJarvis Executive Briefing" in data_digest["reply"]
+    res_briefing_api = client.get("/api/openjarvis/briefing")
+    assert res_briefing_api.status_code == 200
+    assert res_briefing_api.json()["commander"] == "Yaseen"
+    print("✅ 44. POST /chat & GET /api/openjarvis/briefing: OpenJarvis Executive Briefing verified")
+
     print("=" * 60)
-    print("🎉 ALL 40 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
+    print("🎉 ALL 44 TESTS PASSED! J.A.R.V.I.S. AI System Dashboard is 100% verified.")
     print("=" * 60)
 
 if __name__ == "__main__":

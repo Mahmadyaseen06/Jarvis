@@ -105,6 +105,17 @@ def main():
         print(code)
         print(f"{YELLOW}--- SANDBOX OUTPUT ({duration}s) ---{RESET}")
         print(f"{GREEN}{output}{RESET}\n")
+    elif cmd == "DIGEST_BRIEFING":
+        batt = action.get("battery", {})
+        storage = action.get("storage", {})
+        todos = action.get("todos", [])
+        wa = action.get("whatsapp_gateway", "+918197646867")
+        print(f"{CYAN}{BOLD}[OPENJARVIS EXECUTIVE BRIEFING // MISSION STATUS]{RESET}")
+        print(f"  • Power:    {batt.get('percent', 100)}% ({batt.get('source', 'Power')})")
+        print(f"  • Storage:  {storage.get('free_gb', 0)}GB Free SSD")
+        print(f"  • WhatsApp: {wa} (Armed)")
+        print(f"  • Tasks:    {len(todos)} Active Directives")
+        print(f"  • Defense:  Nominal\n")
 
 if __name__ == "__main__":
     main()

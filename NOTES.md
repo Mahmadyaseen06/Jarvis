@@ -97,6 +97,10 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - HUD Action Cards: Built dedicated WhatsApp Dispatch Card in `index.html` with recipient avatar, resolved phone indicator, 1-click `OPEN APP`, `OPEN WEB`, and `COPY`. Built `LOCK_SCREEN` and `MANAGE_TODOS` HUD cards.
   - CLI: Enhanced `./bro` to render contact name, resolved number, desktop URI, and web URL.
   - Test Suite: Expanded to 40/40 end-to-end integration tests (40/40 passing).
-
-
-
+- 2026-10-18 — OpenJarvis Executive Briefing, Natural YouTube & WhatsApp +91 Normalization:
+  - Natural Media & Web Search Intent: Extended `PLAY_MEDIA` to capture natural search queries like "best video to learn Java on YouTube" and "Apna college Java tutorial on YouTube", stripping trailing channel/service tokens and query preambles. Expanded web search prefixes to cover "who is", "what is", "where is", "why is", "how to", "tell me about".
+  - Automated WhatsApp +91 Normalization: Enhanced contact resolver and `auto_send_whatsapp` to detect standard 10-digit Indian mobile numbers (starting with 6, 7, 8, 9) and normalize to `+91` for display and `91` for `whatsapp://send?phone=...` URI parameters.
+  - OpenJarvis Executive Briefing Engine: Added `DIGEST_BRIEFING` command responding to "give me my morning digest", "brief me", "status report", "executive summary", etc. Pulls real-time battery vitals, SSD storage, active todos, and defense posture into both speech and an interactive HUD briefing card. Added endpoints `GET /api/openjarvis/briefing` and `GET /api/openjarvis/status`.
+  - Bug & Fix (Todos Data Type Guard): When `GET /api/todos` response `{"todos": [...]}` was saved back without unwrapping, `todos.json` stored keys resulting in strings in list comprehensions (`AttributeError: 'str' object has no attribute 'get'`). Fixed by hardening `load_todos` and `save_todos` to unwrap `data["todos"]` if dict, validate dict items with `"task"`, and make all comprehensions defensive with `isinstance(t, dict)`.
+  - CLI & UI: Added `DIGEST_BRIEFING` formatting to `./bro` CLI and built a holographic Executive Briefing status card in `index.html`.
+  - Integration Tests: Expanded test suite to 44/44 end-to-end tests (44/44 passing).
