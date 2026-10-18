@@ -45,3 +45,11 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
   - Test Suite: Added test 9b verifying "open calculator and type the calculation then execute" with 17/17 tests passing.
 - Bug (test 9b): When Gemini handled "open calculator and type the calculation" instead of the rule engine, the CALCULATE action lacked `mode: "human_desktop_simulation"`. Fixed by stamping `action["mode"] = "human_desktop_simulation"` inside `execute_mac_task` CALCULATE block — runs after both engines, so it's always set.
 - Documentation & Environment Synchronization: Added `faster-whisper` to `requirements.txt` and fully updated `README.md` to reflect the 3-Tier Multi-Model Cascade (Local Gemma 2 M2 Metal, Gemini Flash, Rule Engine), dual-engine STT (Faster-Whisper + Web Speech), human desktop calculator keystroke automation, direct YouTube/Spotify media playback, optical camera HUD reticle, deep Spotlight search, and the full 17-point automated test suite.
+- 2026-10-18 — Integrated Best Innovations from Community Feedback:
+  - 4-Tier Cognitive Memory Brain (`GET /api/brain`, `POST /api/brain/goal`): Tracks Identity & Persona, Working Memory (with active thought traces), Episodic Memory (audit log of executed tasks), and an Autonomous Goal Queue with real-time HUD drawer.
+  - Emergency Protocol Zero (`POST /api/protocol-zero`): Tactile 1-click abort button that immediately cancels speech synthesis, closes optical sensors, halts in-flight operations, and places J.A.R.V.I.S. into safe standby.
+  - Procedural Web Audio SFX Engine: Synthesizes pure Web Audio API sound effects (beeps, chimes, action confirmations, and abort dampeners) with a top-bar `SFX ON/OFF` toggle.
+  - Three.js 3D Holographic Particle Sphere: Ambient full-screen 1,200-particle Fibonacci sphere on `#threeHoloCanvas` that rotates and dynamically expands based on physical vocal audio frequencies from `AnalyserNode`.
+  - Live macOS Hardware Vitals (`GET /api/vitals`): Reports real macOS CPU load, RAM utilization, and Apple Silicon Metal GPU status.
+  - Test Suite: Expanded to 19 end-to-end integration tests (19/19 passing).
+

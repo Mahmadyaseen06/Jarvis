@@ -21,6 +21,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -132,6 +133,9 @@
   <!-- Subtle Ambient Top Radial Glow -->
   <div class="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(0,212,255,0.08),transparent_65%)]"></div>
 
+  <!-- Three.js 3D Holographic Fibonacci Particle Canvas -->
+  <canvas id="threeHoloCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
   <div class="min-h-screen p-2 sm:p-margin flex flex-col items-center justify-start relative z-10">
     <div class="w-full max-w-7xl rounded-2xl bg-surface/65 backdrop-blur-3xl shadow-[0_16px_48px_-8px_rgba(0,0,0,0.9),0_0_24px_2px_rgba(0,212,255,0.12)] flex flex-col min-h-[calc(100vh-4rem)] relative overflow-hidden border border-outline-variant/30">
 
@@ -156,15 +160,26 @@
             </div>
           </div>
 
-          <!-- Navigation Pills -->
-          <nav class="hidden xl:flex items-center gap-space-sm">
-            <button class="px-space-sm py-1 transition-colors bg-surface-container-high text-primary font-headline-sm rounded-lg" type="button">Tactical HUD</button>
-            <button class="font-body-md text-body-md px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" onclick="triggerQuickAction('Run full diagnostics sweep')" type="button">Diagnostics</button>
-            <button class="font-body-md text-body-md px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" onclick="triggerQuickAction('Show active defense protocols')" type="button">Protocols</button>
+          <!-- Navigation Pills & Controls -->
+          <nav class="hidden lg:flex items-center gap-space-xs">
+            <button class="px-2.5 py-1 transition-colors bg-surface-container-high text-primary font-headline-sm rounded-lg text-xs" type="button">Tactical HUD</button>
+            <button class="font-body-md text-xs px-2.5 py-1 rounded text-primary hover:text-white bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-colors flex items-center gap-1 font-semibold" onclick="toggleBrainDrawer()" type="button" title="Toggle 4-Tier Cognitive Brain"><span class="material-symbols-outlined text-sm">psychology</span><span>Brain</span></button>
+            <button class="font-body-md text-xs px-2.5 py-1 rounded text-rose-300 hover:text-rose-100 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 shadow-[0_0_10px_rgba(244,63,94,0.3)] transition-colors flex items-center gap-1 font-bold" onclick="executeProtocolZero()" type="button" title="Emergency Protocol Zero: Abort all operations and mute audio"><span class="material-symbols-outlined text-sm text-rose-400">gpp_maybe</span><span>Protocol Zero</span></button>
+            <button id="btn-sfx-toggle" class="font-body-md text-xs px-2 py-1 rounded text-on-surface-variant hover:text-on-surface bg-surface-container-high transition-colors flex items-center gap-1 text-[11px]" onclick="toggleSfx()" type="button" title="Toggle Procedural Audio SFX"><span class="material-symbols-outlined text-[13px]" id="sfx-icon">volume_up</span><span id="sfx-label">SFX ON</span></button>
+            <button id="btn-holo-mode" class="font-body-md text-xs px-2 py-1 rounded text-on-surface-variant hover:text-on-surface bg-surface-container-high transition-colors flex items-center gap-1 text-[11px]" onclick="toggleHoloMode()" type="button" title="Toggle 3D Holographic Geometry"><span class="material-symbols-outlined text-[13px]">view_in_ar</span><span id="holo-mode-label">3D Sphere</span></button>
           </nav>
 
           <!-- Status & Controls -->
-          <div class="flex items-center gap-space-md">
+          <div class="flex items-center gap-space-sm">
+            <!-- Live Vitals Pill -->
+            <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low border border-outline-variant/30 text-[10px] font-code-stream text-on-surface-variant" id="vitals-pill" title="Live macOS Hardware Vitals">
+              <span>CPU:</span> <strong class="text-primary font-bold" id="vitals-cpu">14%</strong>
+              <span class="text-outline">|</span>
+              <span>RAM:</span> <strong class="text-on-surface font-semibold" id="vitals-ram">16GB</strong>
+              <span class="text-outline">|</span>
+              <strong class="text-emerald-400 font-bold" id="vitals-platform">METAL M2</strong>
+            </div>
+
             <div class="flex items-center gap-space-xs px-2.5 py-1 rounded-full bg-surface-container-low shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] border border-outline-variant/30">
               <span class="font-label-telemetry text-label-telemetry text-on-surface-variant">LATENCY</span>
               <span class="font-code-stream text-code-stream text-primary font-bold" id="top-latency">0.8ms</span>
@@ -364,6 +379,83 @@
         </div>
       </div>
 
+      <!-- ── 4-TIER COGNITIVE MEMORY BRAIN DRAWER ─────────────────── -->
+      <div id="brain-drawer" class="fixed top-16 right-4 z-[210] w-96 max-h-[85vh] rounded-2xl bg-surface-container-lowest/95 backdrop-blur-2xl border border-primary/40 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_30px_rgba(0,212,255,0.2)] p-4 flex flex-col gap-3 transition-all duration-300 transform translate-x-[120%] opacity-0 pointer-events-none">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-primary/30 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">psychology</span>
+            <span class="font-headline-sm text-sm text-primary uppercase font-bold tracking-wider">J.A.R.V.I.S. Cognitive Brain</span>
+          </div>
+          <button onclick="toggleBrainDrawer()" class="text-on-surface-variant hover:text-on-surface p-1 rounded hover:bg-surface-container-high transition">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto space-y-3 pr-1 text-xs font-code-stream no-scrollbar">
+          <!-- Tier 1: Identity & Persona -->
+          <div class="rounded-xl bg-surface-container-low/80 border border-primary/20 p-3 space-y-1">
+            <div class="text-[10px] text-primary uppercase tracking-wider font-bold flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+              1. IDENTITY &amp; PERSONA
+            </div>
+            <div class="text-on-surface text-[11px] leading-relaxed" id="brain-identity-text">
+              J.A.R.V.I.S. Mark VII // Paul Bettany Persona // On-Device Apple Silicon M2 (Metal GPU)
+            </div>
+          </div>
+
+          <!-- Tier 2: Working Memory (Live Thought Trace) -->
+          <div class="rounded-xl bg-surface-container-low/80 border border-secondary-container/30 p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div class="text-[10px] text-secondary-container uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                2. WORKING MEMORY
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-secondary-container/20 text-secondary font-bold uppercase" id="brain-working-status">STANDBY</span>
+            </div>
+            <div class="text-on-surface font-semibold text-[11px]" id="brain-working-directive">Awaiting voice or keyboard input</div>
+            <div class="text-[10px] text-primary/80 italic font-mono bg-black/50 p-2 rounded border border-outline-variant/20" id="brain-working-thought">
+              &lt;think&gt; Audio pre-flight nominal; Apple Silicon M2 Metal inference pipeline armed. &lt;/think&gt;
+            </div>
+          </div>
+
+          <!-- Tier 3: Episodic Memory Audit Trail -->
+          <div class="rounded-xl bg-surface-container-low/80 border border-emerald-500/30 p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                3. EPISODIC AUDIT LOG
+              </div>
+              <span class="text-[9px] text-emerald-300 font-bold" id="brain-episodic-count">0 tasks</span>
+            </div>
+            <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1" id="brain-episodic-list">
+              <div class="text-[10px] text-on-surface-variant italic">No episodic tasks logged yet this session.</div>
+            </div>
+          </div>
+
+          <!-- Tier 4: Autonomous Goal Queue -->
+          <div class="rounded-xl bg-surface-container-low/80 border border-purple-500/30 p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="text-[10px] text-purple-300 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                4. GOAL QUEUE
+              </div>
+              <span class="text-[9px] text-purple-300 font-bold" id="brain-goal-count">2 active</span>
+            </div>
+            <div class="space-y-1 max-h-28 overflow-y-auto pr-1" id="brain-goal-list">
+              <!-- Rendered dynamically -->
+            </div>
+            <!-- Add Goal Input -->
+            <div class="flex items-center gap-1 pt-1 border-t border-outline-variant/20">
+              <input type="text" id="input-new-goal" placeholder="Enqueue new objective..." class="flex-1 bg-surface-container-high/80 border border-outline-variant/40 rounded px-2 py-1 text-[10px] text-on-surface focus:outline-none focus:border-primary">
+              <button onclick="submitNewGoal()" class="px-2.5 py-1 rounded bg-primary hover:bg-primary-container text-on-primary font-bold text-[10px] uppercase transition">
+                + GOAL
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- FOOTER -->
       <footer class="w-full bg-surface-container-lowest/80 backdrop-blur-md px-space-md py-space-sm mt-auto border-t border-outline-variant/30">
         <div class="flex items-center justify-between text-on-surface-variant font-code-stream text-code-stream text-[11px]">
@@ -526,6 +618,7 @@
         }
 
         const avg = sum / eqBars.length;
+        window.liveAudioVolume = avg;
         if (avg > 8) {
           hasDetectedSpeech = true;
           lastSpokeTime = Date.now();
@@ -1390,8 +1483,343 @@
         }
       } catch (_) {}
     }
-    checkSystemStatus();
-    setInterval(checkSystemStatus, 12000);
+    // ═════════════════════════════════════════════════════════════════════════
+    // PROCEDURAL SCI-FI WEB AUDIO SFX SYNTHESIZER
+    // ═════════════════════════════════════════════════════════════════════════
+    let sfxEnabled = true;
+    let sfxAudioCtx = null;
+
+    function getSfxContext() {
+      if (!sfxAudioCtx) {
+        sfxAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (sfxAudioCtx.state === 'suspended') {
+        sfxAudioCtx.resume();
+      }
+      return sfxAudioCtx;
+    }
+
+    function playSfx(type) {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getSfxContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.04);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'mic_on') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(660, now);
+          osc.frequency.exponentialRampToValueAtTime(1320, now + 0.09);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } else if (type === 'action') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(1040, now + 0.15);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        } else if (type === 'abort') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        }
+      } catch (_) {}
+    }
+
+    function toggleSfx() {
+      sfxEnabled = !sfxEnabled;
+      const lbl = document.getElementById('sfx-label');
+      const icon = document.getElementById('sfx-icon');
+      if (lbl) lbl.textContent = sfxEnabled ? 'SFX ON' : 'SFX OFF';
+      if (icon) icon.textContent = sfxEnabled ? 'volume_up' : 'volume_off';
+      if (sfxEnabled) playSfx('click');
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // THREE.JS 3D HOLOGRAPHIC FIBONACCI PARTICLE SPHERE
+    // ═════════════════════════════════════════════════════════════════════════
+    let holoScene, holoCamera, holoRenderer, holoPoints;
+    let holoGeometryType = 'sphere'; // 'sphere' or 'reactor'
+    const PARTICLE_COUNT = 1200;
+
+    function initThreeHoloSphere() {
+      const canvas = document.getElementById('threeHoloCanvas');
+      if (!canvas || typeof THREE === 'undefined') return;
+
+      holoScene = new THREE.Scene();
+      holoCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+      holoCamera.position.z = 240;
+
+      holoRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      holoRenderer.setSize(window.innerWidth, window.innerHeight);
+      holoRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      buildHoloGeometry();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (holoPoints) {
+          holoPoints.rotation.y += 0.0035;
+          holoPoints.rotation.x += 0.0015;
+
+          // Dynamically scale particle sphere based on live voice audio frequency amplitude
+          const vol = window.liveAudioVolume || 0;
+          const scale = 1.0 + (vol / 255.0) * 0.45;
+          holoPoints.scale.set(scale, scale, scale);
+        }
+        holoRenderer.render(holoScene, holoCamera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        if (!holoCamera || !holoRenderer) return;
+        holoCamera.aspect = window.innerWidth / window.innerHeight;
+        holoCamera.updateProjectionMatrix();
+        holoRenderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    function buildHoloGeometry() {
+      if (holoPoints) {
+        holoScene.remove(holoPoints);
+      }
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(PARTICLE_COUNT * 3);
+      const colors = new Float32Array(PARTICLE_COUNT * 3);
+
+      const color1 = new THREE.Color(0x00d4ff); // Stark cyan
+      const color2 = new THREE.Color(0xffaa00); // Gold
+
+      if (holoGeometryType === 'sphere') {
+        const phi = Math.PI * (3 - Math.sqrt(5)); // Fibonacci spiral
+        const radius = 95;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
+          const r = Math.sqrt(1 - y * y);
+          const theta = phi * i;
+
+          positions[i * 3] = Math.cos(theta) * r * radius;
+          positions[i * 3 + 1] = y * radius;
+          positions[i * 3 + 2] = Math.sin(theta) * r * radius;
+
+          const mixed = color1.clone().lerp(color2, (y + 1) / 2);
+          colors[i * 3] = mixed.r;
+          colors[i * 3 + 1] = mixed.g;
+          colors[i * 3 + 2] = mixed.b;
+        }
+      } else {
+        // Arc Reactor plasma torus ring
+        const R = 75, r = 28;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const u = (i / PARTICLE_COUNT) * Math.PI * 2 * 6;
+          const v = (i / PARTICLE_COUNT) * Math.PI * 2;
+          positions[i * 3] = (R + r * Math.cos(v)) * Math.cos(u);
+          positions[i * 3 + 1] = (R + r * Math.cos(v)) * Math.sin(u);
+          positions[i * 3 + 2] = r * Math.sin(v);
+
+          const mixed = color1.clone().lerp(color2, Math.abs(Math.sin(u)));
+          colors[i * 3] = mixed.r;
+          colors[i * 3 + 1] = mixed.g;
+          colors[i * 3 + 2] = mixed.b;
+        }
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const material = new THREE.PointsMaterial({
+        size: 2.2,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+
+      holoPoints = new THREE.Points(geometry, material);
+      holoScene.add(holoPoints);
+    }
+
+    function toggleHoloMode() {
+      playSfx('click');
+      holoGeometryType = (holoGeometryType === 'sphere') ? 'reactor' : 'sphere';
+      const lbl = document.getElementById('holo-mode-label');
+      if (lbl) lbl.textContent = (holoGeometryType === 'sphere') ? '3D Sphere' : 'Arc Core';
+      buildHoloGeometry();
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // 4-TIER COGNITIVE MEMORY BRAIN CONTROLLER
+    // ═════════════════════════════════════════════════════════════════════════
+    let isBrainDrawerOpen = false;
+
+    async function fetchBrainData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/brain`);
+        if (!res.ok) return;
+        const b = await res.json();
+
+        // Tier 1: Identity
+        const idBox = document.getElementById('brain-identity-text');
+        if (idBox && b.identity) {
+          idBox.textContent = `${b.identity.name} ${b.identity.version} // ${b.identity.persona} // ${b.identity.hardware}`;
+        }
+
+        // Tier 2: Working Memory
+        const statusBadge = document.getElementById('brain-working-status');
+        const dirBox = document.getElementById('brain-working-directive');
+        const thoughtBox = document.getElementById('brain-working-thought');
+        if (b.working_memory) {
+          if (statusBadge) statusBadge.textContent = b.working_memory.status || 'STANDBY';
+          if (dirBox) dirBox.textContent = b.working_memory.directive || 'Awaiting input';
+          if (thoughtBox) thoughtBox.textContent = `<think> ${b.working_memory.thought_trace || 'Systems nominal.'} </think>`;
+        }
+
+        // Tier 3: Episodic Memory
+        const epCount = document.getElementById('brain-episodic-count');
+        const epList = document.getElementById('brain-episodic-list');
+        if (b.episodic_memory && epList) {
+          if (epCount) epCount.textContent = `${b.episodic_memory.length} tasks`;
+          if (b.episodic_memory.length === 0) {
+            epList.innerHTML = `<div class="text-[10px] text-on-surface-variant italic">No episodic tasks logged yet this session.</div>`;
+          } else {
+            epList.innerHTML = b.episodic_memory.slice(0, 10).map(item => `
+              <div class="p-2 rounded bg-surface-container-high/60 border border-outline-variant/30 flex items-start justify-between gap-1 text-[10px]">
+                <div class="space-y-0.5 min-w-0">
+                  <div class="text-primary font-bold truncate max-w-[200px]">${escapeHtml(item.query || 'Task')}</div>
+                  <div class="text-on-surface-variant text-[9px] truncate max-w-[200px]">${escapeHtml(item.reply || '')}</div>
+                </div>
+                <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold shrink-0">${item.command || 'NONE'}</span>
+              </div>
+            `).join('');
+          }
+        }
+
+        // Tier 4: Goal Queue
+        const goalCount = document.getElementById('brain-goal-count');
+        const goalList = document.getElementById('brain-goal-list');
+        if (b.goal_queue && goalList) {
+          if (goalCount) goalCount.textContent = `${b.goal_queue.length} active`;
+          goalList.innerHTML = b.goal_queue.map(g => `
+            <div class="flex items-center justify-between p-1.5 rounded bg-surface-container-high/60 border border-outline-variant/30 text-[10px]">
+              <span class="text-purple-200 truncate max-w-[260px]">• ${escapeHtml(g.title)}</span>
+              <span class="text-[9px] text-emerald-400 font-bold shrink-0">ACTIVE</span>
+            </div>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    function toggleBrainDrawer() {
+      playSfx('click');
+      const drawer = document.getElementById('brain-drawer');
+      if (!drawer) return;
+      isBrainDrawerOpen = !isBrainDrawerOpen;
+      if (isBrainDrawerOpen) {
+        drawer.classList.remove('translate-x-[120%]', 'opacity-0', 'pointer-events-none');
+        drawer.classList.add('translate-x-0', 'opacity-100', 'pointer-events-auto');
+        fetchBrainData();
+      } else {
+        drawer.classList.add('translate-x-[120%]', 'opacity-0', 'pointer-events-none');
+        drawer.classList.remove('translate-x-0', 'opacity-100', 'pointer-events-auto');
+      }
+    }
+
+    async function submitNewGoal() {
+      const input = document.getElementById('input-new-goal');
+      if (!input || !input.value.trim()) return;
+      const title = input.value.trim();
+      playSfx('action');
+      try {
+        const res = await fetch(`${API_BASE}/api/brain/goal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title })
+        });
+        if (res.ok) {
+          input.value = '';
+          fetchBrainData();
+          appendJarvisMessage(`
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-purple-300 text-base">task_alt</span>
+              <span class="font-code-stream text-code-stream text-purple-300 uppercase font-bold">COGNITIVE OBJECTIVE ENQUEUED: ${escapeHtml(title)}</span>
+            </div>
+          `, null);
+        }
+      } catch (_) {}
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // EMERGENCY PROTOCOL ZERO
+    // ═════════════════════════════════════════════════════════════════════════
+    async function executeProtocolZero() {
+      playSfx('abort');
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      stopVoiceRecognition();
+      closeCameraViewfinder();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/protocol-zero`, { method: 'POST' });
+        appendJarvisMessage(`
+          <div class="p-3 rounded-xl bg-rose-950/90 border border-rose-500 text-rose-200 shadow-xl space-y-1">
+            <div class="flex items-center gap-2 font-bold font-headline-sm uppercase text-xs tracking-wider text-rose-300">
+              <span class="material-symbols-outlined text-rose-400">gpp_maybe</span>
+              <span>EMERGENCY PROTOCOL ZERO ENGAGED</span>
+            </div>
+            <div class="font-code-stream text-[11px] text-rose-100 leading-relaxed">
+              All active operations terminated. Audio synthesis cancelled. Microphone stream muted. Systems placed in safe standby, Sir.
+            </div>
+          </div>
+        `, null);
+      } catch (_) {}
+
+      fetchBrainData();
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // HARDWARE VITALS POLLING
+    // ═════════════════════════════════════════════════════════════════════════
+    async function fetchHardwareVitals() {
+      try {
+        const res = await fetch(`${API_BASE}/api/vitals`);
+        if (!res.ok) return;
+        const v = await res.json();
+        const cpuEl = document.getElementById('vitals-cpu');
+        const ramEl = document.getElementById('vitals-ram');
+        if (cpuEl) cpuEl.textContent = `${v.cpu_percent}%`;
+        if (ramEl) ramEl.textContent = `${v.total_ram_gb}GB`;
+      } catch (_) {}
+    }
+
+    // Initialize 3D Hologram, Vitals, and SFX
+    setTimeout(() => {
+      initThreeHoloSphere();
+      fetchHardwareVitals();
+      setInterval(fetchHardwareVitals, 6000);
+      setInterval(() => {
+        if (isBrainDrawerOpen) fetchBrainData();
+      }, 5000);
+    }, 400);
   </script>
 </body>
 </html>
