@@ -84,6 +84,16 @@ def run_tests():
     assert data["action"]["answer"] == "650"
     assert "Calculator" in data["action"].get("app_name", "")
 
+    # 9b. Human Desktop Automation (Open calculator and type calculation)
+    res = client.post("/chat", json={"text": "open calculator and type the calculation then execute"})
+    assert res.status_code == 200
+    data = res.json()
+    print("✅ 9b. POST /chat (HUMAN CALCULATOR):", data)
+    assert data["action"]["command"] == "CALCULATE"
+    assert "Calculator" in data["action"].get("app_name", "")
+    assert data["action"].get("mode") == "human_desktop_simulation"
+    assert "keystroke_sequence" in data["action"]
+
     # 10. FIND_FILE Command
     res = client.post("/chat", json={"text": "Jarvis, find file main.py in system"})
     assert res.status_code == 200
@@ -113,7 +123,7 @@ def run_tests():
     assert res.status_code == 200
     hist = res.json()
     print(f"✅ 13. GET /history: {hist['count']} messages preserved in context.")
-    assert hist["count"] == 22  # 11 user + 11 assistant
+    assert hist["count"] == 24  # 12 user + 12 assistant
 
     # 7. Clear History
     res = client.post("/clear")

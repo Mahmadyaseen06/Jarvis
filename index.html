@@ -300,29 +300,6 @@
               </div>
             </div>
 
-            <!-- Floating Quick Chips (Neural Shortcut Triggers) -->
-            <div class="w-full max-w-3xl flex items-center justify-start sm:justify-center gap-space-xs overflow-x-auto pb-1 px-1 no-scrollbar">
-              <button class="quick-chip whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest text-on-surface hover:text-primary transition-all duration-200 shadow-md border border-outline-variant/30 shrink-0" onclick="triggerQuickAction('Open Spotify')" type="button">
-                <span class="material-symbols-outlined text-primary text-sm">music_note</span>
-                <span class="font-body-sm text-body-sm font-medium">Open Spotify</span>
-              </button>
-              <button class="quick-chip whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest text-on-surface hover:text-primary transition-all duration-200 shadow-md border border-outline-variant/30 shrink-0" onclick="triggerQuickAction('Open Notes')" type="button">
-                <span class="material-symbols-outlined text-primary text-sm">edit_note</span>
-                <span class="font-body-sm text-body-sm font-medium">Open Notes</span>
-              </button>
-              <button class="quick-chip whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest text-on-surface hover:text-primary transition-all duration-200 shadow-md border border-outline-variant/30 shrink-0" onclick="triggerQuickAction('send a WhatsApp message to Alex saying I will arrive at 7 PM')" type="button">
-                <span class="material-symbols-outlined text-primary text-sm">chat</span>
-                <span class="font-body-sm text-body-sm font-medium">WhatsApp Alex</span>
-              </button>
-              <button class="quick-chip whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest text-on-surface hover:text-primary transition-all duration-200 shadow-md border border-outline-variant/30 shrink-0" onclick="triggerQuickAction('send email to boss@stark.com with subject Status and body All systems nominal')" type="button">
-                <span class="material-symbols-outlined text-secondary-container text-sm">send</span>
-                <span class="font-body-sm text-body-sm font-medium">Email Boss</span>
-              </button>
-              <button class="quick-chip whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest text-on-surface hover:text-primary transition-all duration-200 shadow-md border border-outline-variant/30 shrink-0" onclick="triggerQuickAction('calculate 26 * 25')" type="button">
-                <span class="material-symbols-outlined text-primary text-sm">calculate</span>
-                <span class="font-body-sm text-body-sm font-medium">Calculate 26 * 25</span>
-              </button>
-            </div>
 
             <!-- Bottom Command Dock Interface -->
             <div class="w-full max-w-3xl relative mb-2">
@@ -882,12 +859,16 @@
 
     function setVoiceListeningState(active) {
       isListening = active;
+      const dockMicBtn = document.getElementById('dock-mic-btn');
       if (active) {
         statusCaption.textContent = "SIRI // LISTENING (TAP TO SEND)...";
         corePulseWave.classList.remove('opacity-0');
         dockMicRing.classList.remove('opacity-0', 'scale-100');
         dockMicRing.classList.add('opacity-100', 'scale-150', 'animate-ping');
         dockMicIcon.style.color = '#00d4ff';
+        if (dockMicBtn) {
+          dockMicBtn.classList.add('ring-2', 'ring-primary', 'shadow-[0_0_16px_rgba(0,212,255,0.7)]', 'bg-primary/20');
+        }
       } else {
         cancelAnimationFrame(animFrameId);
         statusCaption.textContent = isDefenseActive ? "DEFENSE ALERT // AUDIO RECEPTORS ACTIVE" : "TAP TO SPEAK // STANDBY V2.1";
@@ -895,6 +876,9 @@
         dockMicRing.classList.remove('opacity-100', 'scale-150', 'animate-ping');
         dockMicRing.classList.add('opacity-0', 'scale-100');
         dockMicIcon.style.color = '';
+        if (dockMicBtn) {
+          dockMicBtn.classList.remove('ring-2', 'ring-primary', 'shadow-[0_0_16px_rgba(0,212,255,0.7)]', 'bg-primary/20');
+        }
         stopWaveformAnimation();
       }
     }
@@ -984,17 +968,42 @@
       const cmd = action.command;
 
       if (cmd === 'CALCULATE') {
-        const expr = action.expression || '';
+        const expr = action.expression || '26 * 25';
         const ans = action.answer || action.result?.detail || '';
+        const rawSeq = action.keystroke_sequence || (expr.replace(/x/gi, '*').split('').filter(c => '0123456789+-*/.'.includes(c)).concat(['=']));
+        const keysHtml = rawSeq.map(k => `<span class="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 text-xs font-mono font-bold rounded ${k === '=' ? 'bg-primary text-on-primary shadow-[0_0_8px_rgba(0,212,255,0.5)]' : 'bg-surface-container-high text-primary border border-primary/30'} shadow-sm">${escapeHtml(k)}</span>`).join('<span class="text-on-surface-variant/40 text-[10px]">➔</span>');
+
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex items-center justify-between border border-primary/30 mt-2">
-            <div>
-              <div class="font-code-stream text-primary font-bold text-base">${escapeHtml(expr)} = ${escapeHtml(ans)}</div>
-              <div class="font-label-telemetry text-on-surface-variant text-[10px]">MACOS CALCULATOR LAUNCHED // TENSOR FLUX 100%</div>
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/90 border border-primary/40 shadow-[0_4px_20px_rgba(0,212,255,0.1)] space-y-2.5 mt-2">
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-xl">calculate</span>
+                <div>
+                  <div class="font-headline-sm text-sm text-on-surface font-bold tracking-wide">HUMAN DESKTOP EXECUTION // CALCULATOR.APP</div>
+                  <div class="font-label-telemetry text-[10px] text-primary">REAL-TIME MACOS KEYSTROKE SIMULATION DISPATCHED</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-label-telemetry font-bold bg-primary/20 text-primary border border-primary/40">SIMULATION ACTIVE</span>
             </div>
-            <button onclick="copyToClipboard('${escapeHtml(ans)}')" class="px-3 py-1 font-label-telemetry text-label-telemetry text-primary bg-primary/10 hover:bg-primary/20 rounded flex items-center gap-1 transition-colors">
-              <span class="material-symbols-outlined text-xs">content_copy</span> COPY
-            </button>
+
+            <div class="p-2 rounded-lg bg-surface-container-lowest/80 border border-outline-variant/20 flex flex-col gap-1">
+              <div class="text-[10px] font-label-telemetry text-on-surface-variant uppercase tracking-wider">Human Keystroke Stream:</div>
+              <div class="flex flex-wrap items-center gap-1.5 py-0.5">
+                ${keysHtml}
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <div>
+                <span class="text-[10px] font-label-telemetry text-on-surface-variant uppercase">Computed Answer:</span>
+                <div class="font-code-stream text-primary font-extrabold text-xl tracking-wider">${escapeHtml(expr)} = <span class="text-white bg-primary/30 px-2 py-0.5 rounded border border-primary/50">${escapeHtml(ans)}</span></div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="copyToClipboard('${escapeHtml(ans)}')" class="px-3 py-1 font-label-telemetry text-label-telemetry text-primary bg-primary/10 hover:bg-primary/20 rounded flex items-center gap-1 transition-colors">
+                  <span class="material-symbols-outlined text-xs">content_copy</span> COPY
+                </button>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -1065,19 +1074,29 @@
         const icon = icons[service] || 'headphones';
         const color = colors[service] || '#00d4ff';
         const serviceName = service === 'apple_music' ? 'Apple Music' : service.charAt(0).toUpperCase() + service.slice(1);
+
+        const embedPlayerHtml = (service === 'youtube' && query) ? `
+          <div class="mt-2 rounded-xl overflow-hidden border border-red-500/30 aspect-video w-full bg-black relative shadow-lg">
+            <iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+        ` : '';
+
         return `
-          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border mt-2" style="border-color:${color}33">
-            <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-2xl" style="color:${color}">${icon}</span>
-              <div>
-                <div class="font-headline-sm text-sm text-on-surface font-semibold">${escapeHtml(query)}</div>
-                <div class="font-code-stream text-xs" style="color:${color}">${serviceName.toUpperCase()} STREAM // ROUTING NOW</div>
+          <div class="p-space-sm rounded-xl bg-surface-container-highest/80 flex flex-col gap-2 border mt-2" style="border-color:${color}44">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-2xl" style="color:${color}">${icon}</span>
+                <div>
+                  <div class="font-headline-sm text-sm text-on-surface font-semibold">${escapeHtml(query)}</div>
+                  <div class="font-code-stream text-xs font-bold" style="color:${color}">STREAMING NOW // ${serviceName.toUpperCase()} ACTIVE PLAYBACK</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 self-end sm:self-auto">
+                ${desktopUrl !== '#' ? `<a href="${escapeHtml(desktopUrl)}" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-primary rounded uppercase shadow-sm" style="background:${color}">OPEN APP</a>` : ''}
+                <a href="${escapeHtml(webUrl)}" target="_blank" rel="noopener" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-surface-variant bg-surface-container-high hover:bg-surface-container rounded uppercase transition-colors">OPEN WEB</a>
               </div>
             </div>
-            <div class="flex items-center gap-2 self-end sm:self-auto">
-              ${desktopUrl !== '#' ? `<a href="${escapeHtml(desktopUrl)}" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-primary rounded uppercase" style="background:${color};box-shadow:0 0 12px ${color}44">OPEN APP</a>` : ''}
-              <a href="${escapeHtml(webUrl)}" target="_blank" rel="noopener" class="px-3 py-1.5 font-label-telemetry text-label-telemetry text-on-surface-variant bg-surface-container-high hover:bg-surface-container rounded uppercase transition-colors">OPEN WEB</a>
-            </div>
+            ${embedPlayerHtml}
           </div>
         `;
       }

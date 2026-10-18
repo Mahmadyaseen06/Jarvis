@@ -35,6 +35,12 @@ This file tracks approaches tried, lessons learned, and failure modes to avoid r
 - Implemented: ACTIVATE_CAMERA — holographic HUD overlay with scanline reticle, live mirrored webcam feed, snapshot to PNG download (canvas trick), and auto-open/close triggered by ACTIVATE_CAMERA command.
 - Implemented: FIND_FILE — 3-tier mdfind (kMDItemDisplayName → kMDItemFSName → full-text) with auto-reveal via open -R. Frontend shows numbered result list + REVEAL IN FINDER button → POST /api/reveal.
 - Added: /api/reveal FastAPI endpoint that runs subprocess open -R on given path.
-- 16/16 integration tests passing. Zero JS syntax errors (validated via Node.js --eval).
-
+- 17/17 integration tests passing. Zero JS syntax errors (validated via Node.js --eval).
+- 2026-10-18 — Human Desktop Automation & Direct Media Playback:
+  - Human Desktop Execution: Implemented `human_type_calculator(expression, answer)` via native macOS AppleScript + System Events. When instructed to calculate or execute a math task, J.A.R.V.I.S. brings the macOS Calculator app to the foreground, sends 'c' to clear, types each number and operator sequentially with a 0.08s human-like delay, and presses '=' to compute the real answer.
+  - Action Card Keystroke Visualizer: Upgraded CALCULATE action card in `index.html` to display the real-time injected keystroke sequence badges (e.g., `[2] ➔ [6] ➔ [×] ➔ [2] ➔ [5] ➔ [=]`) alongside the computed result.
+  - Direct Media Playback: Updated `PLAY_MEDIA` to initiate real playback. For YouTube, renders an autoplaying video player directly inside the J.A.R.V.I.S. HUD action card. For Spotify, fires an AppleScript background command to focus Spotify and send play keystrokes.
+  - Frontend Cleanup: Removed static quick chips bar per user request to streamline the command console.
+  - Voice Responsiveness: Enhanced microphone visual active states (ring glow, active pulse) and instant tap-to-send toggle.
+  - Test Suite: Added test 9b verifying "open calculator and type the calculation then execute" with 17/17 tests passing.
 
