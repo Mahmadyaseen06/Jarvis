@@ -503,22 +503,10 @@
       function renderFrame() {
         if (!isListening) return;
         analyserNode.getByteFrequencyData(dataArray);
-        let sum = 0;
         for (let i = 0; i < eqBars.length; i++) {
           const val = dataArray[i * 2] || 0;
-          sum += val;
           const h = Math.max(4, Math.min(32, Math.round(val / 7) + 4));
           eqBars[i].style.height = `${h}px`;
-        }
-
-        const avgVolume = sum / eqBars.length;
-        if (avgVolume > 14) {
-          hasDetectedSpeech = true;
-          lastSpokeTime = Date.now();
-        } else if (hasDetectedSpeech && lastSpokeTime > 0 && (Date.now() - lastSpokeTime > 1400)) {
-          // Natural silence after speech detected
-          finishRecordingAndDispatch();
-          return;
         }
 
         animFrameId = requestAnimationFrame(renderFrame);
@@ -563,15 +551,14 @@
         recognition = null;
       }
 
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        try { mediaRecorder.stop(); } catch (_) {}
-      }
-
       setVoiceListeningState(false);
     }
 
     function stopVoiceRecognition() {
       stopVoiceListening();
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        try { mediaRecorder.stop(); } catch (_) {}
+      }
     }
 
     async function finishRecordingAndDispatch() {
@@ -583,22 +570,35 @@
       const directText = commandInput.value.trim();
       stopVoiceListening();
 
-      // Path 1: Fast direct text from Web Speech API (Chrome)
+      // Path 1: Fast direct text from Web Speech API (Chrome / Edge / Safari)
       if (directText) {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          try { mediaRecorder.stop(); } catch (_) {}
+        }
         sendVoiceResult(directText);
         return;
       }
 
       // Path 2: Offline / Brave fallback via Local Faster-Whisper
-      if (mediaRecorder && audioChunks.length > 0) {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         try {
           statusCaption.textContent = "LOCAL WHISPER // TRANSCRIBING...";
           transcribePreview.textContent = "Transcribing speech via local neural core...";
 
-          const mime = mediaRecorder.mimeType || 'audio/webm';
-          const audioBlob = new Blob(audioChunks, { type: mime });
+          const audioBlob = await new Promise((resolve) => {
+            mediaRecorder.addEventListener('stop', () => {
+              const mime = mediaRecorder.mimeType || 'audio/webm';
+              resolve(audioChunks.length > 0 ? new Blob(audioChunks, { type: mime }) : null);
+            }, { once: true });
+            try {
+              mediaRecorder.requestData();
+              mediaRecorder.stop();
+            } catch (_) {
+              resolve(null);
+            }
+          });
 
-          if (audioBlob.size > 1500) {
+          if (audioBlob && audioBlob.size > 500) {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'command.webm');
 
@@ -625,10 +625,15 @@
 
       // Nothing captured
       statusCaption.textContent = isDefenseActive ? "DEFENSE ALERT // AUDIO RECEPTORS ACTIVE" : "TAP TO SPEAK // STANDBY V2.1";
-      transcribePreview.textContent = "";
+      transcribePreview.textContent = "No voice detected. Tap to speak again.";
+      setTimeout(() => {
+        if (!isListening && transcribePreview.textContent === "No voice detected. Tap to speak again.") {
+          transcribePreview.textContent = "";
+        }
+      }, 3000);
     }
 
-    async function startVoiceRecognition() {
+    function startVoiceRecognition() {
       stopVoiceListening();
 
       if (isSpeaking) {
@@ -655,54 +660,12 @@
 
       voiceSent = false;
       hasDetectedSpeech = false;
-      lastSpokeTime = 0;
       audioChunks = [];
       commandInput.value = '';
       transcribePreview.textContent = 'Listening... Speak now.';
-
-      // Step 1: Initialize Audio Stream & Equalizer Analyser
-      const micOk = await initAudioAnalyser();
-      if (!micOk) {
-        statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
-        transcribePreview.textContent = "Click 🔒 in URL bar -> set Microphone to 'Allow'";
-        appendJarvisMessage(`
-          <div class="p-space-sm rounded-xl bg-error/20 border border-error/50 space-y-1">
-            <div class="flex items-center gap-2 text-error font-headline-sm text-sm font-bold">
-              <span class="material-symbols-outlined text-base">mic_off</span> MICROPHONE ACCESS DENIED
-            </div>
-            <p class="font-body-sm text-body-sm text-on-surface">Please click the lock/tune icon in your browser URL bar and change <strong>Microphone</strong> to <strong>Allow</strong>.</p>
-          </div>
-        `, "Microphone permission denied, Sir.");
-        return;
-      }
-
-      // Step 2: Initialize MediaRecorder (Local Whisper Pipeline)
-      try {
-        let mimeType = '';
-        if (typeof MediaRecorder !== 'undefined') {
-          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
-          else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
-          else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
-
-          mediaRecorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) audioChunks.push(e.data);
-          };
-          mediaRecorder.start(100);
-        }
-      } catch (err) {
-        console.warn("MediaRecorder init error:", err);
-      }
-
       setVoiceListeningState(true);
-      startLiveMicVisualizer();
 
-      // Step 3: Hard limit safety timeout (10s)
-      maxDurationTimer = setTimeout(() => {
-        if (isListening) finishRecordingAndDispatch();
-      }, 10000);
-
-      // Step 4: Web Speech API for real-time word streaming in Chrome
+      // Step 1: Web Speech API (CALLED SYNCHRONOUSLY to preserve User Gesture activation)
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRec) {
         try {
@@ -744,8 +707,18 @@
 
           recognition.onerror = (e) => {
             if (e.error === 'network') {
-              // Expected in Brave or offline — local Faster-Whisper handles it seamlessly
               console.info("[JARVIS VOICE] Web Speech cloud network unavailable; Local Faster-Whisper active.");
+            } else if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+              statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
+              transcribePreview.textContent = "Click 🔒 in URL bar -> set Microphone to 'Allow'";
+              appendJarvisMessage(`
+                <div class="p-space-sm rounded-xl bg-error/20 border border-error/50 space-y-1">
+                  <div class="flex items-center gap-2 text-error font-headline-sm text-sm font-bold">
+                    <span class="material-symbols-outlined text-base">mic_off</span> MICROPHONE ACCESS DENIED
+                  </div>
+                  <p class="font-body-sm text-body-sm text-on-surface">Microphone access was denied. Please click the tune/lock icon in your browser URL bar and change <strong>Microphone</strong> to <strong>Allow</strong>. On macOS, verify <em>System Settings &gt; Privacy &amp; Security &gt; Microphone</em>.</p>
+                </div>
+              `, "Microphone access was denied, Sir.");
             } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
               console.warn("[JARVIS VOICE] Web Speech notice:", e.error);
             }
@@ -762,12 +735,47 @@
           console.warn("Web Speech start failed, Local Faster-Whisper active:", err);
         }
       }
+
+      // Step 2: Initialize Audio Analyser & MediaRecorder in parallel
+      initAudioAnalyser().then((micOk) => {
+        if (!micOk) {
+          if (!recognition) {
+            statusCaption.textContent = "MIC BLOCKED // ALLOW PERMISSION";
+            transcribePreview.textContent = "Click 🔒 in URL bar -> set Microphone to 'Allow'";
+          }
+          return;
+        }
+
+        startLiveMicVisualizer();
+
+        try {
+          let mimeType = '';
+          if (typeof MediaRecorder !== 'undefined') {
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
+            else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+            else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+
+            mediaRecorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data && e.data.size > 0) audioChunks.push(e.data);
+            };
+            mediaRecorder.start(100);
+          }
+        } catch (err) {
+          console.warn("MediaRecorder init error:", err);
+        }
+      });
+
+      // Step 3: Hard limit safety timeout (12s)
+      maxDurationTimer = setTimeout(() => {
+        if (isListening) finishRecordingAndDispatch();
+      }, 12000);
     }
 
     function sendVoiceResult(text) {
       const clean = (text || '').trim();
       if (!clean) return;
-      stopVoiceListening();
+      stopVoiceRecognition();
       commandInput.value = '';
       transcribePreview.textContent = '';
       sendToJarvis(clean);
