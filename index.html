@@ -319,12 +319,36 @@
                 </div>
                 <div class="bg-surface-container-low/90 text-on-surface px-space-md py-space-md rounded-2xl rounded-tl-none max-w-2xl shadow-[0_8px_32px_rgba(0,0,0,0.7)] backdrop-blur-2xl space-y-space-md border border-outline-variant/30">
                   <p class="font-body-md text-body-md leading-relaxed text-on-surface">
-                    At your service, Sir. On-device <span class="text-primary font-bold">Gemma 2 (2B)</span> is operational on your Apple Silicon M2 with full macOS task integration. Tap the Arc Reactor or speak to issue directives.
+                    At your service, Commander Yaseen. Neural Core augmented with <span class="text-primary font-bold">OpenJarvis</span> and <span class="text-cyan-400 font-bold">Gemini 3.8 Flash</span> is operational on your Apple Silicon M2 with full macOS task integration. Tap the Arc Reactor, speak, or select a directive below.
                   </p>
                 </div>
               </div>
             </div>
 
+            <!-- Quick Directive Chips Strip -->
+            <div class="w-full max-w-3xl flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 select-none mb-1 text-xs">
+              <span class="text-[10px] font-label-telemetry text-primary/80 uppercase tracking-widest pl-1 shrink-0 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>DIRECTIVES:
+              </span>
+              <button type="button" onclick="sendToJarvis('give me my morning digest')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-high/70 hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/30 hover:border-primary/50 transition-all duration-200 flex items-center gap-1 font-mono text-[11px]">
+                <span class="material-symbols-outlined text-[13px] text-cyan-400">query_stats</span> Morning Digest
+              </button>
+              <button type="button" onclick="sendToJarvis('whatsapp 8197646867 mission ready')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-high/70 hover:bg-green-500/20 text-on-surface-variant hover:text-green-300 border border-outline-variant/30 hover:border-green-500/50 transition-all duration-200 flex items-center gap-1 font-mono text-[11px]">
+                <span class="material-symbols-outlined text-[13px] text-green-400">chat</span> WhatsApp Yaseen
+              </button>
+              <button type="button" onclick="sendToJarvis('what is my battery percentage')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-high/70 hover:bg-emerald-500/20 text-on-surface-variant hover:text-emerald-300 border border-outline-variant/30 hover:border-emerald-500/50 transition-all duration-200 flex items-center gap-1 font-mono text-[11px]">
+                <span class="material-symbols-outlined text-[13px] text-emerald-400">battery_charging_full</span> Vitals
+              </button>
+              <button type="button" onclick="sendToJarvis('write a code to compute fibonacci series in python')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-high/70 hover:bg-yellow-500/20 text-on-surface-variant hover:text-yellow-300 border border-outline-variant/30 hover:border-yellow-500/50 transition-all duration-200 flex items-center gap-1 font-mono text-[11px]">
+                <span class="material-symbols-outlined text-[13px] text-yellow-400">terminal</span> Python Code
+              </button>
+              <button type="button" onclick="sendToJarvis('write a letter to principal requesting leave for illness')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-high/70 hover:bg-purple-500/20 text-on-surface-variant hover:text-purple-300 border border-outline-variant/30 hover:border-purple-500/50 transition-all duration-200 flex items-center gap-1 font-mono text-[11px]">
+                <span class="material-symbols-outlined text-[13px] text-purple-400">description</span> Compose Letter
+              </button>
+              <button type="button" onclick="sendToJarvis('play Apna college Java tutorial on YouTube')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container-high/70 hover:bg-red-500/20 text-on-surface-variant hover:text-red-300 border border-outline-variant/30 hover:border-red-500/50 transition-all duration-200 flex items-center gap-1 font-mono text-[11px]">
+                <span class="material-symbols-outlined text-[13px] text-red-400">smart_display</span> YouTube Java
+              </button>
+            </div>
 
             <!-- Bottom Command Dock Interface -->
             <div class="w-full max-w-3xl relative mb-2">
