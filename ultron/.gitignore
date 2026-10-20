@@ -1,0 +1,40 @@
+# Virtual Environment & Python Caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Sensitive Environment & Secrets (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+secrets.json
+
+# Screenshots & Vision Captures
+screenshots/
+*.png
+*.jpg
+*.jpeg
+
+# Local Logs & Telemetry
+logs/
+*.log
+*.log.*
+
+# System & OS Files
+.DS_Store
+Thumbs.db
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+:memory:.ses

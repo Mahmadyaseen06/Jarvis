@@ -1,0 +1,9 @@
+# Core Desktop Automation & Vision
+pyautogui>=0.9.54
+pillow>=10.0.0
+pywhatkit>=5.4
+
+# LLM Brain & AI Inference (Free Tier & Local)
+groq>=0.11.0
+google-genai>=0.1.0
+python-dotenv>=1.0.0
